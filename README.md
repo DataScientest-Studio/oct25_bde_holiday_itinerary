@@ -1,6 +1,42 @@
-Project Name
+Holiday Itinerary
 ==============================
 
+## First steps to create a dataset and load into Neo4j
+dataset from datatourisme.fr can be downloaded here: [dataset](https://diffuseur.datatourisme.fr/webservice/b2ea75c3cd910637ff11634adec636ef/2644ca0a-e70f-44d5-90a5-3785f610c4b5)
+
+The .zip archive is around 1 GB large and unzipped around 8 GB
+
+__make_dataset.py__ script takes the directory and converts it to usable csv data with these informations:
+
+| row_name               | description               | example            |
+|------------------------|---------------------------|--------------------|
+| id                     | UUID from datatourisme.fr |                    |
+| label                  | name of the POI           |                    |
+| comment                | short description         |                    |
+| description            | long description          |                    |
+| types                  | list of POI types         | Restaurant, Museum |
+| homepage               | homepage                  |                    |
+| city                   | address part              |                    |
+| postal_code            | address part              |                    |
+| street                 | address part              |                    |
+| lat                    | latitude                  |                    |
+| long                   | longitude                 |                    |
+| additional_information | some additional info      |                    |
+
+This CSV can be then loaded into Neo4j database with command from __import_to_neo4j.txt__
+
+In the example data there is __paris.csv__ where I put POIs that have city == Paris for testing purposes.
+
+File __docker_compose.yml__ contains everything to start Neo4j locally with
+```shell
+docker-compose up -d
+```
+Note: in docker-compose the _NEO4J_server_directories_import_ ENV is set to __example_data__ which means only csv files from this directory may be imported to Neo4j.
+
+## Graph mapping
+there is at the moment no relationship mapping in for the POIs since there is no routes information between cities or so. This will have to be done in the next steps.
+
+-------
 This project is a starting Pack for MLOps projects based on the subject "movie_recommandation". It's not perfect so feel free to make some modifications on it.
 
 Project Organization
