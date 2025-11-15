@@ -41,3 +41,9 @@ repos:
         args: ["--number"]
         additional_dependencies:
           - mdformat-gfm
+  - repo: https://github.com/python-poetry/poetry
+    rev: 2.2.1
+    hooks:
+      - id: poetry-check
+      - id: poetry-lock
+        args: [--no-update]
