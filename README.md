@@ -3,6 +3,7 @@
 ## Dependencies
 
 1. [make](https://www.gnu.org/software/make/)
+2. [Poetry (version 2.2.1) ()](https://python-poetry.org/) -- python -m pip install poetry==2.2.1
 
 ### Development
 
