@@ -1,4 +1,5 @@
 from os import environ
+from typing import Any
 
 from neo4j import GraphDatabase
 
@@ -8,3 +9,9 @@ passphrase = environ.get("NEO4J_PASSPHRASE", "")
 
 
 driver = GraphDatabase.driver(uri, auth=(username, passphrase))
+
+
+def execute_query(query: str, **kwargs: dict[Any, Any]) -> list[Any] | None:
+    with driver.session() as session:
+        result = session.run(query, kwargs)
+        return [record for record in result]
