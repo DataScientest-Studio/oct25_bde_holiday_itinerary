@@ -27,7 +27,7 @@ This CSV can be then loaded into Neo4j database with command from __import_to_ne
 
 In the example data there is __paris.csv__ where I put POIs that have city == Paris for testing purposes.
 
-File __docker_compose.yml__ contains everything to start Neo4j locally with
+File __docker-compose.yml__ contains everything to start Neo4j locally with
 ```shell
 docker-compose up -d
 ```
