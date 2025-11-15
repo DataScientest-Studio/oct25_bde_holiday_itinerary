@@ -10,6 +10,8 @@ on create set
     poi.city = row.city,
     poi.postal_code = row.postal_code,
     poi.street = row.street,
-    poi.x = toFloat(row.lat),
-    poi.y = toFloat(row.long),
+    poi.location = point({
+        latitude: toFloat(row.lat),
+        longitude: toFloat(row.long)
+    }),
     poi.additional_information = row.additional_information
