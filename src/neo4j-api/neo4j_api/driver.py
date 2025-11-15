@@ -1,4 +1,6 @@
 from os import environ
+from signal import SIGINT, SIGTERM, signal
+from sys import exit
 from typing import Any
 
 from neo4j import GraphDatabase, Record
@@ -20,3 +22,13 @@ def execute_query(query: str, **kwargs: dict[Any, Any]) -> list[Record] | None:
 def close_driver() -> None:
     if driver:
         driver.close()
+
+
+def handle_exit_signal(signal_received: int, frame: Any) -> None:
+    print(f"\nSignal {signal_received} received. Closing Neo4j driver...")
+    close_driver()
+    exit(signal_received)
+
+
+signal(SIGINT, handle_exit_signal)
+signal(SIGTERM, handle_exit_signal)
