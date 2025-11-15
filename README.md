@@ -1,6 +1,10 @@
 Holiday Itinerary
 ==============================
 
+## Dependencies
+
+### Development
+
 ## First steps to create a dataset and load into Neo4j
 dataset from datatourisme.fr can be downloaded here: [dataset](https://diffuseur.datatourisme.fr/webservice/b2ea75c3cd910637ff11634adec636ef/2644ca0a-e70f-44d5-90a5-3785f610c4b5)
 
