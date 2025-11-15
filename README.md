@@ -8,7 +8,7 @@
 
 ### Development
 
-1. [Pre-commit](https://pre-commit.com/)
+1. [Pre-commit](https://pre-commit.com/) -- python -m pip install pre-commit==4.2.0
 
 ## First steps to create a dataset and load into Neo4j
 
