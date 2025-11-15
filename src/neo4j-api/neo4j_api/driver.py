@@ -15,3 +15,8 @@ def execute_query(query: str, **kwargs: dict[Any, Any]) -> list[Record] | None:
     with driver.session() as session:
         records = session.run(query, kwargs)
         return [record for record in records]
+
+
+def close_driver() -> None:
+    if driver:
+        driver.close()
