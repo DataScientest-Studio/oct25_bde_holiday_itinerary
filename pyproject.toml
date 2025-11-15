@@ -20,6 +20,8 @@ mypy = { version = "1.18.2" }
 
 [tool.poetry.group.neo4j_api.dependencies]
 neo4j = { version = "6.0.3" }
+fastapi = { version = "0.121.2" }
+uvicorn = { version = "0.38.0" }
 
 [tool.isort]
 profile = "black"
