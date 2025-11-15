@@ -2,6 +2,8 @@
 
 ## Dependencies
 
+1. [make](https://www.gnu.org/software/make/)
+
 ### Development
 
 1. [pre-commit](https://pre-commit.com/)
