@@ -26,11 +26,12 @@ class Neo4jDriver:
             MATCH (p1:Poi {id: $poi_id})
             MATCH (p2:Poi)
             WHERE p1 <> p2
-              AND distance(
-                    point({latitude: p1.x, longitude: p1.y}),
-                    point({latitude: p2.x, longitude: p2.y})
-                  ) <= $radius
-            RETURN p2.id AS id, p2.label AS label, p2.x AS lat, p2.y AS lon
+              AND distance(p1.location, p2.location) <= $radius
+            RETURN
+                p2.id AS id,
+                p2.label AS label,
+                p2.location.latitude AS lat,
+                p2.location.longitude AS lon
         """
         if records := self.execute_query(query, poi_id=poi_id, radius=radius):
             return [dict(record) for record in records]
