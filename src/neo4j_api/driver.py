@@ -5,30 +5,27 @@ from typing import Any
 
 from neo4j import GraphDatabase, Record
 
-uri = environ.get("NEO4J_URI", "bolt://localhost:7687")
-username = environ.get("NEO4J_USER", "neo4j")
-passphrase = environ.get("NEO4J_PASSPHRASE", "")
 
+class Neo4jDriver:
+    def __init__(self) -> None:
+        uri = environ.get("NEO4J_URI", "bolt://localhost:7687")
+        username = environ.get("NEO4J_USER", "neo4j")
+        passphrase = environ.get("NEO4J_PASSPHRASE", "")
+        self.driver = GraphDatabase.driver(uri, auth=(username, passphrase))
 
-driver = GraphDatabase.driver(uri, auth=(username, passphrase))
+        signal(SIGINT, self.handle_exit_signal)
+        signal(SIGTERM, self.handle_exit_signal)
 
+    def execute_query(self, query: str, **kwargs: dict[Any, Any]) -> list[Record] | None:
+        with self.driver.session() as session:
+            records = session.run(query, kwargs)
+            return [record for record in records]
 
-def execute_query(query: str, **kwargs: dict[Any, Any]) -> list[Record] | None:
-    with driver.session() as session:
-        records = session.run(query, kwargs)
-        return [record for record in records]
+    def close(self) -> None:
+        if self.driver:
+            self.driver.close()
 
-
-def close_driver() -> None:
-    if driver:
-        driver.close()
-
-
-def handle_exit_signal(signal_received: int, frame: Any) -> None:
-    print(f"\nSignal {signal_received} received. Closing Neo4j driver...")
-    close_driver()
-    exit(signal_received)
-
-
-signal(SIGINT, handle_exit_signal)
-signal(SIGTERM, handle_exit_signal)
+    def handle_exit_signal(self, signal_received: int, frame: Any) -> None:
+        print(f"\nSignal {signal_received} received. Closing Neo4j driver...")
+        self.close()
+        exit(signal_received)
