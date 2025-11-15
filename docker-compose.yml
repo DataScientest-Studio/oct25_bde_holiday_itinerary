@@ -12,6 +12,5 @@ services:
     volumes:
       - neo4j_data:/data
       - ./example_data:/import
-
 volumes:
   neo4j_data:
