@@ -34,3 +34,10 @@ repos:
       - id: mypy
         types: [python]
         args: [--strict, --ignore-missing-imports, --cache-dir=/dev/null]
+  - repo: https://github.com/executablebooks/mdformat
+    rev: 1.0.0
+    hooks:
+      - id: mdformat
+        args: ["--number"]
+        additional_dependencies:
+          - mdformat-gfm
