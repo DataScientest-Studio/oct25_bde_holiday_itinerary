@@ -6,6 +6,10 @@
 2. [Poetry (version 2.2.1) ()](https://python-poetry.org/) -- python -m pip
    install poetry==2.2.1
 
+### Poetry
+
+Run environment with `eval $(poetry env activate)`
+
 ### Development
 
 1. [Pre-commit](https://pre-commit.com/) -- python -m pip install pre-commit==4.2.0
