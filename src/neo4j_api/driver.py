@@ -41,7 +41,7 @@ class Neo4jDriver:
         poi = self.execute_query(query, poi_id=poi_id)
         return poi[0] if poi else {}
 
-    def get_nearby_points(self, poi_id: str, radius: float) -> dict[Any, Any] | None:
+    def get_nearby_points(self, poi_id: str, radius: float) -> dict[str, list[dict[Any, Any]]]:
         query = """
             MATCH (p1:Poi {id: $poi_id})
             MATCH (p2:Poi)
