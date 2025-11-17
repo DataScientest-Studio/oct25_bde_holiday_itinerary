@@ -13,8 +13,8 @@ WORKDIR /builder
 
 RUN python -m pip install --no-cache-dir poetry==2.2.1 && poetry config virtualenvs.create false
 
-COPY ./pyproject.toml ./poetry.lock ./
-RUN poetry install --no-interaction --no-ansi
+COPY ./pyproject.toml ./poetry.lock ./README.md ./
+RUN poetry install --no-interaction --no-ansi --no-root
 
 
 # Build image for make_dataset target
