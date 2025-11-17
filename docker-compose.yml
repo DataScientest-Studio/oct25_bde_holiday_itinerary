@@ -11,6 +11,8 @@ services:
     environment:
       - NEO4J_AUTH=none
       - NEO4J_server_directories_import=/import
+      - NEO4JLABS_PLUGINS=["apoc"]
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.algo.travelingSalesman
     volumes:
       - neo4j_data:/data
       - ./example_data:/import
