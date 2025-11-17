@@ -33,7 +33,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY ./example_data .
 COPY ./src/data/ .
 
-ENTRYPOINT ["python" "make_dataset.py"]
+ENTRYPOINT ["python", "make_dataset.py"]
 
 
 # Build image for Neo4j_api target
