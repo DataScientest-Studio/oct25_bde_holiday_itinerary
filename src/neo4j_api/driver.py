@@ -83,18 +83,18 @@ class Neo4jDriver:
         self.execute_query(query, poi_ids=poi_ids)
 
     def calculate_shortest_path(self, poi_ids: list[str]) -> dict[str, list[str] | float] | None:
-        self.create_edges(poi_ids)
-        query = """
-            CALL apoc.algo.travelingSalesman($poi_ids, 'CONNECTED', 'distance')
-            YIELD path, weight
-            RETURN [node IN nodes(path) | node.id] AS poi_order, weight AS total_distance
-        """
-        records = self.execute_query(query, poi_ids=poi_ids)
-        self.delete_edges(poi_ids)
-
-        if records:
-            return {"poi_order": records[0]["poi_order"], "total_distance": records[0]["total_distance"]}
-        return {"poi_order": [], "total_distance": 0.0}
+        try:
+            self.create_edges(poi_ids)
+            query = """
+                CALL apoc.algo.travelingSalesman($poi_ids, 'CONNECTED', 'distance')
+                YIELD path, weight
+                RETURN [node IN nodes(path) | node.id] AS poi_order, weight AS total_distance
+            """
+            if records := self.execute_query(query, poi_ids=poi_ids):
+                return {"poi_order": records[0]["poi_order"], "total_distance": records[0]["total_distance"]}
+            return {"poi_order": [], "total_distance": 0.0}
+        finally:
+            self.delete_edges(poi_ids)
 
     def close(self) -> None:
         if self.driver:
