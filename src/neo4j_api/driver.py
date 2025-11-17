@@ -94,7 +94,7 @@ class Neo4jDriver:
 
         if records:
             return {"poi_order": records[0]["poi_order"], "total_distance": records[0]["total_distance"]}
-        return None
+        return {"poi_order": [], "total_distance": 0.0}
 
     def close(self) -> None:
         if self.driver:
