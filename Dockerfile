@@ -18,7 +18,7 @@ RUN poetry install --no-interaction --no-ansi
 RUN poetry export --with neo4j_api  --without-hashes -f requirements.txt > requirements.txt
 
 # API image
-FROM python:3.13-slim-trixie AS API
+FROM python:3.13-slim-trixie AS Neo4j_API
 
 WORKDIR /neo4j_api
 
