@@ -21,6 +21,15 @@ class Neo4jDriver:
             records = session.run(query, kwargs)
             return [record for record in records]
 
+    def get_poi(self, poid_id: str) -> Record | None:
+        query = """
+            MATCH (p:Poi {id: $poi_id})
+            RETURN p;
+        """
+        if records := self.execute_query(query, poid_id=poid_id):
+            return records[0]
+        return None
+
     def get_nearby_points(self, poi_id: str, radius: float) -> list[Record] | None:
         query = """
             MATCH (p1:Poi {id: $poi_id})
