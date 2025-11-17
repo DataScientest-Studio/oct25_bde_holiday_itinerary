@@ -23,6 +23,10 @@ neo4j = "6.0.3"
 fastapi = "0.121.2"
 uvicorn = "0.38.0"
 
+
+[tool.poetry.group.make_dataset.dependencies]
+pandas = "2.3.3"
+
 [tool.isort]
 profile = "black"
 line_length = 120
