@@ -14,12 +14,12 @@ WORKDIR /builder
 RUN python -m pip install --no-cache-dir poetry==2.2.1 && poetry config virtualenvs.create false
 
 COPY ./pyproject.toml ./poetry.lock ./README.md ./
-RUN poetry install --no-interaction --no-ansi --no-root
 
 
 # Build image for make_dataset target
 FROM builder AS make_dataset-builder
 
+RUN poetry install --no-interaction --no-ansi --no-root --without dev,neo4j_api
 RUN eval $(poetry env activate) && pip freeze > requirements.txt
 
 # Make dataset image
@@ -33,12 +33,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY ./example_data .
 COPY ./src/data/ .
 
-ENTRYPOINT ["python3" "make_dataset.py"]
+ENTRYPOINT ["python" "make_dataset.py"]
 
 
 # Build image for Neo4j_api target
 FROM builder AS api-builder
 
+RUN poetry install --no-interaction --no-ansi --no-root --without dev,make_dataset
 RUN eval $(poetry env activate) && pip freeze > requirements.txt
 
 # API image
