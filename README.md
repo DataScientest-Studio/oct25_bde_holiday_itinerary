@@ -25,7 +25,7 @@ __make_dataset.py__ script takes the directory and converts it to usable csv dat
 
 This CSV can be then loaded into Neo4j database with command from __import_to_neo4j.txt__
 
-In the example data there is __paris.csv__ where I put POIs that have city == Paris for testing purposes.
+In the example data there is `france_poi.csv` archive and `france_cities.csv` datasets.
 
 File __docker_compose.yml__ contains everything to start Neo4j locally with
 ```shell
@@ -33,8 +33,35 @@ docker-compose up -d
 ```
 Note: in docker-compose the _NEO4J_server_directories_import_ ENV is set to __example_data__ which means only csv files from this directory may be imported to Neo4j.
 
-## Graph mapping
-there is at the moment no relationship mapping in for the POIs since there is no routes information between cities or so. This will have to be done in the next steps.
+## Manual Data Import to Graph
+details in `./src/data/import*`
+### Import POI
+Beware: takes a few minutes!
+```cypher
+:auto LOAD CSV WITH HEADERS FROM "file:///france_poi.csv" AS row
+CALL {
+  WITH row
+  WITH row, split(row.types, ',') AS typesList
+
+  MERGE (poi:Poi {id: row.id})
+    ON CREATE SET
+      poi.label                  = row.label,
+      poi.comment                = row.comment,
+      poi.description            = row.description,
+      poi.types                  = typesList,
+      poi.homepage               = row.homepage,
+      poi.city                   = row.city,
+      poi.postal_code            = row.postal_code,
+      poi.street                 = row.street,
+      poi.x                      = toFloat(row.lat),
+      poi.y                      = toFloat(row.long),
+      poi.additional_information = row.additional_information
+} IN TRANSACTIONS OF 5000 ROWS
+```
+### Import Cities and Roads
+```cypher
+CALL apoc.cypher.runFile("file:///cities_roadto.cypher");
+```
 
 -------
 This project is a starting Pack for MLOps projects based on the subject "movie_recommandation". It's not perfect so feel free to make some modifications on it.
