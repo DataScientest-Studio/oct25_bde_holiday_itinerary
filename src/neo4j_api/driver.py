@@ -63,6 +63,39 @@ class Neo4jDriver:
         records = self.execute_query(query, poi_id=poi_id, radius=radius)
         return {"nearby": records if records else []}
 
+    def create_edges(self, poi_ids: list[str]) -> None:
+        query = """
+            MATCH (p1:Poi), (p2:Poi)
+            WHERE p1.id < p2.id
+              AND p1.id IN $poi_ids
+              AND p2.id IN $poi_ids
+            MERGE (p1)-[edge:CONNECTED]->(p2)
+            ON CREATE SET edge.distance = distance(p1.location, p2.location)
+        """
+        self.execute_query(query, poi_ids=poi_ids)
+
+    def delete_edges(self, poi_ids: list[str]) -> None:
+        query = """
+            MATCH (p1:Poi)-[edge:CONNECTED]->(p2:Poi)
+            WHERE p1.id IN $poi_ids AND p2.id IN $poi_ids
+            DELETE edge
+        """
+        self.execute_query(query, poi_ids=poi_ids)
+
+    def calculate_shortest_path(self, poi_ids: list[str]) -> dict[str, list[str] | float] | None:
+        self.create_edges(poi_ids)
+        query = """
+            CALL apoc.algo.travelingSalesman($poi_ids, 'CONNECTED', 'distance')
+            YIELD path, weight
+            RETURN [node IN nodes(path) | node.id] AS poi_order, weight AS total_distance
+        """
+        records = self.execute_query(query, poi_ids=poi_ids)
+        self.delete_edges(poi_ids)
+
+        if records:
+            return {"poi_order": records[0]["poi_order"], "total_distance": records[0]["total_distance"]}
+        return None
+
     def close(self) -> None:
         if self.driver:
             self.driver.close()
