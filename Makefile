@@ -19,7 +19,7 @@ make-dataset:
 				time.sleep(1)
 		print("Neo4j ready!")
 	END
-	docker build --target=Make_dataset -t holiday_itineray:latest .
+	docker build --target=make_dataset -t holiday_itineray:latest .
 	docker run --rm holiday_itineray:latest
 
 run:

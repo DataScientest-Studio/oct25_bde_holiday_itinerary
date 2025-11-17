@@ -7,7 +7,7 @@ services:
     image: neo4j_api:latest
     build:
       context: .
-      target: Neo4j_API
+      target: neo4j_api
     ports:
       - "8080:8080"
     environment:
