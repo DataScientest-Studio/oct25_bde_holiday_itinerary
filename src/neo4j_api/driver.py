@@ -8,7 +8,7 @@ from neo4j import GraphDatabase
 
 class Neo4jDriver:
     def __init__(self) -> None:
-        uri = environ.get("NEO4J_URI", "bolt://localhost:7687")
+        uri = environ.get("NEO4J_URI", "bolt://neo4j:7687")
         username = environ.get("NEO4J_USER", "neo4j")
         passphrase = environ.get("NEO4J_PASSPHRASE", "")
         self.driver = GraphDatabase.driver(uri, auth=(username, passphrase))
