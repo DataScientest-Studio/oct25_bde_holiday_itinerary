@@ -82,7 +82,7 @@ class Neo4jDriver:
         """
         self.execute_query(query, poi_ids=poi_ids)
 
-    def calculate_shortest_path(self, poi_ids: list[str]) -> dict[str, list[str] | float] | None:
+    def calculate_shortest_path(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
         try:
             self.create_edges(poi_ids)
             query = """
