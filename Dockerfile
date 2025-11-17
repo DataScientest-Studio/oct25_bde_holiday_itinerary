@@ -17,6 +17,18 @@ COPY ./pyproject.toml ./poetry.lock ./
 RUN poetry install --no-interaction --no-ansi
 RUN poetry export --with neo4j_api  --without-hashes -f requirements.txt > requirements.txt
 
+
+# Make dataset image
+FROM python:3.13-slim-trixie AS Make_dataset
+
+WORKDIR /make_dataset
+
+COPY ./example_data .
+COPY ./src/data/ .
+
+ENTRYPOINT ["python3" "make_dataset.py"]
+
+
 # API image
 FROM python:3.13-slim-trixie AS Neo4j_API
 
