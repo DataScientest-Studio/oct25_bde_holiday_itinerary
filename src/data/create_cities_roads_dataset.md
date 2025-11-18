@@ -131,22 +131,31 @@ on create set
 
 
 # Export dataset
+
+export `cities_nodes.csv`
 ```cypher
-CALL apoc.export.cypher.query(
-  "MATCH (c:City) 
-   OPTIONAL MATCH (c)-[r:ROAD_TO]->(d:City)
-   RETURN c, r, d",
-  "cities_roadto.cypher",
-  {
-    format: "cypher-shell",
-    useOptimizations: {type: "UNWIND_BATCH", unwindBatchSize: 1000}
-  }
+ CALL apoc.export.csv.query(
+    'MATCH (c:City) 
+    RETURN 
+        c.id as `cityId:ID(City)`,
+        c.name as name,
+        c.administration as administration,
+        c.population as `population:DOUBLE`, 
+        c.population_proper as `population_proper:DOUBLE`,
+        c.location.latitude as `latitude:DOUBLE`,
+        c.location.longitude as `longitude:DOUBLE`,
+        \'City\' as `:LABEL`',
+    'cities_nodes.csv',
+    {}
 )
-YIELD file, source, format, nodes, relationships, properties, time, rows
-RETURN *;
 ```
 
-# Import cities_roadto.cypher dataset
+export `roads_rels.csv`
 ```cypher
-CALL apoc.cypher.runFile("file:///cities_roadto.cypher");
+ CALL apoc.export.csv.query(
+            'MATCH (from:City)-[r:ROAD_TO]->(to:City) 
+             RETURN from.id AS `:START_ID(City)`, to.id as `:END_ID(City)`, r.km AS `km:DOUBLE`, r.wcc_connect as `wcc_connect:BOOLEAN`',
+            'roads_rels.csv',
+            {}
+        )
 ```

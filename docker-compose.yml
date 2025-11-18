@@ -12,10 +12,11 @@ services:
       - NEO4J_apoc_export_file_enabled=true
       - NEO4J_apoc_import_file_enabled=true
       - NEO4J_apoc_import_file_use__neo4j__config=true
-      - NEO4JLABS_PLUGINS=["apoc-extended", "graph-data-science"]
+      - NEO4J_PLUGINS=["apoc-extended", "apoc", "graph-data-science"]
     volumes:
       - neo4j_data:/data
       - ./example_data:/import
 
 volumes:
   neo4j_data:
+    name: neo4j_data

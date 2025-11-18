@@ -6,7 +6,6 @@ whole dataset (> 1 GB) can be downloaded here: https://diffuseur.datatourisme.fr
 import json
 import re
 import time
-from datetime import datetime
 from functools import reduce
 from operator import getitem
 from pathlib import Path
@@ -14,12 +13,12 @@ from typing import Any
 
 import pandas as pd
 
-flux_directory = Path("example_data")
-output_directory = Path("example_data")
+flux_directory = Path("../../example_data")
+output_directory = Path("../../example_data")
 
 # captures UUID from file name
 filename_pattern = re.compile(
-    r".*(?P<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}).json"
+    r"(.*/)*(?P<id>[\d]*-[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}).json"
 )
 
 def get_nested(data: dict, path: str, default: Any = None) -> Any:
@@ -57,6 +56,34 @@ def get_data_from_poi(id, index_label, d):
     return result
 
 
+def store_nodes_and_edges(df):
+    """stores nodes separately from edges for easy neo4j import"""
+    poi_nodes_df = df.drop(columns=["types"]).rename(columns={
+        "id": f"poiId:ID(POI)",
+        "lat": "latitude:FLOAT",
+        "long": "longitude:FLOAT",
+    })
+    poi_nodes_df[':LABEL'] = 'POI'
+    duplicates = poi_nodes_df[poi_nodes_df.duplicated(subset='poiId:ID(POI)', keep=False)].sort_values("poiId:ID(POI)")
+    if not duplicates.empty:
+        raise Exception("duplicates found in poiID")
+    poi_nodes_df.to_csv(output_directory / 'poi_nodes.csv', index=False)
+
+    rels_df = df.explode("types")
+    rels_df = rels_df[~rels_df["types"].str.contains("schema:")]
+    type_nodes_df = rels_df['types'].unique()
+    type_nodes_df = pd.DataFrame(type_nodes_df, columns=['typeId:ID(Type)'])
+    type_nodes_df[':LABEL'] = 'Type'
+    type_nodes_df = type_nodes_df[~type_nodes_df["typeId:ID(Type)"].str.contains("schema:")]
+    type_nodes_df.to_csv(output_directory / 'type_nodes.csv', index=False)
+
+    poi_is_a_type_df = rels_df[["id", 'types']].rename(columns={
+        "id": ':START_ID(POI)',
+        'types': ':END_ID(Type)'
+    })
+    poi_is_a_type_df[':TYPE'] = 'IS_A'
+    poi_is_a_type_df.to_csv(output_directory / 'poi_is_a_type_rels.csv', index=False)
+
 def main():
     data = []
     start = time.perf_counter()
@@ -73,9 +100,7 @@ def main():
     })
     df.insert(0, "label", df["label_en"].combine_first(df["label_fr"]).combine_first(df["label_index"]))
     df.drop(columns=["label_en", "label_fr", "label_index"], inplace=True)
-    # filter out schema: types and convert to json string
-    df["types"] = df["types"].apply(lambda x: ",".join([i for i in x if "schema:" not in i]))
-    df.to_csv(output_directory/f"data{datetime.now():%Y-%m-%d_%H-%M}.csv" , index=False)
+    store_nodes_and_edges(df)
     end = time.perf_counter()
     print(f"Done in {end - start} seconds")
 
