@@ -14,6 +14,11 @@ def get_poi(poi_id: str) -> dict[str, Any]:
     return driver.get_poi(poi_id)
 
 
+@app.get("/distance")  # type: ignore
+def get_distance(poi1_id: str, poi2_id: str) -> dict[str, float]:
+    return {"distance": driver.calculate_distance_between_two_nodes(poi1_id, poi2_id)}
+
+
 @app.get("/nearby")  # type: ignore
 def get_nearby_points(poi_id: str, radius: float) -> dict[str, Any]:
     return driver.get_nearby_points(poi_id, radius)
