@@ -3,7 +3,9 @@ from signal import SIGINT, SIGTERM, signal
 from sys import exit
 from typing import Any
 
+import numpy as np
 from neo4j import GraphDatabase
+from python_tsp.exact import solve_tsp_dynamic_programming
 
 
 class Neo4jDriver:
@@ -46,7 +48,7 @@ class Neo4jDriver:
             MATCH (p1:Poi {id: $poi_id})
             MATCH (p2:Poi)
             WHERE p1 <> p2
-              AND distance(p1.location, p2.location) <= $radius
+              AND point.distance(p1.location, p2.location) <= $radius
             RETURN
                 p2.id AS id,
                 p2.comment AS comment,
@@ -63,38 +65,64 @@ class Neo4jDriver:
         records = self.execute_query(query, poi_id=poi_id, radius=radius)
         return {"nearby": records if records else []}
 
-    def create_edges(self, poi_ids: list[str]) -> None:
+    def calculate_distance_between_two_nodes(self, poi1_id: str, poi2_id: str) -> float:
         query = """
-            MATCH (p1:Poi), (p2:Poi)
-            WHERE p1.id < p2.id
-              AND p1.id IN $poi_ids
-              AND p2.id IN $poi_ids
-            MERGE (p1)-[edge:CONNECTED]->(p2)
-            ON CREATE SET edge.distance = distance(p1.location, p2.location)
+            MATCH(p1:Poi {id: $poi1_id})
+            MATCH(p2:Poi {id: $poi2_id})
+            RETURN point.distance(p2.location, p1.location) AS distance
         """
-        self.execute_query(query, poi_ids=poi_ids)
+        if result := self.execute_query(query, poi1_id=poi1_id, poi2_id=poi2_id):
+            return result[0]["distance"]  # type: ignore[no-any-return]
+        # TODO: handle not existing node
+        return np.inf  # type: ignore[no-any-return]
 
-    def delete_edges(self, poi_ids: list[str]) -> None:
-        query = """
-            MATCH (p1:Poi)-[edge:CONNECTED]->(p2:Poi)
-            WHERE p1.id IN $poi_ids AND p2.id IN $poi_ids
-            DELETE edge
-        """
-        self.execute_query(query, poi_ids=poi_ids)
+    def create_weight_matrix(self, poi_ids: list[str]) -> np.ndarray[Any, Any]:
+        n = len(poi_ids)
+        weights: list[list[float]] = np.full((n, n), np.inf)
+        for i in range(0, n):
+            for j in range(0, n):
+                if i == j:
+                    continue
+                weights[i][j] = self.calculate_distance_between_two_nodes(poi1_id=poi_ids[i], poi2_id=poi_ids[j])
+        return weights
 
-    def calculate_shortest_path(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
-        try:
-            self.create_edges(poi_ids)
-            query = """
-                CALL apoc.algo.travelingSalesman($poi_ids, 'CONNECTED', 'distance')
-                YIELD path, weight
-                RETURN [node IN nodes(path) | node.id] AS poi_order, weight AS total_distance
-            """
-            if records := self.execute_query(query, poi_ids=poi_ids):
-                return {"poi_order": records[0]["poi_order"], "total_distance": records[0]["total_distance"]}
-            return {"poi_order": [], "total_distance": 0.0}
-        finally:
-            self.delete_edges(poi_ids)
+    def calculate_tsp(self, weights: np.ndarray[Any, Any], poi_ids: list[str]) -> dict[str, list[str] | float]:
+        permutation, distance = solve_tsp_dynamic_programming(weights)
+        return {"poi_order": [poi_ids[i] for i in permutation], "total_distance": distance}
+
+    def shortest_path_between_all_nodes_with_fixed_start(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
+        weights = self.create_weight_matrix(poi_ids)
+        weights[:, 0] = 0
+        return self.calculate_tsp(weights, poi_ids)
+
+    def shortest_path_between_all_nodes_with_fixed_end(
+        self, poi_ids: list[str], end: str
+    ) -> dict[str, list[str] | float]:
+        poi_ids.remove(end)
+        poi_ids.insert(0, end)
+        tsp_result = self.shortest_path_between_all_nodes_with_fixed_start(poi_ids)
+        tsp_result["poi_order"] = list(reversed(tsp_result["poi_order"]))  # type: ignore[arg-type]
+        return tsp_result
+
+    def shortest_round_tour_visiting_all_nodes(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
+        weights = self.create_weight_matrix(poi_ids)
+        return self.calculate_tsp(weights, poi_ids)
+
+    def calculate_shortest_path_with_fixed_start_and_fixed_end(
+        self, poi_ids: list[str], end: str
+    ) -> dict[str, list[str] | float]:
+        # Does not work. Never will.
+        poi_ids.remove(end)
+        weights_to_end = [self.calculate_distance_between_two_nodes(poi1_id=end, poi2_id=node) for node in poi_ids]
+        total_distance = np.inf
+        for _ in poi_ids:
+            weights = self.create_weight_matrix(poi_ids)
+            permutation, distance = solve_tsp_dynamic_programming(weights)
+            if distance + weights_to_end[permutation[-1]] < total_distance:
+                total_distance = distance + weights_to_end
+                # Need to modify value of weight smart. But how. Probably own algorithm.
+
+        return self.calculate_tsp(weights, poi_ids)
 
     def close(self) -> None:
         if self.driver:
