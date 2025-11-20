@@ -1,6 +1,6 @@
 from typing import Any
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 
 from .driver import Neo4jDriver
 
@@ -20,5 +20,5 @@ def get_nearby_points(poi_id: str, radius: float) -> dict[str, Any]:
 
 
 @app.get("/calculate-shortest-path")  # type: ignore
-def calculate_shortest_path(poi_ids: list[str]) -> dict[str, Any]:
-    return driver.calculate_shortest_path(poi_ids)
+def calculate_shortest_path(poi_ids: list[str] = Query(...)) -> dict[str, list[str] | float]:
+    return driver.shortest_round_tour_visiting_all_nodes(poi_ids)
