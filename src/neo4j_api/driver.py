@@ -124,6 +124,17 @@ class Neo4jDriver:
 
         return self.calculate_tsp(weights, poi_ids)
 
+    def create_edges(self, poi_ids: list[str]) -> None:
+        query = """
+            MATCH (p1:Poi), (p2:Poi)
+            WHERE p1.id < p2.id
+              AND p1.id IN $poi_ids
+              AND p2.id IN $poi_ids
+            MERGE (p1)-[edge:CONNECTED]->(p2)
+            ON CREATE SET edge.distance = distance(p1.location, p2.location)
+        """
+        self.execute_query(query, poi_ids=poi_ids)
+
     def close(self) -> None:
         if self.driver:
             self.driver.close()
