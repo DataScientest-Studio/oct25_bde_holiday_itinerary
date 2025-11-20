@@ -155,7 +155,6 @@ class Neo4jDriver:
                 RETURN path, weight
             """
             if result := self.execute_query(query, start=start, end=end):
-                print(result)
                 poi_order = []
                 for node in result[0]["path"]:
                     if isinstance(node, dict):
