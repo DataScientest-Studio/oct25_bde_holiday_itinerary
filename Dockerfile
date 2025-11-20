@@ -52,4 +52,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ./src/neo4j_api/ .
 
-ENTRYPOINT ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
+WORKDIR /
+
+ENTRYPOINT ["uvicorn", "neo4j_api.api:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
