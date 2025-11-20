@@ -19,6 +19,6 @@ def get_nearby_points(poi_id: str, radius: float) -> dict[str, Any]:
     return driver.get_nearby_points(poi_id, radius)
 
 
-@app.get("/calculate-shortest-path")  # type: ignore
-def calculate_shortest_path(poi_ids: list[str] = Query(...)) -> dict[str, list[str] | float]:
+@app.get("/shortest-round-tour-visiting-all-nodes")  # type: ignore
+def shortest_round_tour_visiting_all_nodes(poi_ids: list[str] = Query(...)) -> dict[str, list[str] | float]:
     return driver.shortest_round_tour_visiting_all_nodes(poi_ids)
