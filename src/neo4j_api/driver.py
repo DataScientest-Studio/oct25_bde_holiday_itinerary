@@ -135,6 +135,14 @@ class Neo4jDriver:
         """
         self.execute_query(query, poi_ids=poi_ids)
 
+    def delete_edges(self, poi_ids: list[str]) -> None:
+        query = """
+            MATCH (p1:Poi)-[edge:CONNECTED]->(p2:Poi)
+            WHERE p1.id IN $poi_ids AND p2.id IN $poi_ids
+            DELETE edge
+        """
+        self.execute_query(query, poi_ids=poi_ids)
+
     def close(self) -> None:
         if self.driver:
             self.driver.close()
