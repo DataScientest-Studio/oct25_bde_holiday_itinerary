@@ -39,3 +39,8 @@ def shortest_path_between_all_nodes_with_fixed_end(
     end: str, poi_ids: list[str] = Query(...)
 ) -> dict[str, list[str] | float]:
     return driver.shortest_path_between_all_nodes_with_fixed_end(end, poi_ids)
+
+
+@app.get("/shortest-path-from-start-to-end")  # type: ignore
+def shortest_path_from_start_to_end(poi_ids: list[str] = Query(...)) -> dict[str, list[str] | float]:
+    return driver.find_shortest_in_a_set_of_nodes_from_start_to_end(poi_ids)
