@@ -155,7 +155,12 @@ class Neo4jDriver:
                 RETURN path, weight
             """
             if result := self.execute_query(query, start=start, end=end):
-                return {"poi_order": [node.id for node in result[0]["path"]], "total_distance": result[0]["weight"]}
+                print(result)
+                poi_order = []
+                for node in result[0]["path"]:
+                    if isinstance(node, dict):
+                        poi_order.append(node["id"])
+                return {"poi_order": poi_order, "total_distance": result[0]["weight"]}
             return {"poi_order": [], "total_distance": 0.0}
 
         finally:
