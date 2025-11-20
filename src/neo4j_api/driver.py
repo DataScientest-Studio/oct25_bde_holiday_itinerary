@@ -143,6 +143,24 @@ class Neo4jDriver:
         """
         self.execute_query(query, poi_ids=poi_ids)
 
+    def find_shortest_in_a_set_of_nodes_from_start_to_end(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
+        try:
+            start = poi_ids[0]
+            end = poi_ids[-1]
+            self.create_edges(poi_ids)
+            query = """
+                MATCH (start:Poi {id: $start})
+                MATCH (end:Poi {id: $end})
+                CALL apoc.algo.dijkstra(start, end, 'CONNECTED>', 'distance') YIELD path, weight
+                RETURN path, weight
+            """
+            if result := self.execute_query(query, start=start, end=end):
+                return {"poi_order": [node.id for node in result[0]["path"]], "total_distance": result[0]["weight"]}
+            return {"poi_order": [], "total_distance": 0.0}
+
+        finally:
+            self.delete_edges(poi_ids)
+
     def close(self) -> None:
         if self.driver:
             self.driver.close()
