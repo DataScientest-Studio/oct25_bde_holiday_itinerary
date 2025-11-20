@@ -96,7 +96,7 @@ class Neo4jDriver:
         return self.calculate_tsp(weights, poi_ids)
 
     def shortest_path_between_all_nodes_with_fixed_end(
-        self, poi_ids: list[str], end: str
+        self, end: str, poi_ids: list[str]
     ) -> dict[str, list[str] | float]:
         poi_ids.remove(end)
         poi_ids.insert(0, end)

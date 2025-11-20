@@ -27,3 +27,10 @@ def shortest_round_tour_visiting_all_nodes(poi_ids: list[str] = Query(...)) -> d
 @app.get("/shortest-path-between-all-nodes-with-fixed-start")  # type: ignore
 def shortest_path_between_all_nodes_with_fixed_start(poi_ids: list[str] = Query(...)) -> dict[str, list[str] | float]:
     return driver.shortest_round_tour_visiting_all_nodes(poi_ids)
+
+
+@app.get("/shortest-path-between-all-nodes-with-fixed-end")  # type: ignore
+def shortest_path_between_all_nodes_with_fixed_end(
+    end: str, poi_ids: list[str] = Query(...)
+) -> dict[str, list[str] | float]:
+    return driver.shortest_path_between_all_nodes_with_fixed_end(end, poi_ids)
