@@ -108,7 +108,7 @@ class Neo4jDriver:
         weights = self.create_weight_matrix(poi_ids)
         return self.calculate_tsp(weights, poi_ids)
 
-    def calculate_shortest_path_with_fixed_start_and_fixed_end(
+    def shortest_path_between_all_nodes_with_fixed_start_and_fixed_end(
         self, poi_ids: list[str], end: str
     ) -> dict[str, list[str] | float]:
         # Does not work. Never will.
