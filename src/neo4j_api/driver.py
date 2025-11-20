@@ -48,7 +48,7 @@ class Neo4jDriver:
             MATCH (p1:Poi {id: $poi_id})
             MATCH (p2:Poi)
             WHERE p1 <> p2
-              AND point.distance(p1.location, p2.location) <= $radius
+                AND point.distance(p1.location, p2.location) <= $radius
             RETURN
                 p2.id AS id,
                 p2.comment AS comment,
@@ -128,8 +128,8 @@ class Neo4jDriver:
         query = """
             MATCH (p1:Poi), (p2:Poi)
             WHERE p1.id <> p2.id
-              AND p1.id IN $poi_ids
-              AND p2.id IN $poi_ids
+                AND p1.id IN $poi_ids
+                AND p2.id IN $poi_ids
             MERGE (p1)-[edge:CONNECTED]->(p2)
             SET edge.distance = point.distance(p1.location, p2.location)
         """
