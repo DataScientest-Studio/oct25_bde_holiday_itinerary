@@ -24,9 +24,9 @@ def NEO4J_USER():
 
 @pytest.fixture(scope="session")
 def NEO4J_PASSPHRASE():
-    neo4j_password = "neo4j-test"
-    environ["NEO4J_PASSPHRASE"] = neo4j_password
-    return neo4j_password
+    neo4j_passphrase = "neo4j-test"
+    environ["NEO4J_PASSPHRASE"] = neo4j_passphrase
+    return neo4j_passphrase
 
 
 @pytest.fixture(scope="session")
