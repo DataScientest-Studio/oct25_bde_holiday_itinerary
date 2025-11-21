@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock
 
 import pytest
+from fastapi.testclient import TestClient
 from main import app
 
 
@@ -52,3 +53,8 @@ def mock_driver(monkeypatch):
 
     app.state.driver = driver_mock
     return driver_mock
+
+
+@pytest.fixture
+def client():
+    return TestClient(app)
