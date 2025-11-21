@@ -5,6 +5,8 @@ from pathlib import Path
 import pytest
 from neo4j import GraphDatabase
 
+from neo4j_driver.neo4j_driver import Neo4jDriver
+
 TEST_DATA_DIR = Path("tests/neo4j_driver_tests/data")
 
 
@@ -80,4 +82,11 @@ def database(NEO4J_URI, NEO4J_USER, NEO4J_PASSPHRASE, csv_file_rows):
     # Clean up the database after the tests
     with driver.session() as session:
         session.run("MATCH (n) DETACH DELETE n")
+    driver.close()
+
+
+@pytest.fixture
+def neo4j_driver(database):
+    driver = Neo4jDriver()
+    yield driver
     driver.close()
