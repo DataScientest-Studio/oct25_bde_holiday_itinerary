@@ -1,18 +1,17 @@
 from typing import Any
 
-from fastapi import APIRouter
-
-from neo4j_driver.driver import Neo4jDriver
+from fastapi import APIRouter, Request
 
 router = APIRouter()
-driver = Neo4jDriver()
 
 
-@router.get("/")  # type: ignore
-def get_poi(poi_id: str) -> dict[str, Any]:
+@router.get("/")  # type: ignore[misc]
+def get_poi(request: Request, poi_id: str) -> dict[str, Any]:
+    driver = request.app.state.driver
     return driver.get_poi(poi_id)  # type: ignore
 
 
-@router.get("/nearby")  # type: ignore
-def get_nearby_points(poi_id: str, radius: float) -> dict[str, Any]:
+@router.get("/nearby")  # type: ignore[misc]
+def get_nearby_points(request: Request, poi_id: str, radius: float) -> dict[str, Any]:
+    driver = request.app.state.driver
     return driver.get_nearby_points(poi_id, radius)  # type: ignore
