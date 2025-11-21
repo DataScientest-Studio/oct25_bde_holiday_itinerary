@@ -23,9 +23,9 @@ def NEO4J_USER():
 
 
 @pytest.fixture(scope="session")
-def NEO4J_PASSWORD():
-    neo4j_password = "neo4j"
-    environ["NEO4J_PASSWORD"] = neo4j_password
+def NEO4J_PASSPHRASE():
+    neo4j_password = "neo4j-test"
+    environ["NEO4J_PASSPHRASE"] = neo4j_password
     return neo4j_password
 
 
@@ -37,8 +37,8 @@ def NEO4J_DATABASE():
 
 
 @pytest.fixture(scope="function")
-def database(NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, NEO4J_DATABASE):
-    driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
+def database(NEO4J_URI, NEO4J_USER, NEO4J_PASSPHRASE, NEO4J_DATABASE):
+    driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSPHRASE))
     with driver.session(database="system") as session:
         session.run(f"CREATE DATABASE {NEO4J_DATABASE} IF NOT EXISTS")
 
