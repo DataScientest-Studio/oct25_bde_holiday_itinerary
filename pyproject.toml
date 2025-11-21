@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "oct25-bde-holiday-itinerary"
 version = "0.1.0"
-description = "Simple Tool to plan holiday routes in france."
+description = "Simple tool to plan holiday routes in france."
 authors = [
     "Adam Stibal <adam.stibal@gmail.com>",
     "Max Düssler <max.duessler@posteo.net>",
