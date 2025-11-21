@@ -18,12 +18,14 @@ isort = "7.0.0"
 flake8 = "7.3.0"
 mypy = "1.18.2"
 
-[tool.poetry.group.neo4j_api.dependencies]
+[tool.poetry.group.neo4j_driver.dependencies]
 neo4j = "6.0.3"
-fastapi = "0.121.2"
-uvicorn = "0.38.0"
 numpy = "2.3.5"
 python-tsp = "0.5.0"
+
+[tool.poetry.group.neo4j_api.dependencies]
+fastapi = "0.121.2"
+uvicorn = "0.38.0"
 
 
 [tool.poetry.group.make_dataset.dependencies]
