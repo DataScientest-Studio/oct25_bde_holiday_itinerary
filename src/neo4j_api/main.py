@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from neo4j_driver.driver import Neo4jDriver
+from neo4j_driver.neo4j_driver import Neo4jDriver
 
 from .routes import dijkstra, distance, poi, tsp
 
