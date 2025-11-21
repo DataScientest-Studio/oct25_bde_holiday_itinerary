@@ -17,6 +17,7 @@ black = "25.11.0"
 isort = "7.0.0"
 flake8 = "7.3.0"
 mypy = "1.18.2"
+pytest = "9.0.1"
 
 [tool.poetry.group.neo4j_driver.dependencies]
 neo4j = "6.0.3"
