@@ -11,7 +11,7 @@ TEST_DATA_DIR = Path("tests/neo4j_driver_tests/data")
 @pytest.fixture(scope="session")
 def NEO4J_URI():
     neo4j_uri = "bolt://localhost:7687"
-    environ["NEO4J_URI"] = NEO4J_URI
+    environ["NEO4J_URI"] = neo4j_uri
     return neo4j_uri
 
 
