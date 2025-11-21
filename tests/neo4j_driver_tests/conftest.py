@@ -21,12 +21,12 @@ def mock_driver(monkeypatch):
             {"id": "ba53474b-b720-3e97-b475-9eeae5cdac13"},
         ]
     }
-    driver_mock.get_distance.return_value = {"distance": 100.0}
+    driver_mock.calculate_distance_between_two_nodes.return_value = 100.0
     driver_mock.shortest_path_from_start_to_end.return_value = {
         "poi_order": ["6d640ca5-e6df-3506-bfed-007661e44551", "0b155dd7-9f4b-3b69-a221-42b4ae3c0f4c"],
         "total_distance": 5510.640487130491,
     }
-    driver_mock.shortest_round_tour.return_value = {
+    driver_mock.calculate_shortest_round_tour.return_value = {
         "poi_order": [
             "6d640ca5-e6df-3506-bfed-007661e44551",
             "8e795fb1-0f36-34ca-ba08-1784a50cefdc",
@@ -34,7 +34,7 @@ def mock_driver(monkeypatch):
         ],
         "total_distance": 13121.616547681424,
     }
-    driver_mock.shortest_path_no_return.return_value = {
+    driver_mock.calculate_shortest_path_no_return.return_value = {
         "poi_order": [
             "6d640ca5-e6df-3506-bfed-007661e44551",
             "8e795fb1-0f36-34ca-ba08-1784a50cefdc",
@@ -42,7 +42,7 @@ def mock_driver(monkeypatch):
         ],
         "total_distance": 7610.976060550933,
     }
-    driver_mock.shortest_path_fixed_dest.return_value = {
+    driver_mock.calculate_shortest_path_fixed_dest.return_value = {
         "poi_order": [
             "6d640ca5-e6df-3506-bfed-007661e44551",
             "0b155dd7-9f4b-3b69-a221-42b4ae3c0f4c",
