@@ -11,3 +11,7 @@ make-dataset:
 
 run:
 	docker compose up -d
+
+tests:
+	docker build --target=development -t holiday:development .
+	docker run holiday:development
