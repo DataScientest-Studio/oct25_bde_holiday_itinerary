@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       docker:
-        image: docker:20.10.24
+        image: docker:29.0.2
         options: --privileged
     steps:
       - name: Checkout code
