@@ -141,7 +141,7 @@ class Neo4jDriver:
         """
         self.execute_query(query, poi_ids=poi_ids)
 
-    def find_shortest_in_a_set_of_nodes_from_start_to_end(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
+    def calculate_shortest_path_from_start_to_dest(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
         try:
             start = poi_ids[0]
             end = poi_ids[-1]

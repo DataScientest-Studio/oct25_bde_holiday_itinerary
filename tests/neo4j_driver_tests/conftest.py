@@ -22,7 +22,7 @@ def mock_driver(monkeypatch):
         ]
     }
     driver_mock.calculate_distance_between_two_nodes.return_value = 100.0
-    driver_mock.shortest_path_from_start_to_end.return_value = {
+    driver_mock.calculate_shortest_path_from_start_to_dest.return_value = {
         "poi_order": ["6d640ca5-e6df-3506-bfed-007661e44551", "0b155dd7-9f4b-3b69-a221-42b4ae3c0f4c"],
         "total_distance": 5510.640487130491,
     }
