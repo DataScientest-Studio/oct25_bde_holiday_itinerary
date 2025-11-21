@@ -98,7 +98,7 @@ class Neo4jDriver:
     def calculate_shortest_path_fixed_dest(self, dest: str, poi_ids: list[str]) -> dict[str, list[str] | float]:
         poi_ids.remove(dest)
         poi_ids.insert(0, dest)
-        tsp_result = self.shortest_path_between_all_nodes_with_fixed_start(poi_ids)
+        tsp_result = self.calculate_shortest_path_no_return(poi_ids)
         tsp_result["poi_order"] = list(reversed(tsp_result["poi_order"]))  # type: ignore[arg-type]
         return tsp_result
 
