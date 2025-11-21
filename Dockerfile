@@ -58,3 +58,27 @@ ENV PYTHONPATH=/app
 WORKDIR /
 
 ENTRYPOINT ["uvicorn", "neo4j_api:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
+
+
+# development image
+FROM python:3.13-slim-trixie AS development
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PIP_NO_CACHE_DIR=1
+ENV PYTHONPATH=/app/src
+
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+WORKDIR /app
+
+RUN python -m pip install --no-cache-dir poetry==2.2.1 \
+    && poetry config virtualenvs.create false
+
+COPY pyproject.toml poetry.lock ./
+RUN poetry install --no-interaction --no-ansi --no-root
+
+COPY . .
+
+CMD ["python", "-m", "pytest", "-v"]
