@@ -90,21 +90,19 @@ class Neo4jDriver:
         permutation, distance = solve_tsp_dynamic_programming(weights)
         return {"poi_order": [poi_ids[i] for i in permutation], "total_distance": distance}
 
-    def shortest_path_between_all_nodes_with_fixed_start(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
+    def calculate_shortest_path_no_return(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
         weights = self.create_weight_matrix(poi_ids)
         weights[:, 0] = 0
         return self.calculate_tsp(weights, poi_ids)
 
-    def shortest_path_between_all_nodes_with_fixed_end(
-        self, end: str, poi_ids: list[str]
-    ) -> dict[str, list[str] | float]:
-        poi_ids.remove(end)
-        poi_ids.insert(0, end)
+    def calculate_shortest_path_fixed_dest(self, dest: str, poi_ids: list[str]) -> dict[str, list[str] | float]:
+        poi_ids.remove(dest)
+        poi_ids.insert(0, dest)
         tsp_result = self.shortest_path_between_all_nodes_with_fixed_start(poi_ids)
         tsp_result["poi_order"] = list(reversed(tsp_result["poi_order"]))  # type: ignore[arg-type]
         return tsp_result
 
-    def shortest_round_tour_visiting_all_nodes(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
+    def calculate_shortest_round_tour(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
         weights = self.create_weight_matrix(poi_ids)
         return self.calculate_tsp(weights, poi_ids)
 
