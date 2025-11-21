@@ -45,13 +45,16 @@ RUN eval $(poetry env activate) && pip freeze > requirements.txt
 # API image
 FROM python:3.13-slim-trixie AS neo4j_api
 
-WORKDIR /neo4j_api
+WORKDIR /app
 
 COPY --from=api-builder /builder/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY ./src/neo4j_api/ .
+COPY ./src/neo4j_api /app/neo4j_api
+COPY ./src/neo4j_driver /app/neo4j_driver
+
+ENV PYTHONPATH=/app
 
 WORKDIR /
 
-ENTRYPOINT ["uvicorn", "neo4j_api.api:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
+ENTRYPOINT ["uvicorn", "neo4j_api:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
