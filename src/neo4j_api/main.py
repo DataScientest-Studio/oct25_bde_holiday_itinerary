@@ -1,20 +1,20 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
 from neo4j_driver.neo4j_driver import Neo4jDriver
 
 from .routes import dijkstra, distance, poi, tsp
 
-app = FastAPI()
 
-
-@app.on_event("startup")  # type: ignore[misc]
-async def startup_event() -> None:
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     app.state.driver = Neo4jDriver()
-
-
-@app.on_event("shutdown")  # type: ignore[misc]
-async def shutdown_event() -> None:
+    yield
     await app.state.driver.close()
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 app.include_router(poi.router, prefix="/poi", tags=["POI"])
