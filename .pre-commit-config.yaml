@@ -34,6 +34,10 @@ repos:
       - id: mypy
         types: [python]
         args: [--strict, --ignore-missing-imports, --cache-dir=/dev/null]
+        exclude: |
+          (?x)^(
+            tests/ |
+          )
   - repo: https://github.com/executablebooks/mdformat
     rev: 1.0.0
     hooks:
