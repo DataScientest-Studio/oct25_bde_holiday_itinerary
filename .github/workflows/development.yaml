@@ -26,3 +26,6 @@ jobs:
       docker:
         image: docker:20.10.24
         options: --privileged
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
