@@ -14,12 +14,13 @@ class Neo4jDriver:
         username = environ.get("NEO4J_USER", "neo4j")
         passphrase = environ.get("NEO4J_PASSPHRASE", "")
         self.driver = GraphDatabase.driver(uri, auth=(username, passphrase))
+        self.database = environ.get("NEO4J_DATABASE", "neo4j")
 
         signal(SIGINT, self.handle_exit_signal)
         signal(SIGTERM, self.handle_exit_signal)
 
     def execute_query(self, query: str, **kwargs: Any) -> list[dict[Any, Any]] | None:
-        with self.driver.session() as session:
+        with self.driver.session(database=self.database) as session:
             records = session.run(query, **kwargs)
             return [record.data() for record in records]
 

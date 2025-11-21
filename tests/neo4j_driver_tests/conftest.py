@@ -5,24 +5,44 @@ from pathlib import Path
 import pytest
 from neo4j import GraphDatabase
 
-NEO4J_URI = "bolt://localhost:7687"
-NEO4J_USER = "neo4j"
-NEO4J_PASSWORD = "test"
-TEST_DB = "testdb"
 TEST_DATA_DIR = Path("tests/neo4j_driver_tests/data")
 
-environ["NEO4J_URI"] = NEO4J_URI
-environ["NEO4J_USER"] = NEO4J_USER
-environ["NEO4J_PASSPHRASE"] = NEO4J_PASSWORD
+
+@pytest.fixture(scope="session")
+def NEO4J_URI():
+    neo4j_uri = "bolt://localhost:7687"
+    environ["NEO4J_URI"] = NEO4J_URI
+    return neo4j_uri
+
+
+@pytest.fixture(scope="session")
+def NEO4J_USER():
+    neo4j_user = "neo4j"
+    environ["NEO4J_USER"] = neo4j_user
+    return neo4j_user
+
+
+@pytest.fixture(scope="session")
+def NEO4J_PASSWORD():
+    neo4j_password = "neo4j"
+    environ["NEO4J_PASSWORD"] = neo4j_password
+    return neo4j_password
+
+
+@pytest.fixture(scope="session")
+def NEO4J_DATABASE():
+    neo4j_database = "testdb"
+    environ["NEO4J_DATABASE"] = neo4j_database
+    return neo4j_database
 
 
 @pytest.fixture(scope="function")
-def database():
+def database(NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, NEO4J_DATABASE):
     driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
     with driver.session(database="system") as session:
-        session.run(f"CREATE DATABASE {TEST_DB} IF NOT EXISTS")
+        session.run(f"CREATE DATABASE {NEO4J_DATABASE} IF NOT EXISTS")
 
-    with driver.session(database=TEST_DB) as session:
+    with driver.session(database=NEO4J_DATABASE) as session:
         with open(TEST_DATA_DIR / "paris.csv", newline="", encoding="utf-8") as csvfile:
             reader = DictReader(csvfile)
             for row in reader:
@@ -59,8 +79,8 @@ def database():
                     additional_information=row.get("additional_information"),
                 )
 
-    yield TEST_DB
+    yield
 
     with driver.session(database="system") as session:
-        session.run(f"DROP DATABASE {TEST_DB} IF EXISTS")
+        session.run(f"DROP DATABASE {NEO4J_DATABASE} IF EXISTS")
     driver.close()
