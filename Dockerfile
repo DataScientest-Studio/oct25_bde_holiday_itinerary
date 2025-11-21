@@ -81,4 +81,4 @@ RUN poetry install --no-interaction --no-ansi --no-root
 
 COPY . .
 
-CMD ["python", "-m", "pytest", "-v"]
+CMD ["python", "-m", "pytest"]

@@ -30,7 +30,7 @@ tests:
 
 	docker build --target=development -t holiday:development .
 
-	docker run --rm \
+	docker run --rm -it \
 		--network testnet \
 		-e NEO4J_URI=bolt://neo4j-test:7687 \
 		-e NEO4J_USER=neo4j \
