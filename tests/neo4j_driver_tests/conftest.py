@@ -3,7 +3,7 @@ from os import environ
 from pathlib import Path
 
 import pytest
-from neo4j import GraphDatabase
+from neo4j import Driver, GraphDatabase
 
 from neo4j_driver.neo4j_driver import Neo4jDriver
 
@@ -88,5 +88,6 @@ def database(NEO4J_URI, NEO4J_USER, NEO4J_PASSPHRASE, csv_file_rows):
 @pytest.fixture
 def neo4j_driver(database):
     driver = Neo4jDriver()
+    assert isinstance(driver.driver, Driver)
     yield driver
     driver.close()

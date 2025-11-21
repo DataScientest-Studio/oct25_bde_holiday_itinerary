@@ -28,6 +28,7 @@ class Neo4jDriver:
             MATCH (p:Poi {id: $poi_id})
             RETURN
                 p.id AS id,
+                p.label AS label,
                 p.comment AS comment,
                 p.description AS description,
                 p.types AS types,
@@ -51,6 +52,7 @@ class Neo4jDriver:
                 AND point.distance(p1.location, p2.location) <= $radius
             RETURN
                 p2.id AS id,
+                p2.label AS label,
                 p2.comment AS comment,
                 p2.description AS description,
                 p2.types AS types,
