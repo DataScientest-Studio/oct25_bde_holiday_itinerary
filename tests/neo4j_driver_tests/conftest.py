@@ -10,7 +10,7 @@ TEST_DATA_DIR = Path("tests/neo4j_driver_tests/data")
 
 @pytest.fixture(scope="session")
 def NEO4J_URI():
-    neo4j_uri = "bolt://localhost:7687"
+    neo4j_uri = "bolt://neo4j-test:7687"
     environ["NEO4J_URI"] = neo4j_uri
     return neo4j_uri
 
@@ -24,25 +24,15 @@ def NEO4J_USER():
 
 @pytest.fixture(scope="session")
 def NEO4J_PASSPHRASE():
-    neo4j_passphrase = "neo4j-test"
+    neo4j_passphrase = ""
     environ["NEO4J_PASSPHRASE"] = neo4j_passphrase
     return neo4j_passphrase
 
 
-@pytest.fixture(scope="session")
-def NEO4J_DATABASE():
-    neo4j_database = "testdb"
-    environ["NEO4J_DATABASE"] = neo4j_database
-    return neo4j_database
-
-
 @pytest.fixture(scope="function")
-def database(NEO4J_URI, NEO4J_USER, NEO4J_PASSPHRASE, NEO4J_DATABASE):
+def database(NEO4J_URI, NEO4J_USER, NEO4J_PASSPHRASE):
     driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSPHRASE))
-    with driver.session(database="system") as session:
-        session.run(f"CREATE DATABASE {NEO4J_DATABASE} IF NOT EXISTS")
-
-    with driver.session(database=NEO4J_DATABASE) as session:
+    with driver.session() as session:
         with open(TEST_DATA_DIR / "paris.csv", newline="", encoding="utf-8") as csvfile:
             reader = DictReader(csvfile)
             for row in reader:
@@ -81,6 +71,12 @@ def database(NEO4J_URI, NEO4J_USER, NEO4J_PASSPHRASE, NEO4J_DATABASE):
 
     yield
 
-    with driver.session(database="system") as session:
-        session.run(f"DROP DATABASE {NEO4J_DATABASE} IF EXISTS")
+    with driver.session() as session:
+        session.run(
+            """
+                MATCH (n)
+                DETACH DELETE n
+            """
+        )
+        pass
     driver.close()
