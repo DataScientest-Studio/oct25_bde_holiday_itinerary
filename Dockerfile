@@ -16,26 +16,6 @@ RUN python -m pip install --no-cache-dir poetry==2.2.1 && poetry config virtuale
 COPY ./pyproject.toml ./poetry.lock ./README.md ./
 
 
-# Build image for make_dataset target
-FROM builder AS make_dataset-builder
-
-RUN poetry install --no-interaction --no-ansi --no-root --without dev,neo4j_api
-RUN eval $(poetry env activate) && pip freeze > requirements.txt
-
-# Make dataset image
-FROM python:3.13-slim-trixie AS make_dataset
-
-WORKDIR /make_dataset
-
-COPY --from=make_dataset-builder /builder/requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY ./example_data .
-COPY ./src/data/ .
-
-ENTRYPOINT ["python", "make_dataset.py"]
-
-
 # Build image for Neo4j_api target
 FROM builder AS api-builder
 
