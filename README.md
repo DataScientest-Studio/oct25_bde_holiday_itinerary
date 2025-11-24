@@ -14,6 +14,10 @@ Run environment with `eval $(poetry env activate)`
 
 1. [Pre-commit](https://pre-commit.com/) -- python -m pip install pre-commit==4.2.0
 
+#### Pre-commit
+
+Install the pre-commit with `python -m pip install pre-commit && pre-commit install`.
+
 #### Tests
 
 To run the tests, simply run `make tests` or run the commands, which are
