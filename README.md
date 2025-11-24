@@ -91,6 +91,50 @@ docker run --rm \
 
 It takes a few seconds and all the nodes (`POI`, `City` and `Type`) and relationships (`ROAD_TO` and `IS_A`) will be imported.
 
+| row_name               | description                         | example                                |
+|------------------------|-------------------------------------|----------------------------------------|
+| id                     | integer - UUID from datatourisme.fr | 6-ffcd03f5-35d6-305d-95c7-e867e1453e98 |
+| label                  | name of the POI                     |                                        |
+| comment                | short description                   |                                        |
+| description            | long description                    |                                        |
+| types                  | list of POI types                   | Restaurant, BarOrPub                   |
+| homepage               | homepage                            |                                        |
+| city                   | address part                        |                                        |
+| postal_code            | address part                        |                                        |
+| street                 | address part                        |                                        |
+| lat                    | latitude                            |                                        |
+| long                   | longitude                           |                                        |
+| additional_information | some additional info                |                                        |
+
+## Manual Data Import to Graph
+
+### Initial Import
+Since we are dealing with > 300k nodes the only fast way I found so far is using `neo4j-admin`. For this the neo4j engine must be stopped.
+With the community edition the only way is to stop the container
+```shell
+docker compose down
+```
+If the `docker compose up` command wasn't yet executed and thus no volume has been created, we have to create it:
+```shell
+docker volume create neo4j_data
+```
+Now we can run `neo4j-admin` command from the root directory of the project (or adapt the first `--volume`)
+```shell
+docker run --rm \
+    --volume=$PWD/example_data:/import \
+    --volume=$(docker volume inspect -f '{{.Mountpoint}}' neo4j_data):/data \
+    neo4j:2025.10.1 \
+    neo4j-admin database import full --overwrite-destination \
+        --multiline-fields=true \
+        --nodes="POI=/import/poi_nodes.zip" \
+        --nodes="Type=/import/type_nodes.zip" \
+        --relationships="IS_A=/import/poi_is_a_type_rels.zip"\
+        --nodes="City=/import/cities_nodes.zip" \
+        --relationships="ROAD_TO=/import/roads_rels.zip"
+```
+It takes a few seconds and all the nodes (`POI`, `City` and `Type`) and relationships (`ROAD_TO` and `IS_A`) will be imported.
+
+## Start neo4j
 File __docker_compose.yml__ contains everything to start Neo4j locally with
 
 ```shell
