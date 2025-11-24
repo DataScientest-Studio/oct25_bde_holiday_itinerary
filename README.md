@@ -25,6 +25,11 @@ defined under the `tests` command in the Makefile.
 
 #### Github Actions
 
+There is a GitHub Actions workflow file located at
+`.github/workflows/development.yaml` for the development of the application.
+This workflow runs pre-commit checks and tests whenever code is pushed to
+the `master` branch or when a pull request targeting `master` is opened.
+
 ## First steps to create a dataset and load into Neo4j
 
 dataset from datatourisme.fr can be downloaded here: [dataset](https://diffuseur.datatourisme.fr/webservice/b2ea75c3cd910637ff11634adec636ef/2644ca0a-e70f-44d5-90a5-3785f610c4b5)
