@@ -109,6 +109,17 @@ ______________________________________________________________________
 
 This project is a starting Pack for MLOps projects based on the subject "movie_recommandation". It's not perfect so feel free to make some modifications on it.
 
+## Neo4j Driver
+
+To access the database with Python code, you need to initialize the
+`Neo4jDriver` class, located in the module `src/neo4j_driver`. You can
+configure the driver using the following environment variables:
+
+- **NEO4J_URI** — Sets the URI of the database. Default: `bolt://neo4j:7687`.
+- **NEO4J_USER** — Sets the username to access the database. Default: `neo4j`.
+- **NEO4J_PASSPHRASE** — Sets the passphrase to access the database. Default:
+  no passphrase.
+
 ## Project Organization
 
 ```
