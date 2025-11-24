@@ -1,0 +1,49 @@
+[tool.poetry]
+name = "oct25-bde-holiday-itinerary"
+version = "0.1.0"
+description = "Simple tool to plan holiday routes in france."
+authors = [
+    "Adam Stibal <adam.stibal@gmail.com>",
+    "Max Düssler <max.duessler@posteo.net>",
+]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.13.0 <3.14"
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "4.2.0"
+black = "25.11.0"
+isort = "7.0.0"
+flake8 = "7.3.0"
+mypy = "1.18.2"
+pytest = "9.0.1"
+
+[tool.poetry.group.neo4j_driver.dependencies]
+neo4j = "6.0.3"
+numpy = "2.3.5"
+python-tsp = "0.5.0"
+
+[tool.poetry.group.neo4j_api.dependencies]
+fastapi = "0.121.2"
+uvicorn = "0.38.0"
+
+[tool.poetry.group.make_dataset.dependencies]
+pandas = "2.3.3"
+
+[tool.isort]
+profile = "black"
+line_length = 120
+multi_line_output = 3
+known_first_party = "poetry"
+
+[tool.black]
+line_length = 120
+
+[tool.flake8]
+max-line-length = 120
+max-doc-length = 120
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
