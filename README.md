@@ -14,6 +14,13 @@ Run environment with `eval $(poetry env activate)`
 
 1. [Pre-commit](https://pre-commit.com/) -- python -m pip install pre-commit==4.2.0
 
+#### Tests
+
+To run the tests, simply run `make tests` or run the commands, which are
+defined under the `tests` command in the Makefile.
+
+#### Github Actions
+
 ## First steps to create a dataset and load into Neo4j
 
 dataset from datatourisme.fr can be downloaded here: [dataset](https://diffuseur.datatourisme.fr/webservice/b2ea75c3cd910637ff11634adec636ef/2644ca0a-e70f-44d5-90a5-3785f610c4b5)
