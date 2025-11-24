@@ -87,3 +87,5 @@ target/
 
 # Mypy cache
 .mypy_cache/
+
+france_poi.csv

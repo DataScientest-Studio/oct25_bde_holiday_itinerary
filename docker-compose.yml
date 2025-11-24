@@ -24,10 +24,15 @@ services:
     environment:
       - NEO4J_AUTH=none
       - NEO4J_server_directories_import=/import
-      - NEO4JLABS_PLUGINS=["apoc"]
+      - NEO4J_apoc_export_file_enabled=true
+      - NEO4J_apoc_import_file_enabled=true
+      - NEO4J_apoc_import_file_use__neo4j__config=true
+      - NEO4J_PLUGINS=["apoc-extended", "apoc", "graph-data-science"]
       - NEO4J_dbms_security_procedures_unrestricted=apoc.algo.dijkstra
     volumes:
       - neo4j_data:/data
       - ./example_data:/import
+
 volumes:
   neo4j_data:
+    name: neo4j_data

@@ -20,28 +20,62 @@ dataset from datatourisme.fr can be downloaded here: [dataset](https://diffuseur
 
 The .zip archive is around 1 GB large and unzipped around 8 GB
 
-__make_dataset.py__ script takes the directory and converts it to usable csv data with these informations:
+__make_dataset.py__ script takes the directory and converts it to three CSV files that can be directly imported by neo4j.
+File `poi_nodes.csv` contains information about the POI except for the types field. Types is a list of roughly 350 unique type descriptions.
+Therefore I chose to map the types via so calld __Super-Node Pattern__ where for every type a node is created and every POI node gets a relationship to it.
+File `type_nodes.csv` and `poi_is_a_type_rels.csv` contain that information.
 
-| row_name               | description               | example            |
-| ---------------------- | ------------------------- | ------------------ |
-| id                     | UUID from datatourisme.fr |                    |
-| label                  | name of the POI           |                    |
-| comment                | short description         |                    |
-| description            | long description          |                    |
-| types                  | list of POI types         | Restaurant, Museum |
-| homepage               | homepage                  |                    |
-| city                   | address part              |                    |
-| postal_code            | address part              |                    |
-| street                 | address part              |                    |
-| lat                    | latitude                  |                    |
-| long                   | longitude                 |                    |
-| additional_information | some additional info      |                    |
+| row_name               | description                         | example                                |
+| ---------------------- | ----------------------------------- | -------------------------------------- |
+| id                     | integer - UUID from datatourisme.fr | 6-ffcd03f5-35d6-305d-95c7-e867e1453e98 |
+| label                  | name of the POI                     |                                        |
+| comment                | short description                   |                                        |
+| description            | long description                    |                                        |
+| types                  | list of POI types                   | Restaurant, BarOrPub                   |
+| homepage               | homepage                            |                                        |
+| city                   | address part                        |                                        |
+| postal_code            | address part                        |                                        |
+| street                 | address part                        |                                        |
+| lat                    | latitude                            |                                        |
+| long                   | longitude                           |                                        |
+| additional_information | some additional info                |                                        |
 
-This CSV can be then loaded into Neo4j database with command from __import_to_neo4j.txt__
+## Manual Data Import to Graph
 
-In the example data there is __paris.csv__ where I put POIs that have city == Paris for testing purposes.
+### Initial Import
 
-File __docker-compose.yml__ contains everything to start Neo4j locally with
+Since we are dealing with > 300k nodes the only fast way I found so far is using `neo4j-admin`. For this the neo4j engine must be stopped.
+With the community edition the only way is to stop the container
+
+```shell
+docker compose down
+```
+
+If the `docker compose up` command wasn't yet executed and thus no volume has been created, we have to create it:
+
+```shell
+docker volume create neo4j_data
+```
+
+Now we can run `neo4j-admin` command from the root directory of the project (or adapt the first `--volume`)
+
+```shell
+docker run --rm \
+    --volume=$PWD/example_data:/import \
+    --volume=$(docker volume inspect -f '{{.Mountpoint}}' neo4j_data):/data \
+    neo4j:2025.10.1 \
+    neo4j-admin database import full --overwrite-destination \
+        --multiline-fields=true \
+        --nodes="POI=/import/poi_nodes.zip" \
+        --nodes="Type=/import/type_nodes.zip" \
+        --relationships="IS_A=/import/poi_is_a_type_rels.zip"\
+        --nodes="City=/import/cities_nodes.zip" \
+        --relationships="ROAD_TO=/import/roads_rels.zip"
+```
+
+It takes a few seconds and all the nodes (`POI`, `City` and `Type`) and relationships (`ROAD_TO` and `IS_A`) will be imported.
+
+File __docker_compose.yml__ contains everything to start Neo4j locally with
 
 ```shell
 docker-compose up -d
@@ -49,9 +83,27 @@ docker-compose up -d
 
 Note: in docker-compose the _NEO4J_server_directories_import_ ENV is set to __example_data__ which means only csv files from this directory may be imported to Neo4j.
 
-## Graph mapping
+## Test your neo4j
 
-there is at the moment no relationship mapping in for the POIs since there is no routes information between cities or so. This will have to be done in the next steps.
+After executing `docker compose up -d` command go to `localhost:7474` and connect to the database (no auth required).
+Try some of these requests:
+
+get all types:\
+`match(t:Type) return t.typeId as type`
+
+count of POI in Paris:\
+`match (p:POI {city: "Paris"}) return count(p)`
+
+get distribution of POI types in Lyon:
+
+```
+ match (p:POI {city: "Lyon"}) - [r:IS_A] -> (t:Type)
+ with t, count(*) as cnt
+ return t.typeId, cnt order by cnt desc
+```
+
+get restaurants in Avignon:\
+`MATCH (p:POI {city: "Avignon"})-[r:IS_A]->(t:Type {typeId: "Restaurant"}) return p`
 
 ______________________________________________________________________
 
