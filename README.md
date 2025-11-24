@@ -120,6 +120,30 @@ configure the driver using the following environment variables:
 - **NEO4J_PASSPHRASE** — Sets the passphrase to access the database. Default:
   no passphrase.
 
+## Neo4j API
+
+To access the driver via the `Neo4jApi`, the following endpoints are defined:
+
+- **/poi** -- Takes `poi_id: str` as a parameter and returns a JSON dict
+  with all information about the POI, e.g. `{"id":"...", "label":"...", ...}`.
+- **/poi/nearby** -- Takes `poi_id: str` and `radius: int` as parameters
+  and returns a JSON dict with all POIs located within the radius around the
+  given POI, e.g. `{"nearby": [ ... ]}`.
+- **/distance** -- Takes `poi1_id: str` and `poi2_id: str` as parameters
+  and returns a JSON dict with the distance, e.g. `{"distance": 234.12}`.
+- **/tsp/shortest-round-tour** -- Takes a list of `poi_ids: list[str]` as
+  a parameter and returns a JSON dict with the optimized POI order,
+  e.g. `{"poi_order": [ ... ]}`.
+- **/tsp/shortest-path-no-return** -- Takes a list of `poi_ids: list[str]`
+  as a parameter and returns a JSON dict with the optimized POI order,
+  e.g. `{"poi_order": [ ... ]}`.
+- **/tsp/shortest-path-fixed-dest** -- Takes a list of `poi_ids: list[str]`
+  and `dest: str` as parameters and returns a JSON dict with the optimized
+  POI order ending at the fixed destination, e.g. `{"poi_order": [ ... ]}`.
+- **/dijkstra** -- Takes a list of `poi_ids: list[str]` as a parameter
+  and returns a JSON dict with the POI order along the shortest path,
+  e.g. `{"poi_order": [ ... ]}`.
+
 ## Project Organization
 
 ```
