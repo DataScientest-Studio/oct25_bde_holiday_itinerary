@@ -28,13 +28,14 @@ services:
       - NEO4J_apoc_import_file_enabled=true
       - NEO4J_apoc_import_file_use__neo4j__config=true
       - NEO4J_PLUGINS=["apoc-extended", "apoc", "graph-data-science"]
-      - NEO4J_dbms_security_procedures_unrestricted=apoc.algo.dijkstra
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.*,gds.*
+      - NEO4J_dbms_security_procedures_allowlist=apoc.*,gds.*,algo.*
       - NEO4J_dbms_allow__upgrade=true
-      - EXTENSION_SCRIPT=/tmp/import_script.sh
+      - EXTENSION_SCRIPT=/tmp/init/import_script.sh
     volumes:
       - neo4j_data:/data
       - ./import_data:/import
-      - ./init/import_script.sh:/tmp/import_script.sh
+      - ./init:/tmp/init
 
 volumes:
   neo4j_data:

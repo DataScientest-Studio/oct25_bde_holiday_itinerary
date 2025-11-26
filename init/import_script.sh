@@ -15,7 +15,7 @@ if [ ! -d "$DB_DIR" ] || [ ! -f "$FLAG" ]; then
         --verbose \
         --multiline-fields=true \
         --nodes="POI=/import/poi_nodes.zip" \
-        --nodes="Type=/import/type_nodes.zip" \
+        --nodes="POIType=/import/type_nodes.zip" \
         --relationships="IS_A=/import/poi_is_a_type_rels.zip"\
         --nodes="City=/import/cities_nodes.zip" \
         --relationships="ROAD_TO=/import/roads_rels.zip" \
@@ -27,6 +27,7 @@ if [ ! -d "$DB_DIR" ] || [ ! -f "$FLAG" ]; then
     touch "$FLAG"
 
     echo "--- Import complete. Starting Neo4j server... ---"
+
 else
     echo "--- Database already exists. Starting Neo4j server without import... ---"
 fi

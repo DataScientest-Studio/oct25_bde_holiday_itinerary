@@ -141,6 +141,29 @@ docker run --rm \
 
 It takes a few seconds and all the nodes (`POI`, `City` and `Type`) and relationships (`ROAD_TO` and `IS_A`) will be imported.
 
+Starting the DB with docker-compose uses the `EXTENSION_SCRIPT` ENV which runs `import_script.sh` from `init` directory.
+This makes initial data import automatically done once.
+The only manual work needed at this moment is to create `gds` projections needed for some API requests:
+
+```cypher
+CALL gds.graph.exists('city-road-graph') YIELD exists
+WITH exists
+WHERE NOT exists
+
+CALL gds.graph.project(
+  'city-road-graph',
+  'City',
+  {
+    ROAD_TO: {
+      orientation: 'UNDIRECTED',
+      properties: 'km'
+    }
+  }
+)
+YIELD graphName, nodeCount, relationshipCount
+RETURN graphName, nodeCount, relationshipCount;
+```
+
 ## Start neo4j
 
 File __docker_compose.yml__ contains everything to start Neo4j locally with

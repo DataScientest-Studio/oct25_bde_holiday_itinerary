@@ -1,7 +1,7 @@
 from os import environ
 from signal import SIGINT, SIGTERM, signal
 from sys import exit
-from typing import Any
+from typing import Any, Dict, List, Literal
 
 import numpy as np
 from neo4j import GraphDatabase
@@ -25,24 +25,115 @@ class Neo4jDriver:
 
     def get_poi(self, poi_id: str) -> dict[Any, Any]:
         query = """
-            MATCH (p:Poi {id: $poi_id})
-            RETURN
-                p.id AS id,
-                p.label AS label,
-                p.comment AS comment,
-                p.description AS description,
-                p.types AS types,
-                p.homepage AS homepage,
-                p.city AS city,
-                p.postal_code AS postal_code,
-                p.street AS street,
-                p.location.latitude AS lat,
-                p.location.longitude AS lon,
-                p.additional_information AS additional_information
+            MATCH (p:POI {poiId: $poi_id})
+            RETURN p
             LIMIT 1
         """
         poi = self.execute_query(query, poi_id=poi_id)
-        return poi[0] if poi else {}
+        return poi[0]["p"] if poi else {}
+
+    def get_city(self, city_id: str) -> dict[str, Any]:
+        query = """
+        MATCH (c:City {cityId: $city_id})
+        RETURN c
+        LIMIT 1
+        """
+        city = self.execute_query(query, city_id=city_id)
+        return city[0]["c"] if city else {}
+
+    def get_poi_for_city(self, city_id: str, categories: List | None = None) -> List[dict[str, Any]]:
+        query = """
+        MATCH (c:City {cityId: $city_id}) <- [r:IS_IN] - (p:POI) - [is_a:IS_A] -> (t:POIType)
+        WHERE $categories IS NULL or t.typeId in $categories
+        RETURN p, collect(distinct t.typeId) as types
+        """
+        pois = self.execute_query(query, city_id=city_id, categories=categories)
+        return [p["p"] | {"types": p["types"]} for p in pois] if pois else [{}]
+
+    def get_poi_near_city(self, city_id: str, categories: List | None = None) -> List[dict[str, Any]]:
+        query = """
+        MATCH (c:City {cityId: $city_id}) <- [r:IS_NEARBY] - (p:POI) - [is_a:IS_A] -> (t:POIType)
+        WHERE $categories IS NULL or t.typeId in $categories
+        RETURN p, r.km as distance_km, collect(distinct t.typeId) as types
+        ORDER BY distance_km ASC
+        """
+        pois = self.execute_query(query, city_id=city_id, categories=categories)
+        return [p["p"] | {"distance_km": p["distance_km"], "types": p["types"]} for p in pois] if pois else [{}]
+
+    def get_nearest_city_by_coordinates(self, lat: float, lon: float) -> dict[str, Any]:
+        query = """
+        MATCH (c:City)
+        WITH
+            c,
+            point({latitude: $latitude, longitude: $longitude}) as p,
+            point({latitude: c.latitude, longitude: c.longitude}) as cp
+        RETURN c as city, round(point.distance(p, cp)/1000, 2) as distance_km
+        ORDER BY distance_km ASC
+        LIMIT 1
+        """
+        result = self.execute_query(query, latitude=lat, longitude=lon)
+        return result[0]
+
+    def get_poi_types_for_city(self, city_id: str, categories: List | None = None) -> List[str]:
+        query = """
+        MATCH (c:City {cityId: $city_id}) <- [r:IS_IN] - (p:POI) - [is_a:IS_A] -> (t:POIType)
+        RETURN collect(distinct t.typeId) as types
+        """
+        result = self.execute_query(query, city_id=city_id)
+        return result[0]["types"]
+
+    def get_route_between_cities(self, start_city: str, end_city: str) -> List[Dict[str, Any]]:
+        query = """
+        MATCH (s:City {cityId: $start_city})
+        MATCH (t:City {cityId: $end_city})
+
+        CALL gds.shortestPath.dijkstra.stream('city-road-graph', {
+            sourceNode: s,
+            targetNode: t,
+            relationshipWeightProperty: 'km'
+        })
+        YIELD totalCost, path
+        WITH
+            totalCost,
+            relationships(path) AS roads
+        UNWIND range(0, size(roads) - 1) AS i
+        WITH
+            totalCost,
+            startNode(roads[i]).name AS From_City,
+            endNode(roads[i]).name AS To_City,
+            round(roads[i].cost, 2) AS Distance_km
+        RETURN
+            From_City,
+            To_City,
+            Distance_km
+        """
+        result = self.execute_query(query, start_city=start_city, end_city=end_city)
+        return result
+
+    def get_roundtrip(
+        self, city_id: str, distance: float, distance_tol: float, max_hops: int, sort_distance: Literal["ASC", "DESC"]
+    ) -> Dict[str, Any]:
+        """quite limited round trip search"""
+        query = f"""
+        MATCH path = (start:City {{cityId: $city_id}}) - [:ROAD_TO*3..{max_hops}]-> (start)
+        WHERE all(n IN nodes(path)[1..-1] WHERE single(m IN nodes(path) WHERE m = n))
+        WITH path,
+             reduce(total = 0, r IN relationships(path) | total + r.km) AS totalDistance
+        WHERE $min_distance <= totalDistance <= $max_distance
+        RETURN
+            [node IN nodes(path) | node.cityId] AS cities_in_order,
+            totalDistance,
+            length(path) AS number_of_hops
+        ORDER BY totalDistance {sort_distance}
+        LIMIT 1;
+        """
+        result = self.execute_query(
+            query,
+            city_id=city_id,
+            min_distance=distance - distance_tol,
+            max_distance=distance + distance_tol,
+        )
+        return result[0]
 
     def get_nearby_points(self, poi_id: str, radius: float) -> dict[str, list[dict[Any, Any]]]:
         query = """

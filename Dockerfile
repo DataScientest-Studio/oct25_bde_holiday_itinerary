@@ -30,14 +30,14 @@ WORKDIR /app
 COPY --from=api-builder /builder/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY ./src/neo4j_api /app/neo4j_api
-COPY ./src/neo4j_driver /app/neo4j_driver
+COPY ./src/neo4j_api /app/src/neo4j_api
+COPY ./src/neo4j_driver /app/src/neo4j_driver
 
 ENV PYTHONPATH=/app
 
 WORKDIR /
 
-ENTRYPOINT ["uvicorn", "neo4j_api:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
+ENTRYPOINT ["uvicorn", "src.neo4j_api:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
 
 
 # development image
