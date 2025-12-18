@@ -19,7 +19,7 @@ COPY ./pyproject.toml ./poetry.lock ./README.md ./
 # Build image for Neo4j_api target
 FROM builder AS api-builder
 
-RUN poetry install --no-interaction --no-ansi --no-root --without dev,make_dataset
+RUN poetry install --no-interaction --no-ansi --no-root --without dev,make_dataset,ui
 RUN eval $(poetry env activate) && pip freeze > requirements.txt
 
 # API image
