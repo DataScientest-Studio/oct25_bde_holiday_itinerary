@@ -19,7 +19,7 @@ class UI:
         st.title("Holiday Itinerary")
 
     def create_rows(self):
-        col_left, col_right = st.columns([2, 3], border=True)
+        col_left, col_right = st.columns([2, 5], border=True)
         self.cell_one(col_left)
         self.cell_two(col_right)
 
@@ -32,7 +32,7 @@ class UI:
 
     def cell_one(self, cell) -> None:
         cell.header("Selected POIs")
-        listing = cell.container(border=True, height=200)
+        listing = cell.container(border=True, height=220)
         for i in range(0, 100):
             listing.write(f"Place{i}")
         col_1, _ = cell.columns([2, 3])
@@ -48,10 +48,10 @@ class UI:
         col_1.button("Add POIs", on_click=self.add_pois)
         col_2.date_input("Start", format="DD/MM/YYYY")
         col_2.date_input("End", format="DD/MM/YYYY")
-        self.search_component(col_2)
+        # self.search_component(col_2)
 
     def search_component(self, cell) -> None:
-        col_1, col_2 = cell.columns([2, 1])
+        col_1, col_2 = cell.columns([2, 1], vertical_alignment="bottom")
         col_1.text_input("Search", placeholder="Type a point of interest...", key="search")
         col_2.button("Search", on_click=self.search_poi)
 
