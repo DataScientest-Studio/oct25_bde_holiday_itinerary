@@ -4,6 +4,7 @@ import streamlit as st
 class UI:
 
     def __init__(self) -> None:
+        st.set_page_config(layout="wide")
         self.header()
 
     def header(self):
