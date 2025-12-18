@@ -33,6 +33,7 @@ the `master` branch or when a pull request targeting `master` is opened.
 ## First steps to create a dataset and load into Neo4j
 
 dataset from datatourisme.fr can be downloaded here: [dataset](https://diffuseur.datatourisme.fr/webservice/b2ea75c3cd910637ff11634adec636ef/2644ca0a-e70f-44d5-90a5-3785f610c4b5)
+Latest dataset download here: [latest dataset](https://diffuseur.datatourisme.fr/flux/24943/download/complete)
 
 The .zip archive is around 1 GB large and unzipped around 8 GB
 
