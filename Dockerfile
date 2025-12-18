@@ -41,7 +41,7 @@ ENTRYPOINT ["uvicorn", "src.neo4j_api:app", "--host", "0.0.0.0", "--port", "8080
 
 
 # Build image for the streamlit-ui
-FROM python:3.13-slim-trixie AS ui-builder
+FROM builder AS ui-builder
 
 RUN poetry install --no-interaction --no-ansi --no-root --without dev,make_dataset,neo4j_api
 RUN eval $(poetry env activate) && pip freeze > requirements.txt
@@ -54,6 +54,7 @@ WORKDIR /app
 COPY --from=api-builder /builder/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY ./src/ui/ ./ui
 
 # development image
 FROM python:3.13-slim-trixie AS development
