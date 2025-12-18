@@ -6,10 +6,6 @@ class UI:
         # Use session, to keep data, if an other even occurs.
         # Streamlit clears the app to default back after an
         # event occurs.
-        if "search" not in st.session_state:
-            st.session_state.search = ""
-        if "add-pois" not in st.session_state:
-            st.session_state.add_pois = ""
         if "search_result" not in st.session_state:
             st.session_state.search_result = ""
         self.set_session_states()
@@ -40,13 +36,6 @@ class UI:
         self.create_selected_pois_col(selected_pois_col)
         self.create_filters_col(filters_col)
 
-    def search_poi(self):
-        search = st.session_state.search
-        st.session_state.search_result = f"Searching for: {search}"
-
-    def add_pois(self):
-        pass
-
     def create_selected_pois_col(self, cell) -> None:
         cell.header("Selected POIs")
         selected_pois_list = cell.container(border=True, height=220)
@@ -76,10 +65,8 @@ class UI:
     def select_pois(self) -> list[str]:
         return ["Louvre", "Cafe", "Eisdiele"]
 
-    def search_component(self, cell) -> None:
-        col_1, col_2 = cell.columns([2, 1], vertical_alignment="bottom")
-        col_1.text_input("Search", placeholder="Type a point of interest...", key="search")
-        col_2.button("Search", on_click=self.search_poi)
+    def add_pois(self):
+        pass
 
     def create_bottom_row(self) -> None:
         map_col, route_col = st.columns([5, 2], border=True)
