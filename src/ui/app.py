@@ -12,7 +12,19 @@ class UI:
             st.session_state.add_pois = ""
         if "search_result" not in st.session_state:
             st.session_state.search_result = ""
+        self.set_session_states()
+
         self.header()
+
+    def set_session_states(self) -> None:
+        if "filter-location" not in st.session_state:
+            st.session_state.filter_location = ""
+        if "filter-type" not in st.session_state:
+            st.session_state.filter_type = ""
+        if "select-pois" not in st.session_state:
+            st.session_state.select_pois = ""
+        if "add-pois" not in st.session_state:
+            st.session_state.add_pois = ""
 
     def header(self):
         title = "Holiday Itinerary"
@@ -47,18 +59,18 @@ class UI:
     def create_filters_col(self, cell) -> None:
         cell.header("Filters")
         poi_filters, date_filters = cell.columns([1, 1])
-        poi_filters.multiselect("Place / City to visit", options=self.select_location(), key="visit_location")
-        poi_filters.multiselect("Type of Place / City", options=self.select_type(), key="location_type")
-        poi_filters.multiselect("POIs", options=self.select_type(), key="add-pois")
-        poi_filters.button("Add POIs", on_click=self.add_pois)
+        poi_filters.multiselect("Place / City to visit", options=self.select_locations(), key="filter-location")
+        poi_filters.multiselect("Type of Place / City", options=self.select_types(), key="filter-type")
+        poi_filters.multiselect("POIs", options=self.select_pois(), key="select-pois")
+        poi_filters.button("Add POIs", on_click=self.add_pois(), key="add-pois")
         date_filters.date_input("Start", format="DD/MM/YYYY")
         date_filters.date_input("End", format="DD/MM/YYYY")
         # self.search_component(col_2)
 
-    def select_location(self) -> list[str]:
+    def select_locations(self) -> list[str]:
         return ["Paris", "Village"]
 
-    def select_type(self) -> list[str]:
+    def select_types(self) -> list[str]:
         return ["City", "Village"]
 
     def select_pois(self) -> list[str]:
