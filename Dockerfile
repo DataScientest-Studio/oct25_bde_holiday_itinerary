@@ -51,10 +51,12 @@ FROM python:3.13-slim-trixie AS ui
 
 WORKDIR /app
 
-COPY --from=api-builder /builder/requirements.txt ./
+COPY --from=ui-builder /builder/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ./src/ui/ ./ui
+
+ENTRYPOINT [ "streamlit", "run", "ui/app.py" ]
 
 # development image
 FROM python:3.13-slim-trixie AS development
