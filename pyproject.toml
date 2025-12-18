@@ -37,6 +37,9 @@ fastapi = {version = "^0.122.0", extras = ["standard"]}
 [tool.poetry.group.make_dataset.dependencies]
 pandas = "2.3.3"
 
+[tool.poetry.group.ui.dependencies]
+streamlit = "1.52.2"
+
 [tool.isort]
 profile = "black"
 line_length = 120
