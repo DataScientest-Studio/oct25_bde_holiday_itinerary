@@ -12,16 +12,21 @@ class UI:
             st.session_state.add_pois = ""
         if "search_result" not in st.session_state:
             st.session_state.search_result = ""
-        st.set_page_config(layout="wide")
         self.header()
 
     def header(self):
-        st.title("Holiday Itinerary")
+        title = "Holiday Itinerary"
+        st.set_page_config(page_title=title, layout="wide")
+        st.title(title)
 
     def create_rows(self):
-        col_left, col_right = st.columns([2, 5], border=True)
-        self.cell_one(col_left)
-        self.cell_two(col_right)
+        self.create_top_row()
+        self.create_bottom_row()
+
+    def create_top_row(self):
+        selected_pois_col, filters_col = st.columns([2, 5], border=True)
+        self.create_selected_pois_col(selected_pois_col)
+        self.create_filters_col(filters_col)
 
     def search_poi(self):
         search = st.session_state.search
@@ -30,32 +35,54 @@ class UI:
     def add_pois(self):
         pass
 
-    def cell_one(self, cell) -> None:
+    def create_selected_pois_col(self, cell) -> None:
         cell.header("Selected POIs")
-        listing = cell.container(border=True, height=220)
+        selected_pois_list = cell.container(border=True, height=220)
         for i in range(0, 100):
-            listing.write(f"Place{i}")
-        col_1, _ = cell.columns([2, 3])
-        if col_1.button("Plan Itinerary"):
-            col_1.write("IMPLEMENT LOGIC to plan route.")
+            selected_pois_list.write(f"Place{i}")
+        button_col, _ = cell.columns([2, 3])
+        if button_col.button("Plan Itinerary"):
+            button_col.write("IMPLEMENT LOGIC to plan route.")
 
-    def cell_two(self, cell) -> None:
+    def create_filters_col(self, cell) -> None:
         cell.header("Filters")
-        col_1, col_2 = cell.columns([1, 1])
-        col_1.multiselect("Place / City to visit", options=["Paris", "Village"], key="visit_location")
-        col_1.multiselect("type of Place / City", options=["City", "Village"], key="location_type")
-        col_1.multiselect("POIs", options=["Louvre", "Cafe", "Eisdiele"], key="add-pois")
-        col_1.button("Add POIs", on_click=self.add_pois)
-        col_2.date_input("Start", format="DD/MM/YYYY")
-        col_2.date_input("End", format="DD/MM/YYYY")
+        poi_filters, date_filters = cell.columns([1, 1])
+        poi_filters.multiselect("Place / City to visit", options=self.select_location(), key="visit_location")
+        poi_filters.multiselect("Type of Place / City", options=self.select_type(), key="location_type")
+        poi_filters.multiselect("POIs", options=self.select_type(), key="add-pois")
+        poi_filters.button("Add POIs", on_click=self.add_pois)
+        date_filters.date_input("Start", format="DD/MM/YYYY")
+        date_filters.date_input("End", format="DD/MM/YYYY")
         # self.search_component(col_2)
+
+    def select_location(self) -> list[str]:
+        return ["Paris", "Village"]
+
+    def select_type(self) -> list[str]:
+        return ["City", "Village"]
+
+    def select_pois(self) -> list[str]:
+        return ["Louvre", "Cafe", "Eisdiele"]
 
     def search_component(self, cell) -> None:
         col_1, col_2 = cell.columns([2, 1], vertical_alignment="bottom")
         col_1.text_input("Search", placeholder="Type a point of interest...", key="search")
         col_2.button("Search", on_click=self.search_poi)
 
-    def run(self):
+    def create_bottom_row(self) -> None:
+        map_col, route_col = st.columns([5, 2], border=True)
+        self.create_route_col(route_col)
+
+    def create_map_col(self, cell) -> None:
+        pass
+
+    def create_route_col(self, cell) -> None:
+        cell.header("Created Route")
+        route_pois_list = cell.container(border=True, height=500)
+        for i in range(0, 100):
+            route_pois_list.write(f"Place{i}")
+
+    def run(self) -> None:
         self.create_rows()
 
 
