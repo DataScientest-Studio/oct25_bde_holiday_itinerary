@@ -16,7 +16,7 @@ RUN python -m pip install --no-cache-dir poetry==2.2.1 && poetry config virtuale
 COPY ./pyproject.toml ./poetry.lock ./README.md ./
 
 
-# Build image for Neo4j_api target
+# Final image for Neo4j_api target
 FROM builder AS api-builder
 
 RUN poetry install --no-interaction --no-ansi --no-root --without dev,make_dataset,ui
