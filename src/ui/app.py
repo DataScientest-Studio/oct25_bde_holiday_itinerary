@@ -26,12 +26,12 @@ class UI:
         st.session_state.search_result = f"Searching for: {poi_query}"
 
     def cell_one(self, cell) -> None:
-        cell.header("POIs")
+        cell.header("Selected POIs")
         listing = cell.container(border=True, height=200)
         for i in range(0, 100):
             listing.write(f"Place{i}")
         col_1, col_2 = cell.columns([2, 3])
-        if col_1.button("Add POI(s)"):
+        if col_1.button("Plan Itinerary"):
             col_1.write("IMPLEMENT LOGIC to plan route.")
         self.search_component(col_2)
 
@@ -45,6 +45,7 @@ class UI:
         col_1, col_2 = cell.columns([1, 1])
         col_1.multiselect("Place / City to visit", options=["Paris", "Village"], key="visit_location")
         col_1.multiselect("type of Place / City", options=["City", "Village"], key="location_type")
+        col_1.multiselect("POIs", options=["Louvre", "Cafe", "Eisdiele"], key="location_type")
         col_2.date_input("Start", format="DD/MM/YYYY")
         col_2.date_input("End", format="DD/MM/YYYY")
 
