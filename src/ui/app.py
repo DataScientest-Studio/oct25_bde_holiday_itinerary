@@ -2,7 +2,6 @@ import streamlit as st
 
 
 class UI:
-
     def __init__(self) -> None:
         # Use session, to keep data, if an other even occurs.
         # Streamlit clears the app to default back after an
@@ -20,6 +19,7 @@ class UI:
     def create_rows(self):
         col_left, col_right = st.columns([2, 3], border=True)
         self.cell_one(col_left)
+        self.cell_two(col_right)
 
     def search_poi(self):
         poi_query = st.session_state.poi
@@ -31,7 +31,7 @@ class UI:
         for i in range(0, 100):
             listing.write(f"Place{i}")
         col_1, col_2 = cell.columns([2, 3])
-        if col_1.button("Plan Itinerary"):
+        if col_1.button("Add POI(s)"):
             col_1.write("IMPLEMENT LOGIC to plan route.")
         self.search_component(col_2)
 
@@ -39,6 +39,14 @@ class UI:
         col_1, col_2 = cell.columns([2, 1])
         col_1.text_input("Search", placeholder="Type a point of interest...", key="poi", label_visibility="collapsed")
         col_2.button("Search", on_click=self.search_poi)
+
+    def cell_two(self, cell) -> None:
+        cell.header("Filters")
+        col_1, col_2 = cell.columns([1, 1])
+        col_1.multiselect("Place / City to visit", options=["Paris", "Village"], key="visit_location")
+        col_1.multiselect("type of Place / City", options=["City", "Village"], key="location_type")
+        col_2.date_input("Start", format="DD/MM/YYYY")
+        col_2.date_input("End", format="DD/MM/YYYY")
 
     def run(self):
         self.create_rows()
