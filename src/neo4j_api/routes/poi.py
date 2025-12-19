@@ -1,6 +1,6 @@
 from typing import Any
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Query, Request
 
 router = APIRouter()
 
@@ -21,3 +21,11 @@ def get_nearby_points(request: Request, poi_id: str, radius: float) -> dict[str,
 def get_types(request: Request) -> dict[str, Any]:
     driver = request.app.state.driver
     return driver.get_types()  # type: ignore
+
+
+@router.get("/filter")  # type: ignore[misc]
+def get_filtered_pois(
+    request: Request, locations: list[str] = Query(...), types: list[str] = Query(...)
+) -> dict[str, Any]:
+    driver = request.app.state.driver
+    return driver.get_filtered_pois(locations, types)
