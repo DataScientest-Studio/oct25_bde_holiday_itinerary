@@ -8,17 +8,17 @@ class UI:
         # event occurs.
         if "search_result" not in st.session_state:
             st.session_state.search_result = ""
-        self.set_session_states()
+        self.set_session_filter_states()
 
         self.header()
 
-    def set_session_states(self) -> None:
+    def set_session_filter_states(self) -> None:
         if "filter-location" not in st.session_state:
-            st.session_state.filter_location = ""
+            st.session_state.filter_location = []
         if "filter-type" not in st.session_state:
-            st.session_state.filter_type = ""
+            st.session_state.filter_type = []
         if "select-pois" not in st.session_state:
-            st.session_state.select_pois = ""
+            st.session_state.select_pois = self.select_pois()
         if "add-pois" not in st.session_state:
             st.session_state.add_pois = ""
 
@@ -50,8 +50,8 @@ class UI:
         poi_filters, date_filters = cell.columns([1, 1])
         poi_filters.multiselect("Place / City to visit", options=self.select_locations(), key="filter-location")
         poi_filters.multiselect("Type of Place / City", options=self.select_types(), key="filter-type")
-        poi_filters.multiselect("POIs", options=self.select_pois(), key="select-pois")
-        poi_filters.button("Add POIs", on_click=self.add_pois(), key="add-pois")
+        poi_filters.multiselect("POIs", options=self.set_session_filter_states.select_pois, key="select-pois")
+        poi_filters.button("Add POIs", on_click=self.add_pois, key="add-pois", args=[self])
         date_filters.date_input("Start", format="DD/MM/YYYY")
         date_filters.date_input("End", format="DD/MM/YYYY")
         # self.search_component(col_2)
