@@ -32,6 +32,11 @@ class Neo4jDriver:
         poi = self.execute_query(query, poi_id=poi_id)
         return poi[0]["p"] if poi else {}
 
+    def get_types(self) -> dict[str, Any]:
+        query = "Match (t:Type) Return t {.*} AS city"
+        types = self.execute_query(query)
+        return {"types": [type["typeID"] for type in types] if types else []}
+
     def get_city(self, city_id: str) -> dict[str, Any]:
         query = """
         MATCH (c:City {cityId: $city_id})

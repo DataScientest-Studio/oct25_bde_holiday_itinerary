@@ -15,3 +15,9 @@ def get_poi(request: Request, poi_id: str) -> dict[str, Any]:
 def get_nearby_points(request: Request, poi_id: str, radius: float) -> dict[str, Any]:
     driver = request.app.state.driver
     return driver.get_nearby_points(poi_id, radius)  # type: ignore
+
+
+@router.get("/types")  # type: ignore[misc]
+def get_types(request: Request) -> dict[str, Any]:
+    driver = request.app.state.driver
+    return driver.get_types()  # type: ignore
