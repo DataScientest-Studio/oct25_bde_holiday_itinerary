@@ -37,6 +37,11 @@ class Neo4jDriver:
         conditions = []
         kwargs = {}
 
+        print(locations)
+
+        locations = [s for s in locations if s.strip()]
+        types = [s for s in types if s.strip()]
+
         def get_conditions(filter: list[str], name: str):
             if filter:
                 conditions.append(f"n.city IN ${name}")
@@ -44,12 +49,12 @@ class Neo4jDriver:
 
         get_conditions(locations, "locations")
         get_conditions(types, "types")
+        if conditions:
+            query += "WHERE " + " AND ".join(conditions) + " "
+        query += "RETURN collect(properties(n)) AS pois"
 
-        query += "WHERE " + " AND ".join(conditions) + " RETURN n" if conditions else "RETURN n"
-
-        pois = self.execute_query(query, **kwargs)
-        print(pois)
-        return {"pois": pois}
+        result = self.execute_query(query, **kwargs)
+        return result[0] if result else []  # type: ignore[return-value]
 
     def get_types(self) -> dict[str, Any]:
         query = "MATCH (t:Type) RETURN t.typeId AS typeId"
