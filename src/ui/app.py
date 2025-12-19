@@ -6,8 +6,8 @@ from requests import get
 from requests.models import HTTPError
 
 
-def handle_get_request() -> dict[str, Any]:
-    response = get("")
+def handle_get_request(target: str) -> dict[str, Any]:
+    response = get(f"http://neo4j_api:8080{target}")
     if response.status_code == 200:
         return loads(response.text)
     raise HTTPError("Status code is not 200.")
@@ -26,11 +26,11 @@ class UI:
 
     def set_session_filter_states(self) -> None:
         if "locations" not in st.session_state:
-            st.session_state.locations = self.get_locations()
+            st.session_state.locations = []
         if "filter-type" not in st.session_state:
             st.session_state.filter_type = []
         if "select-pois" not in st.session_state:
-            st.session_state.selected_pois = self.select_pois()
+            st.session_state.selected_pois = []
         if "add-pois" not in st.session_state:
             st.session_state.add_pois = ""
 
@@ -60,7 +60,7 @@ class UI:
     def create_filters_col(self, cell) -> None:
         cell.header("Filters")
         poi_filters, date_filters = cell.columns([1, 1])
-        poi_filters.multiselect("Place / City to visit", options=st.session_state.locations, key="locations")
+        _ = poi_filters.multiselect("Place / City to visit", options=self.get_locations(), key="locations")
         poi_filters.multiselect("Type of Place / City", options=self.select_types(), key="filter-type")
         poi_filters.multiselect("POIs", options=st.session_state.selected_pois, key="select-pois")
         poi_filters.button("Add POIs", on_click=self.add_pois, key="add-pois", args=[self])
@@ -69,7 +69,11 @@ class UI:
         # self.search_component(col_2)
 
     def get_locations(self) -> list[str]:
-        return ["Paris", "Village"]
+        try:
+            cities = handle_get_request("/city/")
+            return [city["name"] for city in cities["cities"] if "name" in city]
+        except (HTTPError, Exception):
+            return [""]
 
     def select_types(self) -> list[str]:
         return ["City", "Village"]
