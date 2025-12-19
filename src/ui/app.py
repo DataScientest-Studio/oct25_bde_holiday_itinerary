@@ -76,7 +76,11 @@ class UI:
             return [""]
 
     def select_types(self) -> list[str]:
-        return ["City", "Village"]
+        try:
+            types = handle_get_request("/poi/types/")
+            return types["types"]
+        except (HTTPError, Exception):
+            return [""]
 
     def select_pois(self) -> list[str]:
         return ["Louvre", "Cafe", "Eisdiele"]
