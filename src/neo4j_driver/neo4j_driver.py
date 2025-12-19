@@ -32,6 +32,25 @@ class Neo4jDriver:
         poi = self.execute_query(query, poi_id=poi_id)
         return poi[0]["p"] if poi else {}
 
+    def get_filtered_pois(self, locations: list[str], types: list[str]) -> dict[str, Any]:
+        query = "MATCH (n:POI) "
+        conditions = []
+        kwargs = {}
+
+        def get_conditions(filter: list[str], name: str):
+            if filter:
+                conditions.append(f"n.city IN ${name}")
+                kwargs[name] = filter
+
+        get_conditions(locations, "locations")
+        get_conditions(types, "types")
+
+        query += "WHERE " + " AND ".join(conditions) + " RETURN n" if conditions else "RETURN n"
+
+        pois = self.execute_query(query, **kwargs)
+        print(pois)
+        return {"pois": pois}
+
     def get_types(self) -> dict[str, Any]:
         query = "MATCH (t:Type) RETURN t.typeId AS typeId"
         types = self.execute_query(query)
