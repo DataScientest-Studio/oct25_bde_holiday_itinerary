@@ -50,7 +50,7 @@ class UI:
         poi_filters, date_filters = cell.columns([1, 1])
         poi_filters.multiselect("Place / City to visit", options=self.select_locations(), key="filter-location")
         poi_filters.multiselect("Type of Place / City", options=self.select_types(), key="filter-type")
-        poi_filters.multiselect("POIs", options=self.set_session_filter_states.select_pois, key="select-pois")
+        poi_filters.multiselect("POIs", options=self.select_pois, key="select-pois")
         poi_filters.button("Add POIs", on_click=self.add_pois, key="add-pois", args=[self])
         date_filters.date_input("Start", format="DD/MM/YYYY")
         date_filters.date_input("End", format="DD/MM/YYYY")
