@@ -38,7 +38,7 @@ class UI:
         self.create_bottom_row()
 
     def create_top_row(self):
-        selected_pois_col, filters_col = st.columns([2, 5], border=True)
+        selected_pois_col, filters_col = st.columns([5, 2], border=True)
         self.create_selected_pois_col(selected_pois_col)
         self.create_filters_col(filters_col)
 
@@ -54,14 +54,9 @@ class UI:
     def create_filters_col(self, cell) -> None:
         cell.header("Filters")
         poi_filters, date_filters = cell.columns([1, 1])
-
         poi_filters.multiselect("Place / City to visit", options=self.get_locations(), key="locations")
-
         poi_filters.multiselect("Type of Place / City", options=self.select_types(), key="filter_type")
-
         poi_filters.multiselect("POIs", options=self.get_filtered_pois(), key="selected_pois")
-
-        poi_filters.button("Add POIs", on_click=self.add_pois, key="add-pois")
         date_filters.date_input("Start", format="DD/MM/YYYY")
         date_filters.date_input("End", format="DD/MM/YYYY")
 
