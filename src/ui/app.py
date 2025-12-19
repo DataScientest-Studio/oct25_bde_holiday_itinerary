@@ -1,4 +1,16 @@
+from json import loads
+from typing import Any
+
 import streamlit as st
+from requests import get
+from requests.models import HTTPError
+
+
+def handle_get_request() -> dict[str, Any]:
+    response = get("")
+    if response.status_code == 200:
+        return loads(response.text)
+    raise HTTPError("Status code is not 200.")
 
 
 class UI:
@@ -13,8 +25,8 @@ class UI:
         self.header()
 
     def set_session_filter_states(self) -> None:
-        if "filter-location" not in st.session_state:
-            st.session_state.filter_location = []
+        if "locations" not in st.session_state:
+            st.session_state.locations = self.get_locations()
         if "filter-type" not in st.session_state:
             st.session_state.filter_type = []
         if "select-pois" not in st.session_state:
@@ -48,7 +60,7 @@ class UI:
     def create_filters_col(self, cell) -> None:
         cell.header("Filters")
         poi_filters, date_filters = cell.columns([1, 1])
-        poi_filters.multiselect("Place / City to visit", options=self.select_locations(), key="filter-location")
+        poi_filters.multiselect("Place / City to visit", options=st.session_state.locations, key="locations")
         poi_filters.multiselect("Type of Place / City", options=self.select_types(), key="filter-type")
         poi_filters.multiselect("POIs", options=st.session_state.selected_pois, key="select-pois")
         poi_filters.button("Add POIs", on_click=self.add_pois, key="add-pois", args=[self])
@@ -56,7 +68,7 @@ class UI:
         date_filters.date_input("End", format="DD/MM/YYYY")
         # self.search_component(col_2)
 
-    def select_locations(self) -> list[str]:
+    def get_locations(self) -> list[str]:
         return ["Paris", "Village"]
 
     def select_types(self) -> list[str]:
