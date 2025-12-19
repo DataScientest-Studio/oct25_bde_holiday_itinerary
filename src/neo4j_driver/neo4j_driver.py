@@ -41,6 +41,11 @@ class Neo4jDriver:
         city = self.execute_query(query, city_id=city_id)
         return city[0]["c"] if city else {}
 
+    def get_cities(self) -> dict[str, Any]:
+        query = "MATCH (n:City) RETURN n {.*} AS city"
+        cities = self.execute_query(query)
+        return {"cities": [c["city"] for c in cities] if cities else {}}
+
     def get_poi_for_city(self, city_id: str, categories: List | None = None) -> List[dict[str, Any]]:
         query = """
         MATCH (c:City {cityId: $city_id}) <- [r:IS_IN] - (p:POI) - [is_a:IS_A] -> (t:POIType)
