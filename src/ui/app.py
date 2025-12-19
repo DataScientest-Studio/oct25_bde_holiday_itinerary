@@ -70,15 +70,13 @@ class UI:
 
     def get_locations(self) -> list[str]:
         try:
-            cities = handle_get_request("/city/")
-            return [city["name"] for city in cities["cities"] if "name" in city]
+            return handle_get_request("/city/")["cities"]
         except (HTTPError, Exception):
             return [""]
 
     def select_types(self) -> list[str]:
         try:
-            types = handle_get_request("/poi/types/")
-            return types["types"]
+            return handle_get_request("/poi/types/")["types"]
         except (HTTPError, Exception):
             return [""]
 
