@@ -9,7 +9,6 @@ router = APIRouter()
 def get_cities(request: Request) -> dict[str, Any]:
     driver = request.app.state.driver
     cities = driver.get_cities()  # type: ignore
-    print(cities)
     return cities
 
 
