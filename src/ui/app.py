@@ -39,27 +39,21 @@ class UI:
         title(self.title_name)
         logger.debug(f"Set title to '{self.title_name}'.")
 
+        self.__init_session_states()
         self.__init_layout()
 
         logger.success("Initialized UI.")
 
     def __init_session_states(self) -> None:
         logger.debug("Initializing session states...")
-        if "destinations" not in session_state:
-            session_state.destinations = []
-            logger.debug(f"Set destinations to: {session_state.destinations}.")
-        else:
-            logger.debug(f"Load previous destinations: {session_state.destinations}.")
-        if "categories" not in session_state:
-            session_state.categories = []
-            logger.debug(f"Set categories to: {session_state.categories}.")
-        else:
-            logger.debug(f"Load previous categories: {session_state.categories}.")
-        if "start" not in session_state:
-            session_state.categories = []
-            logger.debug(f"Set start to: {session_state.start}.")
-        else:
-            logger.debug(f"Load previous start: {session_state.start}.")
+        keys = ["destinations", "categories", "start", "end"]
+        values = [[], [], "", ""]
+        for key, value in zip(keys, values):
+            if not hasattr(session_state, key):
+                setattr(session_state, key, value)
+                logger.debug(f"Set {keys} to: {session_state.destinations}.")
+            else:
+                logger.debug(f"Load previous {key}: {session_state.destinations}.")
 
         logger.success("Initialized session_states.")
 
@@ -79,10 +73,11 @@ class UI:
         logger.debug("Initializing controls...")
         with container as con:
             logger.debug("Created container for controls.")
-            destinations, categories, start, _, _ = con.columns([])
+            destinations, categories, start, end, _ = con.columns([])
             self.__init_destination_filter(destinations)
             self.__init_category_filter(categories)
-            self.__init_start_selector(start)
+            self.__init_date_selector(start, "start")
+            self.__init_date_selector(end, "end")
 
         logger.info("Initalized controls.")
 
@@ -104,10 +99,10 @@ class UI:
         except Exception:
             logger.error("Failed to get category form the server.")
 
-    def __init_start_selector(self, cell: columns) -> None:
-        logger.debug("Initializing start selector...")
-        cell.date_input("Itinerary start", format="DD/MM/YYYY", key="start")
-        logger.info("Initalized start selector.")
+    def __init_date_selector(self, cell: columns, name: str) -> None:
+        logger.debug(f"Initializing {name} selector...")
+        cell.date_input(f"Itinerary {name}", format="DD/MM/YYYY", key=name)
+        logger.info(f"Initalized {name} selector.")
 
     def run(self) -> None:
         logger.info("Starting UI.")
