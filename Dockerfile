@@ -39,7 +39,7 @@ ENV PYTHONPATH=/app
 
 WORKDIR /
 
-ENTRYPOINT ["uvicorn", "src.neo4j_api:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
+ENTRYPOINT ["uvicorn", "src.neo4j_api:app", "--host", "0.0.0.0", "--port", "8080"]
 
 
 # Build image for the streamlit-ui
