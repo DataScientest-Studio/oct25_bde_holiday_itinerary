@@ -47,6 +47,14 @@ class UI:
         logger.debug("Initializing session states...")
         if "destinations" not in session_state:
             session_state.destinations = []
+            logger.debug(f"Set destinations to: {session_state.destinations}.")
+        else:
+            logger.debug(f"Load previous destinations: {session_state.destinations}.")
+        if "categories" not in session_state:
+            session_state.categories = []
+            logger.debug(f"Set categories to: {session_state.categories}.")
+        else:
+            logger.debug(f"Load previous categories: {session_state.categories}.")
 
         logger.success("Initialized session_states.")
 
@@ -66,8 +74,9 @@ class UI:
         logger.debug("Initializing controls...")
         with container as con:
             logger.debug("Created container for controls.")
-            destinations, _, _, _, _ = con.columns([])
+            destinations, categories, _, _, _ = con.columns([])
             self.__init_destination_filter(destinations)
+            self.__init_category_filter(categories)
 
         logger.info("Initalized controls.")
 
@@ -79,6 +88,15 @@ class UI:
             logger.info("Initalized destination filter.")
         except Exception:
             logger.error("Failed to get destinations form the server.")
+
+    def __init_category_filter(self, cell: columns) -> None:
+        logger.debug("Initializing category filter...")
+        try:
+            poi_types = handle_get_request("/poi/types/")["types"]
+            cell.multiselect("Category of POIs", options=poi_types, key="categories")
+            logger.info("Initalized category filter.")
+        except Exception:
+            logger.error("Failed to get category form the server.")
 
     def run(self) -> None:
         logger.info("Starting UI.")
