@@ -73,11 +73,13 @@ class UI:
         logger.debug("Initializing controls...")
         with container as con:
             logger.debug("Created container for controls.")
-            destinations, categories, start, end, _ = con.columns([])
+            destinations, categories, start, end, submit = con.columns([])
             self.__init_filter(destinations, "destinations", "/cities/", "cities", "Itinerary Destinations")
             self.__init_filter(categories, "categories", "/poi/types/", "types", "Category of POIs")
             self.__init_date_selector(start, "start")
             self.__init_date_selector(end, "end")
+            if submit.button("Plan Itinerary"):
+                self.plan_itinerary()
 
         logger.info("Initalized controls.")
 
@@ -94,6 +96,9 @@ class UI:
         logger.debug(f"Initializing {name} selector...")
         cell.date_input(f"Itinerary {name}", format="DD/MM/YYYY", key=name)
         logger.info(f"Initalized {name} selector.")
+
+    def plan_itinerary(self) -> None:
+        logger.success("You are wonderful. You are capable of pressing a button. Congratulations!")
 
     def run(self) -> None:
         logger.info("Starting UI.")
