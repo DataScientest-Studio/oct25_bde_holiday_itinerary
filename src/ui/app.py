@@ -33,9 +33,8 @@ class UI:
     title_name: str = "Holiday Itinerary"
     layout: str = "wide"
 
-    def __init__(self, pois: dict[str, Any] = {}) -> None:
+    def __init__(self) -> None:
         logger.debug("Initializing UI for holiday itinerary...")
-        self.pois = pois
 
         st.set_page_config(page_title=self.title_name, layout=self.layout)
         logger.debug(f"Set page title to '{self.title_name}' and layout style to '{self.layout}'.")
@@ -51,7 +50,7 @@ class UI:
     def __init_session_states(self) -> None:
         logger.debug("Initializing session states...")
         keys = ["destinations", "categories", "pois"]
-        values = [[], [], pd.DataFrame(self.pois)]
+        values = [[], [], self.init_empty_pois_dataframe()]
         for key, value in zip(keys, values):
             if not hasattr(st.session_state, key):
                 setattr(st.session_state, key, value)
@@ -60,6 +59,23 @@ class UI:
                 logger.debug(f"Load previous {key}: {st.session_state.destinations}.")
 
         logger.success("Initialized session_states.")
+
+    def init_empty_pois_dataframe(self) -> pd.DataFrame:
+        return pd.DataFrame(
+            columns=[
+                "additional_information",
+                "city",
+                "street",
+                "latitude",
+                "description",
+                "comment",
+                "label",
+                "poiId",
+                "postal_code",
+                "homepage",
+                "longitude",
+            ]
+        )
 
     def __init_layout(self) -> None:
         logger.debug("Initializing layout...")
@@ -96,24 +112,22 @@ class UI:
 
     def __init_poi_overview_layout(self, con: st.container) -> None:
         logger.debug("Initializing poi overview...")
-        if not st.session_state.destinations and not st.session_state.categories:
-            st.session_state.pois = pd.DataFrame({})
-        try:
+        if st.session_state.destinations or st.session_state.categories:
             params = {
                 "locations": ",".join(st.session_state.destinations) or "",
                 "types": ",".join(st.session_state.categories) or "",
             }
-            pois = handle_get_request("/poi/filter", params).get("pois", [])
-            st.session_state.pois = pd.DataFrame(pois)
-            logger.info("Initalized poi overview.")
-        except Exception:
-            logger.error("Failed to get '/poi/filter' form the server.")
-        finally:
-            AgGrid(st.session_state)
+            try:
+                pois = handle_get_request("/poi/filter", params).get("pois", self.init_empty_pois_dataframe())
+                st.session_state.pois = pd.DataFrame(pois)
+                logger.info("Initalized poi overview.")
+            except Exception:
+                logger.error("Failed to get '/poi/filter' form the server.")
+        AgGrid(st.session_state.pois)
 
     def run(self) -> None:
         logger.info("Starting UI.")
 
 
-app = UI({})
+app = UI()
 app.run()
