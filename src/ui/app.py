@@ -1,6 +1,7 @@
 from json import loads
 from typing import Any
 
+import streamlit as st
 from requests import get
 from requests.models import HTTPError
 
@@ -26,12 +27,22 @@ def handle_get_request(target: str, query_params: dict[str, str] | None = None) 
 
 
 class UI:
+    title_name: str = "Holiday Itinerary"
+    layout: str = "wide"
 
     def __init__(self) -> None:
-        pass
+        logger.debug("Initializing UI for holiday itinerary ... ")
+
+        st.set_page_config(page_title=self.title_name, layout=self.layout)
+        logger.debug(f"Set page title to '{self.title_name}' and layout to '{self.layout}'.")
+
+        st.title(self.title_name)
+        logger.debug(f"Set title to '{self.title_name}'.")
+
+        logger.success("Initialized UI.")
 
     def run(self) -> None:
-        pass
+        logger.info("Starting UI.")
 
 
 app = UI()
