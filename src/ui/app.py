@@ -96,6 +96,8 @@ class UI:
 
     def __init_poi_overview_layout(self, con: st.container) -> None:
         logger.debug("Initializing poi overview...")
+        if not st.session_state.destinations and not st.session_state.categories:
+            st.session_state.pois = pd.DataFrame({})
         try:
             params = {
                 "locations": ",".join(st.session_state.destinations) or "",
