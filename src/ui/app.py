@@ -130,18 +130,26 @@ class UI:
                 logger.info("Initalized poi overview.")
             except Exception:
                 logger.error("Failed to get '/poi/filter' form the server.")
-        AgGrid(st.session_state.pois, gridOptions=self._config_grid())
+        df, options = self._config_grid()
+        AgGrid(df, gridOptions=options, fit_columns_on_grid_load=True)
 
-    def _config_grid(self) -> GridOptionsBuilder:
+    def _config_grid(self) -> tuple[pd.DataFrame, GridOptionsBuilder]:
         logger.debug("Configure the poi overview...")
         try:
-            gb = GridOptionsBuilder.from_dataframe(self._reorder_columns(st.session_state.pois))
+            df = self._reorder_columns(st.session_state.pois)
+            gb = GridOptionsBuilder.from_dataframe(df)
             self._select_visible_columns(gb)
             gb.configure_selection("single")
-            return gb.build()
+            # gb.configure_column_tool_panel(True)  # Enables check/uncheck
+            gb.configure_column("city", maxWidth=150, headerName="City")
+            gb.configure_column("postal_code", maxWidth=50, headerName="ZIP")
+            gb.configure_default_column(resizable=True, autoSize=True)
+
+            logger.info("Configured poi overview.")
+            return df, gb.build()
         except Exception as err:
             logger.error(f"Can not configure poi grid. Error {err}")
-        logger.info("Configured poi overview.")
+            raise
 
     def _reorder_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         logger.debug("Sorting columns...")
