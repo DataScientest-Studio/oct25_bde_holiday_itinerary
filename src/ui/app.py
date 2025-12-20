@@ -75,7 +75,7 @@ class UI:
         for key, value in zip(keys, values):
             if not hasattr(st.session_state, key):
                 setattr(st.session_state, key, value)
-                logger.debug(f"Set {keys} to: {st.session_state.destinations}.")
+                logger.debug(f"Set {key} to: {st.session_state.destinations}.")
             else:
                 logger.debug(f"Load previous {key}: {st.session_state.destinations}.")
 
