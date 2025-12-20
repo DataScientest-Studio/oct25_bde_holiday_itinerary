@@ -8,8 +8,8 @@ from loguru import logger
 logger.level("WARN", no=30, color="<yellow>")
 logger.level("PASS", no=20, color="<green>")
 
-logger.warning = lambda msg, *args, **kwargs: logger.log("WARN", msg, *args, **kwargs)
-logger.success = lambda msg, *args, **kwargs: logger.log("PASS", msg, *args, **kwargs)
+logger.warning = lambda msg, *args, **kwargs: logger.opt(depth=1).log("WARN", msg, *args, **kwargs)
+logger.success = lambda msg, *args, **kwargs: logger.opt(depth=1).log("PASS", msg, *args, **kwargs)
 
 
 class InterceptHandler(logging.Handler):
