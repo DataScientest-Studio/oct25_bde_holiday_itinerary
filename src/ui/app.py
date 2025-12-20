@@ -6,7 +6,7 @@ import pandas as pd
 import streamlit as st
 from requests import get
 from requests.models import HTTPError
-from st_aggrid import AgGrid
+from st_aggrid import AgGrid, GridOptionsBuilder, gridOptions
 
 from logger import logger
 
@@ -24,14 +24,27 @@ def handle_get_request(target: str, query_params: dict[str, str] | None = None) 
             case _:
                 logger.warning(f"GET request to {target} returned {response.status_code}")
                 raise HTTPError(f"Request did not return 200. It returned {response.status_code}.")
-    except Exception as e:
-        logger.error(f"GET request to http://neo4j_api:8080{target} failed: {e}")
+    except Exception as err:
+        logger.error(f"GET request to http://neo4j_api:8080{target} failed: {err}")
         raise
 
 
 class UI:
     title_name: str = "Holiday Itinerary"
     layout: str = "wide"
+    poi_cols: list[str] = [
+        "additional_information",
+        "city",
+        "street",
+        "latitude",
+        "description",
+        "comment",
+        "label",
+        "poiId",
+        "postal_code",
+        "homepage",
+        "longitude",
+    ]
 
     def __init__(self) -> None:
         logger.debug("Initializing UI for holiday itinerary...")
@@ -61,21 +74,7 @@ class UI:
         logger.success("Initialized session_states.")
 
     def init_empty_pois_dataframe(self) -> pd.DataFrame:
-        return pd.DataFrame(
-            columns=[
-                "additional_information",
-                "city",
-                "street",
-                "latitude",
-                "description",
-                "comment",
-                "label",
-                "poiId",
-                "postal_code",
-                "homepage",
-                "longitude",
-            ]
-        )
+        return pd.DataFrame(columns=self.poi_cols)
 
     def __init_layout(self) -> None:
         logger.debug("Initializing layout...")
@@ -102,8 +101,8 @@ class UI:
             destinations = handle_get_request(path)[data_key]
             cell.multiselect(label, options=destinations, key=key)
             logger.info(f"Initalized {key} filter.")
-        except Exception as e:
-            logger.error(f"Failed to get '{key}' form the server. Error: {e}")
+        except Exception as err:
+            logger.error(f"Failed to get '{key}' form the server. Error: {err}")
 
     def __init_date_selector(self, cell: st.columns, name: str) -> None:
         logger.debug(f"Initializing {name} selector...")
@@ -123,7 +122,16 @@ class UI:
                 logger.info("Initalized poi overview.")
             except Exception:
                 logger.error("Failed to get '/poi/filter' form the server.")
-        AgGrid(st.session_state.pois)
+        AgGrid(st.session_state.pois, gridOptions=self.config_grid())
+
+    def config_grid(self) -> gridOptions:
+        logger.debug("Configure the poi overview...")
+        try:
+            gb = GridOptionsBuilder.from_dataframe(st.session_state.pois)
+            return gb.build()
+        except Exception as err:
+            logger.error(f"Can not configure poi grid. Error {err}")
+        logger.info("Configured poi overview.")
 
     def run(self) -> None:
         logger.info("Starting UI.")
