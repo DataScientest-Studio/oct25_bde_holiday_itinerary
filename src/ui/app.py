@@ -55,6 +55,11 @@ class UI:
             logger.debug(f"Set categories to: {session_state.categories}.")
         else:
             logger.debug(f"Load previous categories: {session_state.categories}.")
+        if "start" not in session_state:
+            session_state.categories = []
+            logger.debug(f"Set start to: {session_state.start}.")
+        else:
+            logger.debug(f"Load previous start: {session_state.start}.")
 
         logger.success("Initialized session_states.")
 
@@ -74,9 +79,10 @@ class UI:
         logger.debug("Initializing controls...")
         with container as con:
             logger.debug("Created container for controls.")
-            destinations, categories, _, _, _ = con.columns([])
+            destinations, categories, start, _, _ = con.columns([])
             self.__init_destination_filter(destinations)
             self.__init_category_filter(categories)
+            self.__init_start_selector(start)
 
         logger.info("Initalized controls.")
 
@@ -97,6 +103,11 @@ class UI:
             logger.info("Initalized category filter.")
         except Exception:
             logger.error("Failed to get category form the server.")
+
+    def __init_start_selector(self, cell: columns) -> None:
+        logger.debug("Initializing start selector...")
+        cell.date_input("Itinerary start", format="DD/MM/YYYY", key="start")
+        logger.info("Initalized start selector.")
 
     def run(self) -> None:
         logger.info("Starting UI.")
