@@ -86,35 +86,43 @@ class UI:
 
     def __init_layout(self) -> None:
         logger.debug("Initializing layout...")
-        with st.container() as _:
-            logger.debug("Created container for controls and poi overview.")
-            self.__init_controls()
+        overview, controls = st.columns([5, 2], border=True)
+        logger.debug("Created columns for controls and poi overview.")
+        with overview as _:
             self.__init_poi_overview_layout()
+        with controls as _:
+            self.__init_controls()
         logger.info("Initalized layout.")
 
     def __init_controls(self) -> None:
         logger.debug("Initializing controls...")
-
-        destinations, categories, start, end = st.columns([2, 2, 1, 1])
-        self.__init_filter(destinations, "destinations", "/city/all", "cities", "Itinerary Destinations")
-        self.__init_filter(categories, "categories", "/poi/types", "types", "Category of POIs")
-        self.__init_date_selector(start, "start")
-        self.__init_date_selector(end, "end")
+        filter, date_col = st.columns([3, 1])
+        # destinations, categories, start, end = st.columns([2, 2, 1, 1])
+        with filter as _:
+            with st.container() as destinations:
+                self.__init_filter(destinations, "destinations", "/city/all", "cities", "Itinerary Destinations")
+            with st.container() as categories:
+                self.__init_filter(categories, "categories", "/poi/types", "types", "Category of POIs")
+        with date_col as _:
+            with st.container() as start:
+                self.__init_date_selector(start, "start")
+            with st.container() as end:
+                self.__init_date_selector(end, "end")
 
         logger.info("Initalized controls.")
 
-    def __init_filter(self, cell: st.columns, key: str, path: str, data_key: str, label: str) -> None:
+    def __init_filter(self, cell: st.container, key: str, path: str, data_key: str, label: str) -> None:
         logger.debug(f"Initializing {key} filter...")
         try:
             destinations = handle_get_request(path)[data_key]
-            cell.multiselect(label, options=destinations, key=key)
+            st.multiselect(label, options=destinations, key=key)
             logger.info(f"Initalized {key} filter.")
         except Exception as err:
             logger.error(f"Failed to get '{key}' form the server. Error: {err}")
 
-    def __init_date_selector(self, cell: st.columns, name: str) -> None:
+    def __init_date_selector(self, cell: st.container, name: str) -> None:
         logger.debug(f"Initializing {name} selector...")
-        cell.date_input(f"Itinerary {name}", value=date.today(), format="DD/MM/YYYY", key=name)
+        st.date_input(f"Itinerary {name}", value=date.today(), format="DD/MM/YYYY", key=name)
         logger.info(f"Initalized {name} selector.")
 
     def __init_poi_overview_layout(self) -> None:
