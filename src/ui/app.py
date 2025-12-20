@@ -86,8 +86,8 @@ class UI:
             destinations = handle_get_request(path)[data_key]
             cell.multiselect(label, options=destinations, key=key)
             logger.info(f"Initalized {key} filter.")
-        except Exception:
-            logger.error(f"Failed to get '{key}' form the server.")
+        except Exception as e:
+            logger.error(f"Failed to get '{key}' form the server. Error: {e}")
 
     def __init_date_selector(self, cell: st.columns, name: str) -> None:
         logger.debug(f"Initializing {name} selector...")
