@@ -141,8 +141,12 @@ class UI:
             self._select_visible_columns(gb)
             gb.configure_selection("single")
             # gb.configure_column_tool_panel(True)  # Enables check/uncheck
+            gb.configure_column("label", maxWidth=150, headerName="POI")
             gb.configure_column("city", maxWidth=150, headerName="City")
+            gb.configure_column("street", maxWidth=200, headerName="Street")
             gb.configure_column("postal_code", maxWidth=50, headerName="ZIP")
+            gb.configure_column("homepage", maxWidth=200, headerName="Homepage")
+            gb.configure_column("description", headerName="Description")
             gb.configure_default_column(resizable=True, autoSize=True)
 
             logger.info("Configured poi overview.")
