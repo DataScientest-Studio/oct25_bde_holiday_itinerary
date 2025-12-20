@@ -41,3 +41,6 @@ if getenv("LOG_HI", True):
         ),
     )
 logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
+
+
+__all__ = ["logger"]
