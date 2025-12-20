@@ -122,16 +122,25 @@ class UI:
                 logger.info("Initalized poi overview.")
             except Exception:
                 logger.error("Failed to get '/poi/filter' form the server.")
-        AgGrid(st.session_state.pois, gridOptions=self.config_grid())
+        AgGrid(st.session_state.pois, gridOptions=self._config_grid())
 
-    def config_grid(self) -> gridOptions:
+    def _config_grid(self) -> gridOptions:
         logger.debug("Configure the poi overview...")
         try:
             gb = GridOptionsBuilder.from_dataframe(st.session_state.pois)
+            self._select_visible_columns(gb)
             return gb.build()
         except Exception as err:
             logger.error(f"Can not configure poi grid. Error {err}")
         logger.info("Configured poi overview.")
+
+    def _select_visible_columns(self, gb: GridOptionsBuilder) -> None:
+        logger.debug("Configure visible columns...")
+        visible_columns = ["label", "city", "street", "postal_code", "homepage", "description"]
+        for col in st.session_state.pois.columns:
+            if col not in visible_columns:
+                gb.configure_column(col, hide=True)
+        logger.info("Configured visible columns.")
 
     def run(self) -> None:
         logger.info("Starting UI.")
