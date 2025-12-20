@@ -74,30 +74,21 @@ class UI:
         with container as con:
             logger.debug("Created container for controls.")
             destinations, categories, start, end, _ = con.columns([])
-            self.__init_destination_filter(destinations)
-            self.__init_category_filter(categories)
+            self.__init_filter(destinations, "destinations", "/cities/", "cities", "Itinerary Destinations")
+            self.__init_filter(categories, "categories", "/poi/types/", "types", "Category of POIs")
             self.__init_date_selector(start, "start")
             self.__init_date_selector(end, "end")
 
         logger.info("Initalized controls.")
 
-    def __init_destination_filter(self, cell: columns) -> None:
-        logger.debug("Initializing destination filter...")
+    def __init_filter(self, cell: columns, key: str, path: str, data_key: str, label: str) -> None:
+        logger.debug(f"Initializing {key} filter...")
         try:
-            destinations = handle_get_request("/city/")["cities"]
-            cell.multiselect("Itinerary Destinations", options=destinations, key="destinations")
-            logger.info("Initalized destination filter.")
+            destinations = handle_get_request(path)[data_key]
+            cell.multiselect(label, options=destinations, key=key)
+            logger.info(f"Initalized {key} filter.")
         except Exception:
-            logger.error("Failed to get destinations form the server.")
-
-    def __init_category_filter(self, cell: columns) -> None:
-        logger.debug("Initializing category filter...")
-        try:
-            poi_types = handle_get_request("/poi/types/")["types"]
-            cell.multiselect("Category of POIs", options=poi_types, key="categories")
-            logger.info("Initalized category filter.")
-        except Exception:
-            logger.error("Failed to get category form the server.")
+            logger.error(f"Failed to get {key} form the server.")
 
     def __init_date_selector(self, cell: columns, name: str) -> None:
         logger.debug(f"Initializing {name} selector...")
