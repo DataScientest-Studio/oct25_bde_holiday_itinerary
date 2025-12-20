@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Request
+from loguru import logger  # noqa: F401
 
 router = APIRouter()
 
