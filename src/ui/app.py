@@ -121,8 +121,8 @@ class UI:
         logger.debug("Initializing poi overview...")
         if st.session_state.destinations or st.session_state.categories:
             params = {
-                "locations": ",".join(st.session_state.destinations) or "",
-                "types": ",".join(st.session_state.categories) or "",
+                "locations": st.session_state.destinations or "",
+                "types": st.session_state.categories or "",
             }
             try:
                 pois = handle_get_request("/poi/filter", params).get("pois", self.init_empty_pois_dataframe())
