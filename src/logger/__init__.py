@@ -5,6 +5,12 @@ from os import getenv
 
 from loguru import logger
 
+logger.level("WARN", no=30, color="<yellow>")
+logger.level("PASS", no=20, color="<green>")
+
+logger.warning = lambda msg, *args, **kwargs: logger.log("WARN", msg, *args, **kwargs)
+logger.success = lambda msg, *args, **kwargs: logger.log("PASS", msg, *args, **kwargs)
+
 
 class InterceptHandler(logging.Handler):
     def emit(self, record: logging.LogRecord) -> None:
@@ -35,11 +41,14 @@ if getenv("LOG_HI", True):
         colorize=True,
         enqueue=True,
         format=(
-            "<green>{time:YYYY-MM-DD--HH:mm:ss}</green> | <level>{level: <9}</level> | "
-            "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - "
-            "<level>{message}</level>"
+            "<light-green>{time:YYYY-MM-DD--HH:mm:ss}</light-green> "
+            "| <level>{level: <5}</level> | "
+            "<light-cyan>{name}:{function}:{line} </light-cyan> - "
+            "{message}"
         ),
     )
+
+
 logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
 
 
