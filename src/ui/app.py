@@ -23,3 +23,16 @@ def handle_get_request(target: str, query_params: dict[str, str] | None = None) 
     except Exception as e:
         logger.error(f"GET request to http://neo4j_api:8080{target} failed: {e}")
         raise
+
+
+class UI:
+
+    def __init__(self) -> None:
+        pass
+
+    def run(self) -> None:
+        pass
+
+
+app = UI()
+app.run()
