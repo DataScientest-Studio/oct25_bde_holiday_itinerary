@@ -16,7 +16,10 @@ class InterceptHandler(logging.Handler):
     def emit(self, record: logging.LogRecord) -> None:
         # Get corresponding Loguru level if it exists.
         try:
-            level: str | int = logger.level(record.levelname).name
+            if record.levelno == logging.WARNING:
+                level: str | int = "WARN"
+            else:
+                level = logger.level(record.levelname).name
         except ValueError:
             level = record.levelno
 
@@ -47,9 +50,7 @@ if getenv("LOG_HI", True):
             "{message}"
         ),
     )
-
-
-logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
+logging.basicConfig(handlers=[InterceptHandler()], level=getenv("LOG_LEVEL", 0), force=True)
 
 
 __all__ = ["logger"]
