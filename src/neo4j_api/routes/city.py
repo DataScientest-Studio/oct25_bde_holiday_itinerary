@@ -5,19 +5,18 @@ from fastapi import APIRouter, Query, Request
 router = APIRouter()
 
 
-@router.get("/{city_id}")  # type: ignore[misc]
-def get_city(request: Request, city_id: str) -> dict[str, Any]:
-    driver = request.app.state.driver
-    return driver.get_city(city_id)  # type: ignore
-
-
 @router.get("/all")  # type: ignore[misc]
 def get_cities(request: Request) -> dict[str, Any]:
     driver = request.app.state.driver
     cities = driver.get_cities()  # type: ignore
     print(cities)
-    print("HELLLOQ?Q>Q")
     return cities
+
+
+@router.get("/{city_id}")  # type: ignore[misc]
+def get_city(request: Request, city_id: str) -> dict[str, Any]:
+    driver = request.app.state.driver
+    return driver.get_city(city_id)  # type: ignore
 
 
 @router.get("/{city_id}/pois")  # type: ignore[misc]
