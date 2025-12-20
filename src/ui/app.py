@@ -70,8 +70,8 @@ class UI:
 
     def __init_session_states(self) -> None:
         logger.debug("Initializing session states...")
-        keys = ["destinations", "categories", "pois", "selected_row"]
-        values = [[], [], self.init_empty_pois_dataframe(), []]
+        keys = ["destinations", "categories", "pois", "selected_rows"]
+        values = [[], [], self.init_empty_pois_dataframe(), pd.DataFrame()]
         for key, value in zip(keys, values):
             if not hasattr(st.session_state, key):
                 setattr(st.session_state, key, value)
@@ -134,7 +134,8 @@ class UI:
             }
             try:
                 pois = handle_get_request("/poi/filter", params).get("pois", self.init_empty_pois_dataframe())
-                st.session_state.pois = pd.DataFrame(pois)
+                st.session_state.pois = pd.DataFrame(pois, columns=self.poi_cols)
+                st.session_state.pois.fillna("", inplace=True)
                 logger.info("Initalized poi overview.")
             except Exception:
                 logger.error("Failed to get '/poi/filter' form the server.")
@@ -146,10 +147,10 @@ class UI:
             update_mode=GridUpdateMode.SELECTION_CHANGED,
             fit_columns_on_grid_load=True,
         )
-        st.session_state.selected_row = grid_response["selected_rows"]
+        st.session_state.selected_rows = grid_response["selected_rows"]
 
-        logger.info(st.session_state.selected_row)
-        logger.info(type(st.session_state.selected_row))
+        logger.info(st.session_state.selected_rows)
+        logger.info(type(st.session_state.selected_rows))
 
     def _config_grid(self) -> tuple[pd.DataFrame, GridOptionsBuilder]:
         logger.debug("Configure the poi overview...")
@@ -187,22 +188,15 @@ class UI:
         logger.info("Configured visible columns.")
 
     def _load_previous_selections(self, df: pd.DataFrame, grid_options: dict[str, Any]) -> None:
-        if not isinstance(st.session_state.selected_row, list) or not st.session_state.selected_row:
+        if st.session_state.selected_rows.empty:
             logger.info("No previous selection to restore.")
             return
-        logger.debug(f"Restoring previous selection of '{st.session_state.selected_row}'...")
-        preselected_indices = []
-        for prev in st.session_state.selected_row:
-            logger.debug(prev)
-            logger.debug(type(prev))
-            logger.debug("------------------")
-            for i, row in df.iterrows():
-                logger.warning(row)
-                logger.warning(type(row))
-                if row.get("label", "") == prev.get("label", "") and row.get("city", "") == prev.get("city", ""):
-                    preselected_indices.append(i)
-            logger.debug("------------------")
-        grid_options["preSelectedRows"] = preselected_indices
+        logger.debug(f"Restoring previous selection of '{len(st.session_state.selected_rows)}'...")
+        grid_options["preSelectedRows"] = df.join(
+            st.session_state.selected_rows[self.poi_cols].drop_duplicates().set_index(self.poi_cols),
+            on=self.poi_cols,
+            how="inner",
+        )
         logger.debug(f"Restored {len(grid_options['preSelectedRows'])} row.")
         logger.info("Restored previous selection.")
 
