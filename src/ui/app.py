@@ -135,14 +135,20 @@ class UI:
     def _config_grid(self) -> GridOptionsBuilder:
         logger.debug("Configure the poi overview...")
         try:
-            gb = GridOptionsBuilder.from_dataframe(st.session_state.pois)
+            gb = GridOptionsBuilder.from_dataframe(self._reorder_columns(st.session_state.pois))
             self._select_visible_columns(gb)
-            self._order_columns(gb)
             gb.configure_selection("single")
             return gb.build()
         except Exception as err:
             logger.error(f"Can not configure poi grid. Error {err}")
         logger.info("Configured poi overview.")
+
+    def _reorder_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+        logger.debug("Sorting columns...")
+        ordered_cols = [col for col in self.visible_columns if col in df.columns]
+        extra_cols = [col for col in df.columns if col not in ordered_cols]
+        logger.info("Sorted columns.")
+        return df[ordered_cols + extra_cols]
 
     def _select_visible_columns(self, gb: GridOptionsBuilder) -> None:
         logger.debug("Configure visible columns...")
@@ -150,10 +156,6 @@ class UI:
             if col not in self.visible_columns:
                 gb.configure_column(col, hide=True)
         logger.info("Configured visible columns.")
-
-    def _order_columns(self, gb: GridOptionsBuilder) -> None:
-        for col in self.visible_columns:
-            gb.configure_column(col, sortable=True)
 
     def run(self) -> None:
         logger.info("Starting UI.")
