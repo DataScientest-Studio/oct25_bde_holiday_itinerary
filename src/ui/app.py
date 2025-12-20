@@ -6,7 +6,7 @@ import pandas as pd
 import streamlit as st
 from requests import get
 from requests.models import HTTPError
-from st_aggrid import AgGrid, GridOptionsBuilder, gridOptions
+from st_aggrid import AgGrid, GridOptionsBuilder
 
 from logger import logger
 
@@ -45,6 +45,7 @@ class UI:
         "homepage",
         "longitude",
     ]
+    visible_columns: tuple[str] = ["label", "city", "street", "postal_code", "homepage", "description"]
 
     def __init__(self) -> None:
         logger.debug("Initializing UI for holiday itinerary...")
@@ -124,11 +125,13 @@ class UI:
                 logger.error("Failed to get '/poi/filter' form the server.")
         AgGrid(st.session_state.pois, gridOptions=self._config_grid())
 
-    def _config_grid(self) -> gridOptions:
+    def _config_grid(self) -> GridOptionsBuilder:
         logger.debug("Configure the poi overview...")
         try:
             gb = GridOptionsBuilder.from_dataframe(st.session_state.pois)
             self._select_visible_columns(gb)
+            self._order_columns(gb)
+            gb.configure_selection("single")
             return gb.build()
         except Exception as err:
             logger.error(f"Can not configure poi grid. Error {err}")
@@ -136,11 +139,14 @@ class UI:
 
     def _select_visible_columns(self, gb: GridOptionsBuilder) -> None:
         logger.debug("Configure visible columns...")
-        visible_columns = ["label", "city", "street", "postal_code", "homepage", "description"]
         for col in st.session_state.pois.columns:
-            if col not in visible_columns:
+            if col not in self.visible_columns:
                 gb.configure_column(col, hide=True)
         logger.info("Configured visible columns.")
+
+    def _order_columns(self, gb: GridOptionsBuilder) -> None:
+        for col in self.visible_columns:
+            gb.configure_column(col, sortable=True)
 
     def run(self) -> None:
         logger.info("Starting UI.")
