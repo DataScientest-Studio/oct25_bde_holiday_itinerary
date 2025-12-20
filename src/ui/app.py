@@ -45,7 +45,14 @@ class UI:
         "homepage",
         "longitude",
     ]
-    visible_columns: tuple[str] = ["label", "city", "street", "postal_code", "homepage", "description"]
+    visible_columns: tuple[str, ...] = (
+        "label",
+        "city",
+        "street",
+        "postal_code",
+        "homepage",
+        "description",
+    )
 
     def __init__(self) -> None:
         logger.debug("Initializing UI for holiday itinerary...")
