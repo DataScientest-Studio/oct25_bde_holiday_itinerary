@@ -1,7 +1,6 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from loguru import logger  # noqa: F401
 
 from src.neo4j_driver.neo4j_driver import Neo4jDriver
 

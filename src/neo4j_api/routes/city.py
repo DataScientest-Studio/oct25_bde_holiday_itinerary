@@ -1,7 +1,6 @@
 from typing import Any, List, Optional
 
 from fastapi import APIRouter, Query, Request
-from loguru import logger  # noqa: F401
 
 router = APIRouter()
 
@@ -15,7 +14,10 @@ def get_city(request: Request, city_id: str) -> dict[str, Any]:
 @router.get("/all")  # type: ignore[misc]
 def get_cities(request: Request) -> dict[str, Any]:
     driver = request.app.state.driver
-    return driver.get_cities()  # type: ignore
+    cities = driver.get_cities()  # type: ignore
+    print(cities)
+    print("HELLLOQ?Q>Q")
+    return cities
 
 
 @router.get("/{city_id}/pois")  # type: ignore[misc]
