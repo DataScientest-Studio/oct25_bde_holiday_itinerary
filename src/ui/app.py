@@ -31,15 +31,33 @@ class UI:
     layout: str = "wide"
 
     def __init__(self) -> None:
-        logger.debug("Initializing UI for holiday itinerary ... ")
+        logger.debug("Initializing UI for holiday itinerary...")
 
         st.set_page_config(page_title=self.title_name, layout=self.layout)
-        logger.debug(f"Set page title to '{self.title_name}' and layout to '{self.layout}'.")
+        logger.debug(f"Set page title to '{self.title_name}' and layout style to '{self.layout}'.")
 
         st.title(self.title_name)
         logger.debug(f"Set title to '{self.title_name}'.")
 
+        self.__init_layout()
+
         logger.success("Initialized UI.")
+
+    def __init_layout(self) -> None:
+        logger.debug("Initializing layout...")
+        self.__init_data_layout()
+        logger.info("Initalized layout.")
+
+    def __init_data_layout(self) -> None:
+        logger.debug("Initializing data section...")
+        self.__init_filters()
+
+        logger.info("Initalized data section.")
+
+    def __init_filters(self) -> None:
+        logger.debug("Initializing filters...")
+
+        logger.info("Initalized filter.")
 
     def run(self) -> None:
         logger.info("Starting UI.")
