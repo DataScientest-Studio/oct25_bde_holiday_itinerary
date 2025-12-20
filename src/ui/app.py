@@ -6,7 +6,7 @@ import pandas as pd
 import streamlit as st
 from requests import get
 from requests.models import HTTPError
-from st_aggrid import AgGrid, GridOptionsBuilder
+from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
 
 from logger import logger
 
@@ -70,8 +70,8 @@ class UI:
 
     def __init_session_states(self) -> None:
         logger.debug("Initializing session states...")
-        keys = ["destinations", "categories", "pois"]
-        values = [[], [], self.init_empty_pois_dataframe()]
+        keys = ["destinations", "categories", "pois", "selected_row"]
+        values = [[], [], self.init_empty_pois_dataframe(), []]
         for key, value in zip(keys, values):
             if not hasattr(st.session_state, key):
                 setattr(st.session_state, key, value)
@@ -139,7 +139,17 @@ class UI:
             except Exception:
                 logger.error("Failed to get '/poi/filter' form the server.")
         df, options = self._config_grid()
-        AgGrid(df, gridOptions=options, fit_columns_on_grid_load=True)
+        self._load_previous_selections(df, options)
+        grid_response = AgGrid(
+            df,
+            gridOptions=options,
+            update_mode=GridUpdateMode.SELECTION_CHANGED,
+            fit_columns_on_grid_load=True,
+        )
+        st.session_state.selected_row = grid_response["selected_rows"]
+
+        logger.info(st.session_state.selected_row)
+        logger.info(type(st.session_state.selected_row))
 
     def _config_grid(self) -> tuple[pd.DataFrame, GridOptionsBuilder]:
         logger.debug("Configure the poi overview...")
@@ -147,8 +157,7 @@ class UI:
             df = self._reorder_columns(st.session_state.pois)
             gb = GridOptionsBuilder.from_dataframe(df)
             self._select_visible_columns(gb)
-            gb.configure_selection("single")
-            # gb.configure_column_tool_panel(True)  # Enables check/uncheck
+            gb.configure_selection("multiple", use_checkbox=True)
             gb.configure_column("label", maxWidth=150, headerName="POI")
             gb.configure_column("city", maxWidth=150, headerName="City")
             gb.configure_column("street", maxWidth=200, headerName="Street")
@@ -176,6 +185,26 @@ class UI:
             if col not in self.visible_columns:
                 gb.configure_column(col, hide=True)
         logger.info("Configured visible columns.")
+
+    def _load_previous_selections(self, df: pd.DataFrame, grid_options: dict[str, Any]) -> None:
+        if not isinstance(st.session_state.selected_row, list) or not st.session_state.selected_row:
+            logger.info("No previous selection to restore.")
+            return
+        logger.debug(f"Restoring previous selection of '{st.session_state.selected_row}'...")
+        preselected_indices = []
+        for prev in st.session_state.selected_row:
+            logger.debug(prev)
+            logger.debug(type(prev))
+            logger.debug("------------------")
+            for i, row in df.iterrows():
+                logger.warning(row)
+                logger.warning(type(row))
+                if row.get("label", "") == prev.get("label", "") and row.get("city", "") == prev.get("city", ""):
+                    preselected_indices.append(i)
+            logger.debug("------------------")
+        grid_options["preSelectedRows"] = preselected_indices
+        logger.debug(f"Restored {len(grid_options['preSelectedRows'])} row.")
+        logger.info("Restored previous selection.")
 
     def run(self) -> None:
         logger.info("Starting UI.")
