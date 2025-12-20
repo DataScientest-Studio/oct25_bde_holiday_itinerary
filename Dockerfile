@@ -4,6 +4,7 @@ FROM python:3.13-slim-trixie AS builder
 ENV PIP_DISABLE_PIP_VERSION_CHECK 1
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+ENV LOG_HI True
 
 ENV DISPLAY=:99
 
@@ -49,12 +50,15 @@ RUN eval $(poetry env activate) && pip freeze > requirements.txt
 # Final image for the streamlit-ui
 FROM python:3.13-slim-trixie AS ui
 
+ENV PYTHONPATH=/app
+
 WORKDIR /app
 
 COPY --from=ui-builder /builder/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ./src/ui/ ./ui
+COPY ./src/logger/ ./logger
 
 ENTRYPOINT [ "streamlit", "run", "ui/app.py" ]
 
