@@ -105,10 +105,11 @@ class UI:
             }
             pois = handle_get_request("/poi/filter", params).get("pois", [])
             st.session_state.pois = pd.DataFrame(pois)
-            AgGrid(st.session_state)
             logger.info("Initalized poi overview.")
         except Exception:
             logger.error("Failed to get '/poi/filter' form the server.")
+        finally:
+            AgGrid(st.session_state)
 
     def run(self) -> None:
         logger.info("Starting UI.")
