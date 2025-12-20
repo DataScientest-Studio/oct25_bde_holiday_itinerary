@@ -86,13 +86,13 @@ class UI:
 
     def __init_layout(self) -> None:
         logger.debug("Initializing layout...")
-        with st.container() as con:
+        with st.container() as _:
             logger.debug("Created container for controls and poi overview.")
-            self.__init_controls(con)
-            self.__init_poi_overview_layout(con)
+            self.__init_controls()
+            self.__init_poi_overview_layout()
         logger.info("Initalized layout.")
 
-    def __init_controls(self, con: st.container) -> None:
+    def __init_controls(self) -> None:
         logger.debug("Initializing controls...")
 
         destinations, categories, start, end = st.columns([2, 2, 1, 1])
@@ -117,7 +117,7 @@ class UI:
         cell.date_input(f"Itinerary {name}", value=date.today(), format="DD/MM/YYYY", key=name)
         logger.info(f"Initalized {name} selector.")
 
-    def __init_poi_overview_layout(self, con: st.container) -> None:
+    def __init_poi_overview_layout(self) -> None:
         logger.debug("Initializing poi overview...")
         if st.session_state.destinations or st.session_state.categories:
             params = {
