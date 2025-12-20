@@ -1,9 +1,9 @@
 from json import loads
 from typing import Any
 
-import streamlit as st
 from requests import get
 from requests.models import HTTPError
+from streamlit import set_page_config, title
 
 from logger import logger
 
@@ -33,10 +33,10 @@ class UI:
     def __init__(self) -> None:
         logger.debug("Initializing UI for holiday itinerary...")
 
-        st.set_page_config(page_title=self.title_name, layout=self.layout)
+        set_page_config(page_title=self.title_name, layout=self.layout)
         logger.debug(f"Set page title to '{self.title_name}' and layout style to '{self.layout}'.")
 
-        st.title(self.title_name)
+        title(self.title_name)
         logger.debug(f"Set title to '{self.title_name}'.")
 
         self.__init_layout()
@@ -50,14 +50,14 @@ class UI:
 
     def __init_data_layout(self) -> None:
         logger.debug("Initializing data section...")
-        self.__init_filters()
+        self.__init_controls()
 
         logger.info("Initalized data section.")
 
-    def __init_filters(self) -> None:
-        logger.debug("Initializing filters...")
+    def __init_controls(self) -> None:
+        logger.debug("Initializing controls...")
 
-        logger.info("Initalized filter.")
+        logger.info("Initalized controls.")
 
     def run(self) -> None:
         logger.info("Starting UI.")
