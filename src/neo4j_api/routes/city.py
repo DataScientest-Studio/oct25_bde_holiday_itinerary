@@ -11,7 +11,7 @@ def get_city(request: Request, city_id: str) -> dict[str, Any]:
     return driver.get_city(city_id)  # type: ignore
 
 
-@router.get("/")  # type: ignore[misc]
+@router.get("/all")  # type: ignore[misc]
 def get_cities(request: Request) -> dict[str, Any]:
     driver = request.app.state.driver
     return driver.get_cities()  # type: ignore

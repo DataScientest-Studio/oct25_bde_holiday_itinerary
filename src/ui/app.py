@@ -73,7 +73,7 @@ class UI:
         logger.debug("Initializing controls...")
 
         destinations, categories, start, end = st.columns([2, 2, 1, 1])
-        self.__init_filter(destinations, "destinations", "/cities/", "cities", "Itinerary Destinations")
+        self.__init_filter(destinations, "destinations", "/city/all/", "cities", "Itinerary Destinations")
         self.__init_filter(categories, "categories", "/poi/types/", "types", "Category of POIs")
         self.__init_date_selector(start, "start")
         self.__init_date_selector(end, "end")
