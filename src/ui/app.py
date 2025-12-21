@@ -83,8 +83,8 @@ class UI:
 
     def __init_session_states(self) -> None:
         logger.debug("Initializing session states...")
-        keys = ["cities", "destinations", "categories", "pois", "selected_poi", "route_pois"]
-        values = [{}, [], [], self.init_empty_pois_dataframe(), None, self.init_empty_pois_dataframe()]
+        keys = ["cities", "destinations", "categories", "pois", "selected_poi", "add_point", "route_pois"]
+        values = [{}, [], [], self.init_empty_pois_dataframe(), None, None, self.init_empty_pois_dataframe()]
         for key, value in zip(keys, values):
             if not hasattr(st.session_state, key):
                 setattr(st.session_state, key, value)
@@ -136,11 +136,23 @@ class UI:
     def __init_poi_add_button(self) -> None:
         logger.debug("Initializing add button...")
         with st.container(horizontal_alignment="right", vertical_alignment="bottom"):
-            st.button("Add POI", on_click=self._handle_add_poi)
+            st.button("Add POI", on_click=self._handle_add_poi, key="add_point")
         logger.info("Initalized add button.")
 
     def _handle_add_poi(self) -> None:
-        logger.success("Congratulations, you have mastered the skill of pressing a button.")
+        logger.debug("Handle add point to dataframe.")
+        if not st.session_state.selected_poi:
+            logger.error("Can not add point to route points. No point exists.")
+            return
+        if st.session_state.route_pois.apply(tuple, axis=1).eq(len(st.session_state.selected_poi)).any():
+            logger.error("Point already exists in DataFrame.")
+            return
+
+        st.session_state.route_pois.loc[len(st.session_state.route_pois)] = st.session_state.selected_poi
+        st.session_state.pois = st.session_state.pois[
+            ~st.session_state.pois.apply(tuple, axis=1).eq(st.session_state.selected_poi)
+        ]
+        logger.info("Added point to dataframe.")
 
     def __init_controls(self) -> None:
         logger.debug("Initializing controls...")
@@ -303,6 +315,10 @@ class UI:
 
     def __init_route_pois(self) -> None:
         logger.debug("Initializing route pois...")
+        with st.container(height=400):
+            pass
+        with st.container():
+            pass
         logger.info("initalized route pois.")
 
     def run(self) -> None:
