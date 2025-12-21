@@ -364,7 +364,7 @@ class UI:
             with calculate_tour:
                 st.button("Calculate itinerary", on_click=self._handle_calculate_itinerary)
         with st.container(horizontal_alignment="right", vertical_alignment="bottom"):
-            st.button("Delete POI from route", on_click=self._handle_delete_poi_from_route)
+            st.button("Delete POI", on_click=self._handle_delete_poi_from_route)
         logger.info("Initialized route controller...")
 
     def _handle_delete_poi_from_route(self):
