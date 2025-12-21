@@ -65,8 +65,8 @@ class UI:
             if not hasattr(st.session_state, key):
                 setattr(st.session_state, key, value)
                 logger.debug(f"Set {key} to: {getattr(st.session_state, key)}.")
-            else:
-                logger.debug(f"Load previous {key}: {getattr(st.session_state, key)}.")
+            # else:
+            #     logger.debug(f"Load previous {key}: {getattr(st.session_state, key)}.")
 
         logger.success("Initialized session_states.")
 
@@ -329,6 +329,7 @@ class UI:
         logger.info("Initialized route controller...")
 
     def add_poi(self) -> None:
+        logger.debug("Adding point to df.")
         try:
             st.session_state.route_pois = self.handler.add_poi(
                 st.session_state.route_pois, st.session_state.selected_poi

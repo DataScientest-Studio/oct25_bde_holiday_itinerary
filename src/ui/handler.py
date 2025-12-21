@@ -1,5 +1,5 @@
 from json import loads
-from typing import Any
+from typing import Any, NamedTuple
 
 import pandas as pd
 from requests import get
@@ -31,14 +31,17 @@ class Handler:
     def __init__(self) -> None:
         logger.info("Initialized UIHandler.")
 
-    def add_poi(self, dest: pd.DataFrame, src: pd.DataFrame) -> pd.DataFrame:
+    def add_poi(self, dest: pd.DataFrame, src: NamedTuple) -> pd.DataFrame:
         logger.debug("Handle add point to dataframe.")
-        if "poiId" not in dest:
+        if "poiId" not in dest.columns:
+            logger.debug("Dest has no dataframe.")
             raise KeyError(f"Dataframe {dest} has no column named 'poiId'.")
-        if "poiId" not in src:
+        if not hasattr(src, "poiId"):
+            logger.debug("Src has no dataframe.")
             raise KeyError(f"Dataframe {src} has no column named 'poiId'.")
-        if (dest["poiId"] == src["poiId"]).any():
-            raise ValueError(f"Row with poiId {src['poiId']} already dataframe..")
+        if (dest["poiId"] == src.poiId).any():
+            logger.debug("poiId already in dest.")
+            raise ValueError(f"Row with poiId {src.poiId} already dataframe..")
 
         dest.loc[len(dest)] = src
         logger.info("Added point to dataframe.")
@@ -46,7 +49,8 @@ class Handler:
 
     def remove_poi(self, target: pd.DataFrame, poi_id: str) -> pd.DataFrame:
         logger.debug("Removing row from DataFrame...")
-        if "poiId" not in target:
+        if "poiId" not in target.columns:
+            logger.debug("Target has no dataframe.")
             raise KeyError(f"Dataframe {target} has no column named 'poiId'.")
 
         target = target[target["poiId"] != poi_id]
