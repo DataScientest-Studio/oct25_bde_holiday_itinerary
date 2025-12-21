@@ -1,12 +1,10 @@
 from datetime import date
-from json import loads
 from typing import Any, NamedTuple
 
 import pandas as pd
 import pydeck as pdk
 import streamlit as st
-from requests import get
-from requests.models import HTTPError
+from handler import Handler, handle_get_request
 from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
 
 from logger import logger
@@ -26,24 +24,6 @@ class Poi(NamedTuple):
     poiId: str
 
 
-def handle_get_request(target: str, query_params: dict[str, str] | None = None) -> dict[str, Any]:
-    logger.info(f"Sending GET request to http://neo4j_api:8080{target} with params: {query_params}")
-    try:
-        response = get(f"http://neo4j_api:8080{target}", params=query_params)
-        logger.debug(f"Received response returned status code {response.status_code}")
-
-        match response.status_code:
-            case 200:
-                logger.success(f"GET request to http://neo4j_api:8080{target} succeeded")
-                return loads(response.text)
-            case _:
-                logger.warning(f"GET request to {target} returned {response.status_code}")
-                raise HTTPError(f"Request did not return 200. It returned {response.status_code}.")
-    except Exception as err:
-        logger.error(f"GET request to http://neo4j_api:8080{target} failed: {err}")
-        raise
-
-
 class UI:
     title_name: str = "Holiday Itinerary"
     layout: str = "wide"
@@ -61,6 +41,7 @@ class UI:
         "poiId",
     ]
     old_params: dict[str, Any] = {}
+    handler: Handler = Handler()
 
     def __init__(self) -> None:
         logger.debug("Initializing UI for holiday itinerary...")
@@ -131,7 +112,7 @@ class UI:
     def __init_poi_add_button(self) -> None:
         logger.debug("Initializing add button...")
         with st.container(horizontal_alignment="right", vertical_alignment="bottom"):
-            st.button("Add POI", on_click=self._handle_add_poi)
+            st.button("Add POI", on_click=self.add_poi)
         logger.info("Initalized add button.")
 
     def __init_controls(self) -> None:
@@ -347,25 +328,17 @@ class UI:
             st.button("Delete POI", on_click=self._handle_delete_poi_from_route)
         logger.info("Initialized route controller...")
 
-    def _handle_add_poi(self) -> None:
-        logger.debug("Handle add point to dataframe.")
-        if not st.session_state.selected_poi:
-            logger.error("Can not add point to route points. No point exists.")
+    def add_poi(self) -> None:
+        try:
+            st.session_state.route_pois = self.handler.add_poi(
+                st.session_state.route_pois, st.session_state.selected_poi
+            )
+            logger.info("Added point to route POIs DataFrame.")
+            st.session_state.pois = self.handler.remove_poi(st.session_state.pois, st.session_state.selected_poi)
+            logger.info("Removed POI from pois DataFrame.")
+        except (KeyError, ValueError) as err:
+            logger.error(err)
             return
-        mask = st.session_state.route_pois["poiId"] == st.session_state.selected_poi.poiId
-        if mask.any():
-            logger.error("Point already exists in DataFrame.")
-            return
-
-        st.session_state.route_pois.loc[len(st.session_state.route_pois)] = st.session_state.selected_poi
-
-        # Does not work.
-        index = st.session_state.pois.index.get_loc(
-            st.session_state.pois.loc[st.session_state.pois["poiId"] == st.session_state.selected_poi.poiId].index[0]
-        )
-        st.session_state.pois = st.session_state.pois.drop(st.session_state.pois.index[index])
-
-        logger.info("Added point to dataframe.")
 
     def _handle_delete_poi_from_route(self):
         pass
