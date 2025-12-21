@@ -70,8 +70,8 @@ class UI:
 
     def __init_session_states(self) -> None:
         logger.debug("Initializing session states...")
-        keys = ["destinations", "categories", "pois", "selected_rows"]
-        values = [[], [], self.init_empty_pois_dataframe(), []]
+        keys = ["destinations", "categories", "pois", "selected_rows", "route_pois"]
+        values = [[], [], self.init_empty_pois_dataframe(), [], self.init_empty_pois_dataframe()]
         for key, value in zip(keys, values):
             if not hasattr(st.session_state, key):
                 setattr(st.session_state, key, value)
@@ -99,7 +99,6 @@ class UI:
     def __init_controls(self) -> None:
         logger.debug("Initializing controls...")
         filter, date_col = st.columns([3, 1])
-        # destinations, categories, start, end = st.columns([2, 2, 1, 1])
         with filter as _:
             with st.container() as destinations:
                 self.__init_filter(destinations, "destinations", "/city/all", "cities", "Itinerary Destinations")
@@ -173,7 +172,7 @@ class UI:
             df = self._reorder_columns(st.session_state.pois)
             gb = GridOptionsBuilder.from_dataframe(df)
             self._select_visible_columns(gb)
-            gb.configure_selection("multiple", use_checkbox=True)
+            gb.configure_selection("single", use_checkbox=True)
             gb.configure_column("label", maxWidth=150, headerName="POI")
             gb.configure_column("city", maxWidth=150, headerName="City")
             gb.configure_column("street", maxWidth=200, headerName="Street")
