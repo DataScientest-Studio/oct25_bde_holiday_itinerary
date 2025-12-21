@@ -43,6 +43,7 @@ streamlit = "1.52.2"
 requests = "^2.32.5"
 streamlit-aggrid = "^1.2.1"
 pandas = "^2.3.3"
+pydeck = "^0.9.1"
 
 [tool.isort]
 profile = "black"
