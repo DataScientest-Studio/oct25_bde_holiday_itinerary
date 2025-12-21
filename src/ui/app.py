@@ -60,11 +60,6 @@ class UI:
         "longitude",
         "poiId",
     ]
-    visible_columns: list[str] = [
-        "label",
-        "city",
-        "description",
-    ]
     old_params: dict[str, Any] = {}
 
     def __init__(self) -> None:
@@ -136,7 +131,7 @@ class UI:
     def __init_poi_add_button(self) -> None:
         logger.debug("Initializing add button...")
         with st.container(horizontal_alignment="right", vertical_alignment="bottom"):
-            st.button("Add POI", on_click=self._handle_add_poi, key="add_point")
+            st.button("Add POI", on_click=self._handle_add_poi)
         logger.info("Initalized add button.")
 
     def _handle_add_poi(self) -> None:
@@ -149,9 +144,12 @@ class UI:
             return
 
         st.session_state.route_pois.loc[len(st.session_state.route_pois)] = st.session_state.selected_poi
-        st.session_state.pois = st.session_state.pois[
-            ~st.session_state.pois.apply(tuple, axis=1).eq(st.session_state.selected_poi)
-        ]
+
+        index = st.session_state.pois.index.get_loc(
+            st.session_state.pois.loc[st.session_state.pois["poiId"] == st.session_state.selected_poi.poiId].index[0]
+        )
+        st.session_state.pois = st.session_state.pois.drop(st.session_state.pois.index[index])
+
         logger.info("Added point to dataframe.")
 
     def __init_controls(self) -> None:
@@ -214,7 +212,7 @@ class UI:
         grid_response = AgGrid(
             df,
             gridOptions=options,
-            key="poisId",
+            key="poi-overview",
             update_mode=GridUpdateMode.SELECTION_CHANGED,
             fit_columns_on_grid_load=True,
             show_toolbar=True,
@@ -237,9 +235,14 @@ class UI:
     def _config_poi_overview_grid(self) -> tuple[pd.DataFrame, GridOptionsBuilder]:
         logger.debug("Configure the poi overview...")
         try:
-            df = self._reorder_columns(st.session_state.pois)
+            visible_columns = [
+                "label",
+                "city",
+                "description",
+            ]
+            df = self._reorder_columns(st.session_state.pois, visible_columns)
             gb = GridOptionsBuilder.from_dataframe(df)
-            self._select_visible_columns(gb)
+            self._select_visible_columns(gb, visible_columns)
             gb.configure_selection("single", use_checkbox=True)
             gb.configure_column("label", maxWidth=150, headerName="POI")
             gb.configure_column("city", maxWidth=150, headerName="City")
@@ -252,17 +255,17 @@ class UI:
             logger.error(f"Can not configure poi grid. Error {err}")
             raise
 
-    def _reorder_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+    def _reorder_columns(self, df: pd.DataFrame, visible_columns) -> pd.DataFrame:
         logger.debug("Sorting columns...")
-        ordered_cols = [col for col in self.visible_columns if col in df.columns]
+        ordered_cols = [col for col in visible_columns if col in df.columns]
         extra_cols = [col for col in df.columns if col not in ordered_cols]
         logger.info("Sorted columns.")
         return df[ordered_cols + extra_cols]
 
-    def _select_visible_columns(self, gb: GridOptionsBuilder) -> None:
+    def _select_visible_columns(self, gb: GridOptionsBuilder, visible_columns) -> None:
         logger.debug("Configure visible columns...")
         for col in st.session_state.pois.columns:
-            if col not in self.visible_columns:
+            if col not in visible_columns:
                 gb.configure_column(col, hide=True)
         logger.info("Configured visible columns.")
 
@@ -315,11 +318,40 @@ class UI:
 
     def __init_route_pois(self) -> None:
         logger.debug("Initializing route pois...")
-        with st.container(height=400):
-            pass
+        with st.container():
+            df, options = self._config_poi_route_grid()
+            logger.debug("Initializing AgGrid...")
+            _ = AgGrid(
+                df,
+                gridOptions=options,
+                key="route-overview",
+                update_mode=GridUpdateMode.SELECTION_CHANGED,
+                fit_columns_on_grid_load=True,
+                show_toolbar=True,
+                height=400,
+                show_download_button=False,
+            )
         with st.container():
             pass
         logger.info("initalized route pois.")
+
+    def _config_poi_route_grid(self) -> tuple[pd.DataFrame, GridOptionsBuilder]:
+        logger.debug("Configure the poi overview...")
+        try:
+            visible_columns = ["label", "city"]
+            df = self._reorder_columns(st.session_state.route_pois, visible_columns)
+            gb = GridOptionsBuilder.from_dataframe(df)
+            self._select_visible_columns(gb, visible_columns)
+            gb.configure_selection("single", use_checkbox=True)
+            gb.configure_column("label", maxWidth=150, headerName="POI")
+            gb.configure_column("city", maxWidth=150, headerName="City")
+            gb.configure_default_column(resizable=True, autoSize=True)
+
+            logger.info("Configured poi overview.")
+            return df, gb.build()
+        except Exception as err:
+            logger.error(f"Can not configure poi grid. Error {err}")
+            raise
 
     def run(self) -> None:
         logger.info("Starting UI.")
