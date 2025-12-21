@@ -145,30 +145,35 @@ class UI:
     def __init_controls(self) -> None:
         logger.debug("Initializing controls...")
         st.subheader("Filter")
-        with st.container():
-            self.__init_filter("destinations", "/city/all", "cities", "Itinerary Destinations")
-        with st.container():
-            self.__init_filter("categories", "/poi/types", "types", "Category of POIs")
-        with st.container():
-            self.__init_date_selector("start")
-        with st.container():
-            self.__init_date_selector("end")
+        self.__init_filter("destinations", "/city/all", "cities", "Itinerary Destinations")
+        self.__init_filter("categories", "/poi/types", "types", "Category of POIs")
+        self.__init_date_selector("start")
+        self.__init_date_selector("end")
+        self.__init_radius_handler()
 
         logger.info("Initalized controls.")
 
     def __init_filter(self, key: str, path: str, data_key: str, label: str) -> None:
         logger.debug(f"Initializing {key} filter...")
         try:
-            destinations = handle_get_request(path)[data_key]
-            st.multiselect(label, options=destinations, key=key)
-            logger.info(f"Initalized {key} filter.")
+            with st.container():
+                destinations = handle_get_request(path)[data_key]
+                st.multiselect(label, options=destinations, key=key)
+                logger.info(f"Initalized {key} filter.")
         except Exception as err:
             logger.error(f"Failed to get '{key}' form the server. Error: {err}")
 
     def __init_date_selector(self, name: str) -> None:
         logger.debug(f"Initializing {name} selector...")
-        st.date_input(f"Itinerary {name}", value=date.today(), format="DD/MM/YYYY", key=name)
+        with st.container():
+            st.date_input(f"Itinerary {name}", value=date.today(), format="DD/MM/YYYY", key=name)
         logger.info(f"Initalized {name} selector.")
+
+    def __init_radius_handler(self) -> None:
+        logger.debug("Initializing radius handler...")
+        with st.container():
+            st.slider("Distance from city", min_value=0, max_value=100, key="radius-filter")
+        logger.info("Initalized radius handler.")
 
     def __init_pois_overview_layout(self) -> None:
         logger.debug("Initializing pois overview...")
