@@ -134,26 +134,6 @@ class UI:
             st.button("Add POI", on_click=self._handle_add_poi)
         logger.info("Initalized add button.")
 
-    def _handle_add_poi(self) -> None:
-        logger.debug("Handle add point to dataframe.")
-        if not st.session_state.selected_poi:
-            logger.error("Can not add point to route points. No point exists.")
-            return
-        mask = st.session_state.route_pois["poiId"] == st.session_state.selected_poi.poiId
-        if mask.any():
-            logger.error("Point already exists in DataFrame.")
-            return
-
-        st.session_state.route_pois.loc[len(st.session_state.route_pois)] = st.session_state.selected_poi
-
-        # Does not work.
-        index = st.session_state.pois.index.get_loc(
-            st.session_state.pois.loc[st.session_state.pois["poiId"] == st.session_state.selected_poi.poiId].index[0]
-        )
-        st.session_state.pois = st.session_state.pois.drop(st.session_state.pois.index[index])
-
-        logger.info("Added point to dataframe.")
-
     def __init_controls(self) -> None:
         logger.debug("Initializing controls...")
         st.subheader("Filter")
@@ -366,6 +346,26 @@ class UI:
         with st.container(horizontal_alignment="right", vertical_alignment="bottom"):
             st.button("Delete POI", on_click=self._handle_delete_poi_from_route)
         logger.info("Initialized route controller...")
+
+    def _handle_add_poi(self) -> None:
+        logger.debug("Handle add point to dataframe.")
+        if not st.session_state.selected_poi:
+            logger.error("Can not add point to route points. No point exists.")
+            return
+        mask = st.session_state.route_pois["poiId"] == st.session_state.selected_poi.poiId
+        if mask.any():
+            logger.error("Point already exists in DataFrame.")
+            return
+
+        st.session_state.route_pois.loc[len(st.session_state.route_pois)] = st.session_state.selected_poi
+
+        # Does not work.
+        index = st.session_state.pois.index.get_loc(
+            st.session_state.pois.loc[st.session_state.pois["poiId"] == st.session_state.selected_poi.poiId].index[0]
+        )
+        st.session_state.pois = st.session_state.pois.drop(st.session_state.pois.index[index])
+
+        logger.info("Added point to dataframe.")
 
     def _handle_delete_poi_from_route(self):
         pass
