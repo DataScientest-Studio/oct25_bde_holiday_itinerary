@@ -142,7 +142,7 @@ class UI:
                 logger.info("Initalized poi overview.")
             except Exception:
                 logger.error("Failed to get '/poi/filter' form the server.")
-        df, options = self._config_grid()
+        df, options = self._config_grid(st.session_states.pois)
         logger.debug("Initializing AgGrid.")
         grid_response = AgGrid(
             df,
@@ -165,10 +165,10 @@ class UI:
                 logger.debug(f"Added row {i}: {values}")
         logger.info("Added selected pois to selected rows.")
 
-    def _config_grid(self) -> tuple[pd.DataFrame, GridOptionsBuilder]:
+    def _config_grid(self, df: pd.DataFrame) -> tuple[pd.DataFrame, GridOptionsBuilder]:
         logger.debug("Configure the poi overview...")
         try:
-            df = self._reorder_columns(st.session_state.pois)
+            df = self._reorder_columns(df)
             gb = GridOptionsBuilder.from_dataframe(df)
             self._select_visible_columns(gb)
             gb.configure_selection("single", use_checkbox=True)
