@@ -63,9 +63,6 @@ class UI:
     visible_columns: list[str] = [
         "label",
         "city",
-        # "street",
-        # "postal_code",
-        # "homepage",
         "description",
     ]
     old_params: dict[str, Any] = {}
