@@ -169,7 +169,13 @@ class UI:
             height=500,
             show_download_button=False,
         )
-        st.session_state.selected_poi = Poi.from_dataframe(grid_response.selected_rows)
+        try:
+            st.session_state.selected_poi = Poi.from_dataframe(grid_response.selected_rows)
+        except TypeError as err:
+            logger.info(err)
+            st.session_state = None
+        except ValueError as err:
+            logger.error(err)
 
     def _config_poi_overview_grid(self) -> tuple[pd.DataFrame, GridOptionsBuilder]:
         logger.debug("Configure the poi overview...")
