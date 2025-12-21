@@ -318,18 +318,18 @@ class UI:
 
     def __init_route_controller(self) -> None:
         logger.debug("Initializing route controller...")
-        with st.container(horizontal_alignment="right"):
-            select_route, calculate_tour = st.columns([1, 1], vertical_alignment="bottom")
-            with select_route:
-                st.selectbox("Select itinerary type", options=["Roundtour", "Shortestpath"], key="itinerary-type")
-            with calculate_tour:
+        select_route, calculate_tour = st.columns([1, 1], vertical_alignment="bottom")
+        with select_route:
+            st.selectbox("Select itinerary type", options=["Roundtour", "Shortestpath"], key="itinerary-type")
+        with calculate_tour:
+            with st.container(horizontal_alignment="right", vertical_alignment="bottom"):
                 st.button("Calc route", on_click=self._handle_calculate_itinerary)
         with st.container(horizontal_alignment="right", vertical_alignment="bottom"):
-            st.button("Delete POI", on_click=self._handle_delete_poi_from_route)
+            st.button("Delete POI", on_click=self.delete_poi)
         logger.info("Initialized route controller...")
 
     def add_poi(self) -> None:
-        logger.debug("Adding point to df.")
+        logger.debug("Adding POI to route DataFrame.")
         try:
             st.session_state.route_pois = self.handler.add_poi(
                 st.session_state.route_pois, st.session_state.selected_poi
@@ -341,8 +341,18 @@ class UI:
             logger.error(err)
             return
 
-    def _handle_delete_poi_from_route(self):
-        pass
+    def delete_poi(self):
+        logger.debug("Deleteing POI from route DataFrame.")
+        try:
+            st.session_state.pois = self.handler.add_poi(st.session_state.pois, st.session_state.pois)
+            logger.info("Added point to route POIs DataFrame.")
+            st.session_state.route_pois = self.handler.remove_poi(
+                st.session_state.route_pois, st.session_state.selected_poi
+            )
+            logger.info("Removed POI from pois DataFrame.")
+        except (KeyError, ValueError) as err:
+            logger.error(err)
+            return
 
     def _handle_calculate_itinerary(self):
         pass
