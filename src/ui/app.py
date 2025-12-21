@@ -71,18 +71,20 @@ class UI:
     def __init_session_states(self) -> None:
         logger.debug("Initializing session states...")
         keys = ["destinations", "categories", "pois", "selected_rows"]
-        values = [[], [], self.init_empty_pois_dataframe(), pd.DataFrame()]
+        values = [[], [], self.init_empty_pois_dataframe(), []]
         for key, value in zip(keys, values):
             if not hasattr(st.session_state, key):
                 setattr(st.session_state, key, value)
-                logger.debug(f"Set {key} to: {st.session_state.destinations}.")
+                logger.debug(f"Set {key} to: {getattr(st.session_state, key)}.")
             else:
-                logger.debug(f"Load previous {key}: {st.session_state.destinations}.")
+                logger.debug(f"Load previous {key}: {getattr(st.session_state, key)}.")
 
         logger.success("Initialized session_states.")
 
     def init_empty_pois_dataframe(self) -> pd.DataFrame:
-        return pd.DataFrame(columns=self.poi_cols)
+        df = pd.DataFrame(columns=self.poi_cols)
+        df.fillna("", inplace=True)
+        return df
 
     def __init_layout(self) -> None:
         logger.debug("Initializing layout...")
@@ -133,24 +135,37 @@ class UI:
                 "types": st.session_state.categories or "",
             }
             try:
-                pois = handle_get_request("/poi/filter", params).get("pois", self.init_empty_pois_dataframe())
-                st.session_state.pois = pd.DataFrame(pois, columns=self.poi_cols)
+                pois = handle_get_request("/poi/filter", params).get("pois", {})
+                st.session_state.pois = (
+                    pd.DataFrame(pois, columns=self.poi_cols) if pois else self.init_empty_pois_dataframe()
+                )
                 st.session_state.pois.fillna("", inplace=True)
                 logger.info("Initalized poi overview.")
             except Exception:
                 logger.error("Failed to get '/poi/filter' form the server.")
         df, options = self._config_grid()
-        self._load_previous_selections(df, options)
+        # self._load_previous_selections(df, options)
+        logger.debug("Initializing AgGrid.")
         grid_response = AgGrid(
             df,
             gridOptions=options,
             update_mode=GridUpdateMode.SELECTION_CHANGED,
             fit_columns_on_grid_load=True,
+            show_toolbar=True,
+            show_download_button=False,
         )
-        st.session_state.selected_rows = grid_response["selected_rows"]
+        self._store_selected_routes(grid_response.selected_rows)
 
-        logger.info(st.session_state.selected_rows)
-        logger.info(type(st.session_state.selected_rows))
+    def _store_selected_routes(self, selected_rows: pd.DataFrame | None) -> None:
+        logger.debug("Store selected nodes.")
+        if not isinstance(selected_rows, pd.DataFrame):
+            logger.debug("Not a vailid DataFrame. Can not store selected rows.")
+            return
+        for i, row in selected_rows.iterrows():
+            if (values := row.tolist()) and values not in st.session_state.selected_rows:
+                st.session_state.selected_rows.append(values)
+                logger.debug(f"Added row {i}: {values}")
+        logger.info("Added selected pois to selected rows.")
 
     def _config_grid(self) -> tuple[pd.DataFrame, GridOptionsBuilder]:
         logger.debug("Configure the poi overview...")
@@ -192,9 +207,10 @@ class UI:
             logger.info("No previous selection to restore.")
             return
         logger.debug(f"Restoring previous selection of '{len(st.session_state.selected_rows)}'...")
+        cols = [c for c in df.columns if c in st.session_state.selected_rows.columns]
         grid_options["preSelectedRows"] = df.join(
-            st.session_state.selected_rows[self.poi_cols].drop_duplicates().set_index(self.poi_cols),
-            on=self.poi_cols,
+            st.session_state.selected_rows[cols].drop_duplicates().set_index(cols),
+            on=cols,
             how="inner",
         )
         logger.debug(f"Restored {len(grid_options['preSelectedRows'])} row.")
