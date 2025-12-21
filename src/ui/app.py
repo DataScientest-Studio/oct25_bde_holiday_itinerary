@@ -169,12 +169,7 @@ class UI:
             height=500,
             show_download_button=False,
         )
-        try:
-            st.session_state.selected_poi = Poi.from_dataframe(grid_response.selected_rows)
-        except TypeError as err:
-            logger.info(err)
-        except ValueError as err:
-            logger.error(err)
+        self.create_poi(grid_response.selected_rows)
 
     def _config_poi_overview_grid(self) -> tuple[pd.DataFrame, GridOptionsBuilder]:
         logger.debug("Configure the poi overview...")
@@ -257,7 +252,7 @@ class UI:
         with st.container():
             df, options = self._config_poi_route_grid()
             logger.debug("Initializing AgGrid...")
-            _ = AgGrid(
+            grid_response = AgGrid(
                 df,
                 gridOptions=options,
                 key="route-overview",
@@ -267,6 +262,7 @@ class UI:
                 height=600,
                 show_download_button=False,
             )
+            self.create_poi(grid_response.selected_rows)
         with st.container():
             self.__init_route_controller()
         logger.info("initalized route pois.")
@@ -329,6 +325,14 @@ class UI:
 
     def _handle_calculate_itinerary(self):
         pass
+
+    def create_poi(self, selected_rows: pd.DataFrame | None) -> None:
+        try:
+            st.session_state.selected_poi = Poi.from_dataframe(selected_rows)
+        except TypeError as err:
+            logger.info(err)
+        except ValueError as err:
+            logger.error(err)
 
     def run(self) -> None:
         logger.info("Starting UI.")
