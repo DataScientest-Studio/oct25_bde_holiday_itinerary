@@ -334,11 +334,11 @@ class UI:
                 show_download_button=False,
             )
         with st.container():
-            pass
+            self.__init_route_controller()
         logger.info("initalized route pois.")
 
     def _config_poi_route_grid(self) -> tuple[pd.DataFrame, GridOptionsBuilder]:
-        logger.debug("Configure the poi overview...")
+        logger.debug("Configure the poi route overview...")
         try:
             visible_columns = ["label", "city"]
             df = self._reorder_columns(st.session_state.route_pois, visible_columns)
@@ -349,11 +349,29 @@ class UI:
             gb.configure_column("city", maxWidth=150, headerName="City")
             gb.configure_default_column(resizable=True, autoSize=True)
 
-            logger.info("Configured poi overview.")
+            logger.info("Configured poi route overview.")
             return df, gb.build()
         except Exception as err:
-            logger.error(f"Can not configure poi grid. Error {err}")
+            logger.error(f"Can not configure poi route overview. Error {err}")
             raise
+
+    def __init_route_controller(self) -> None:
+        logger.debug("Initializing route controller...")
+        with st.container(horizontal_alignment="right"):
+            select_route, calculate_tour = st.columns([3, 2], vertical_alignment="bottom")
+            with select_route:
+                st.selectbox("Select itinerary type", options=["Roundtour", "Shortestpath"], key="itinerary-type")
+            with calculate_tour:
+                st.button("Calculate itinerary", on_click=self._handle_calculate_itinerary)
+        with st.container(horizontal_alignment="right", vertical_alignment="bottom"):
+            st.button("Delete POI from route", on_click=self._handle_delete_poi_from_route)
+        logger.info("Initialized route controller...")
+
+    def _handle_delete_poi_from_route(self):
+        pass
+
+    def _handle_calculate_itinerary(self):
+        pass
 
     def run(self) -> None:
         logger.info("Starting UI.")
