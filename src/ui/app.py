@@ -107,40 +107,41 @@ class UI:
         logger.debug("Created columns for controls and poi overview.")
         with overview:
             controls, pois_overview = st.columns([3, 7])
-            with controls as _:
+            with controls:
                 self.__init_controls()
-            with pois_overview as _:
+            with pois_overview:
                 self.__init_pois_overview_layout()
         with poi_view:
             self.__init_poi_overview_layout()
+            self.__init_poi_add_button()
         logger.info("Initalized layout.")
 
     def __init_poi_overview_layout(self) -> None:
         logger.debug("Initializing pois overview...")
-        if not st.session_state.selected_rows:
-            st.subheader("POI Overview")
-            logger.info("Initialized empty poi overview.")
-            return
-        poi: Poi = st.session_state.selected_rows
-        st.title(poi.label)
-        st.caption(f"📍 {poi.street}, {poi.postal_code} {poi.city}")
-        st.markdown("### Description")
-        st.markdown("ℹ️ **Description**")
-        st.write(poi.description if poi.description else "Point of interest has no description.")
-        if poi.additional_information:
-            st.markdown("ℹ️ **Additional Information**")
-            st.write(poi.additional_information)
-        st.markdown(f"**Website**: [🌐 Visit website]({poi.homepage})")
-        # st.markdown("### 🗺️ Location")
-        # st.map(
-        #     [
-        #         {
-        #             "lat": poi.latitude,
-        #             "lon": poi.longitude,
-        #         }
-        #     ]
-        # )
+        with st.container(height=450):
+            if not st.session_state.selected_rows:
+                st.subheader("POI Overview")
+                logger.info("Initialized empty poi overview.")
+                return
+            poi: Poi = st.session_state.selected_rows
+            st.subheader(poi.label)
+            st.caption(f"📍 {poi.street}, {poi.postal_code} {poi.city}")
+            st.markdown("🌳 **Description**")
+            st.write(poi.description if poi.description else "Point of interest has no description.")
+            if poi.additional_information:
+                st.markdown("ℹ️ **Additional Information**")
+                st.write(poi.additional_information)
+            st.markdown(f"🌐 **Website**: [🌐 Visit website]({poi.homepage})")
         logger.info("Initalized pois overview.")
+
+    def __init_poi_add_button(self) -> None:
+        logger.debug("Initializing add button...")
+        with st.container(horizontal_alignment="right", vertical_alignment="bottom"):
+            st.button("Add POI", on_click=self._handle_add_poi)
+        logger.info("Initalized add button.")
+
+    def _handle_add_poi(self) -> None:
+        logger.success("Congratulations, you have mastered the skill of pressing a button.")
 
     def __init_controls(self) -> None:
         logger.debug("Initializing controls...")
@@ -203,6 +204,7 @@ class UI:
             update_mode=GridUpdateMode.SELECTION_CHANGED,
             fit_columns_on_grid_load=True,
             show_toolbar=True,
+            height=500,
             show_download_button=False,
         )
         self._get_selected_poi(grid_response.selected_rows)
