@@ -242,7 +242,7 @@ class UI:
 
     def __init_route_layout(self) -> None:
         logger.debug("Initializing route overview...")
-        map_grid, route_pois = st.columns([9, 3], border=True)
+        map_grid, route_pois = st.columns([9, 2], border=True)
         with map_grid:
             self.__init_map()
         with route_pois:
@@ -319,11 +319,11 @@ class UI:
     def __init_route_controller(self) -> None:
         logger.debug("Initializing route controller...")
         with st.container(horizontal_alignment="right"):
-            select_route, calculate_tour = st.columns([3, 2], vertical_alignment="bottom")
+            select_route, calculate_tour = st.columns([1, 1], vertical_alignment="bottom")
             with select_route:
                 st.selectbox("Select itinerary type", options=["Roundtour", "Shortestpath"], key="itinerary-type")
             with calculate_tour:
-                st.button("Calculate itinerary", on_click=self._handle_calculate_itinerary)
+                st.button("Calc route", on_click=self._handle_calculate_itinerary)
         with st.container(horizontal_alignment="right", vertical_alignment="bottom"):
             st.button("Delete POI", on_click=self._handle_delete_poi_from_route)
         logger.info("Initialized route controller...")
