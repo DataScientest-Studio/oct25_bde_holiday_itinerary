@@ -1,27 +1,14 @@
 from datetime import date
-from typing import Any, NamedTuple
+from typing import Any
 
 import pandas as pd
 import pydeck as pdk
 import streamlit as st
 from handler import Handler, handle_get_request
+from poi import Poi
 from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
 
 from logger import logger
-
-
-class Poi(NamedTuple):
-    label: str
-    city: str
-    description: str
-    street: str
-    postal_code: str
-    homepage: str
-    additional_information: str
-    comment: str
-    latitude: float
-    longitude: float
-    poiId: str
 
 
 class UI:
@@ -182,18 +169,7 @@ class UI:
             height=500,
             show_download_button=False,
         )
-        self._get_selected_poi(grid_response.selected_rows)
-
-    def _get_selected_poi(self, selected_rows: pd.DataFrame | None) -> None:
-        logger.debug("Store selected nodes.")
-        if not isinstance(selected_rows, pd.DataFrame):
-            logger.debug("Not a vailid DataFrame. Can not store selected rows.")
-            return
-        for i, row in selected_rows.iterrows():
-            poi = Poi(*row.tolist())
-            st.session_state.selected_poi = poi
-            logger.debug(f"Added row {i}: {poi}")
-        logger.info("Added selected pois to selected rows.")
+        st.session_state.selected_poi = Poi.from_dataframe(grid_response.selected_rows)
 
     def _config_poi_overview_grid(self) -> tuple[pd.DataFrame, GridOptionsBuilder]:
         logger.debug("Configure the poi overview...")
