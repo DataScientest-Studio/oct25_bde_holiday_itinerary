@@ -143,7 +143,6 @@ class UI:
             except Exception:
                 logger.error("Failed to get '/poi/filter' form the server.")
         df, options = self._config_grid()
-        # self._load_previous_selections(df, options)
         logger.debug("Initializing AgGrid.")
         grid_response = AgGrid(
             df,
@@ -200,20 +199,6 @@ class UI:
             if col not in self.visible_columns:
                 gb.configure_column(col, hide=True)
         logger.info("Configured visible columns.")
-
-    def _load_previous_selections(self, df: pd.DataFrame, grid_options: dict[str, Any]) -> None:
-        if st.session_state.selected_rows.empty:
-            logger.info("No previous selection to restore.")
-            return
-        logger.debug(f"Restoring previous selection of '{len(st.session_state.selected_rows)}'...")
-        cols = [c for c in df.columns if c in st.session_state.selected_rows.columns]
-        grid_options["preSelectedRows"] = df.join(
-            st.session_state.selected_rows[cols].drop_duplicates().set_index(cols),
-            on=cols,
-            how="inner",
-        )
-        logger.debug(f"Restored {len(grid_options['preSelectedRows'])} row.")
-        logger.info("Restored previous selection.")
 
     def run(self) -> None:
         logger.info("Starting UI.")
