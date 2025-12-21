@@ -173,7 +173,6 @@ class UI:
             st.session_state.selected_poi = Poi.from_dataframe(grid_response.selected_rows)
         except TypeError as err:
             logger.info(err)
-            st.session_state = None
         except ValueError as err:
             logger.error(err)
 

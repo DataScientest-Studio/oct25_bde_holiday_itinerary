@@ -24,7 +24,7 @@ class Poi(NamedTuple):
     def from_dataframe(cls, df: pd.DataFrame) -> Poi:
         logger.debug("Creating poi from DataFrame...")
         if not isinstance(df, pd.DataFrame):
-            logger.error(f"No DataFrame given, got {type(df)}.")
+            logger.warning(f"No DataFrame given, got {type(df)}.")
             raise TypeError("Given argument is not DataFrame.")
         if df.empty:
             logger.error("Poi is empty.")
