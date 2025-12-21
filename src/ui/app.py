@@ -139,12 +139,14 @@ class UI:
         if not st.session_state.selected_poi:
             logger.error("Can not add point to route points. No point exists.")
             return
-        if st.session_state.route_pois.apply(tuple, axis=1).eq(len(st.session_state.selected_poi)).any():
+        mask = st.session_state.route_pois["poiId"] == st.session_state.selected_poi.poiId
+        if mask.any():
             logger.error("Point already exists in DataFrame.")
             return
 
         st.session_state.route_pois.loc[len(st.session_state.route_pois)] = st.session_state.selected_poi
 
+        # Does not work.
         index = st.session_state.pois.index.get_loc(
             st.session_state.pois.loc[st.session_state.pois["poiId"] == st.session_state.selected_poi.poiId].index[0]
         )
@@ -328,7 +330,7 @@ class UI:
                 update_mode=GridUpdateMode.SELECTION_CHANGED,
                 fit_columns_on_grid_load=True,
                 show_toolbar=True,
-                height=400,
+                height=600,
                 show_download_button=False,
             )
         with st.container():
