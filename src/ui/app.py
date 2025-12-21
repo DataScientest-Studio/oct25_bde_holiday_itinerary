@@ -83,7 +83,7 @@ class UI:
 
     def __init_session_states(self) -> None:
         logger.debug("Initializing session states...")
-        keys = ["cities", "destinations", "categories", "pois", "selected_rows", "route_pois"]
+        keys = ["cities", "destinations", "categories", "pois", "selected_poi", "route_pois"]
         values = [{}, [], [], self.init_empty_pois_dataframe(), None, self.init_empty_pois_dataframe()]
         for key, value in zip(keys, values):
             if not hasattr(st.session_state, key):
@@ -118,11 +118,11 @@ class UI:
     def __init_poi_overview_layout(self) -> None:
         logger.debug("Initializing pois overview...")
         with st.container(height=450):
-            if not st.session_state.selected_rows:
+            if not st.session_state.selected_poi:
                 st.subheader("POI Overview")
                 logger.info("Initialized empty poi overview.")
                 return
-            poi: Poi = st.session_state.selected_rows
+            poi: Poi = st.session_state.selected_poi
             st.subheader(poi.label)
             st.caption(f"📍 {poi.street}, {poi.postal_code} {poi.city}")
             st.markdown("🌳 **Description**")
@@ -218,7 +218,7 @@ class UI:
             return
         for i, row in selected_rows.iterrows():
             poi = Poi(*row.tolist())
-            st.session_state.selected_rows = poi
+            st.session_state.selected_poi = poi
             logger.debug(f"Added row {i}: {poi}")
         logger.info("Added selected pois to selected rows.")
 
@@ -256,7 +256,7 @@ class UI:
 
     def _get_ilocs_of_existing_row_in_df(self, df: pd.DataFrame) -> list[int]:
         logger.debug("Getting index of already selected values in dataframe.")
-        selected_ids = [row[self.poi_cols.index("poiId")] for row in st.session_state.selected_rows]
+        selected_ids = [row[self.poi_cols.index("poiId")] for row in st.session_state.selected_poi]
         indices = df.index[df["poiId"].isin(selected_ids)].tolist()
         logger.debug(f"Indices to pre-select: {indices}.")
         logger.info("Calculate index of rows to preselect.")
