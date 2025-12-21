@@ -232,14 +232,6 @@ class UI:
                 gb.configure_column(col, hide=True)
         logger.info("Configured visible columns.")
 
-    def _get_ilocs_of_existing_row_in_df(self, df: pd.DataFrame) -> list[int]:
-        logger.debug("Getting index of already selected values in dataframe.")
-        selected_ids = [row[self.poi_cols.index("poiId")] for row in st.session_state.selected_poi]
-        indices = df.index[df["poiId"].isin(selected_ids)].tolist()
-        logger.debug(f"Indices to pre-select: {indices}.")
-        logger.info("Calculate index of rows to preselect.")
-        return indices
-
     def __init_route_layout(self) -> None:
         logger.debug("Initializing route overview...")
         map_grid, route_pois = st.columns([9, 2], border=True)
