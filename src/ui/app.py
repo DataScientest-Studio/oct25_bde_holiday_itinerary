@@ -3,6 +3,7 @@ from json import loads
 from typing import Any, NamedTuple
 
 import pandas as pd
+import pydeck as pdk
 import streamlit as st
 from requests import get
 from requests.models import HTTPError
@@ -85,8 +86,8 @@ class UI:
 
     def __init_session_states(self) -> None:
         logger.debug("Initializing session states...")
-        keys = ["destinations", "categories", "pois", "selected_rows", "route_pois"]
-        values = [[], [], self.init_empty_pois_dataframe(), None, self.init_empty_pois_dataframe()]
+        keys = ["cities", "destinations", "categories", "pois", "selected_rows", "route_pois"]
+        values = [{}, [], [], self.init_empty_pois_dataframe(), None, self.init_empty_pois_dataframe()]
         for key, value in zip(keys, values):
             if not hasattr(st.session_state, key):
                 setattr(st.session_state, key, value)
@@ -103,10 +104,10 @@ class UI:
 
     def __init_layout(self) -> None:
         logger.debug("Initializing layout...")
-        overview, poi_view = st.columns([7, 3], border=True)
+        overview, poi_view = st.columns([8, 3], border=True)
         logger.debug("Created columns for controls and poi overview.")
         with overview:
-            controls, pois_overview = st.columns([3, 7])
+            controls, pois_overview = st.columns([2, 7])
             with controls:
                 self.__init_controls()
             with pois_overview:
@@ -115,6 +116,7 @@ class UI:
             self.__init_poi_overview_layout()
             self.__init_poi_add_button()
         logger.info("Initalized layout.")
+        self.__init_route_layout()
 
     def __init_poi_overview_layout(self) -> None:
         logger.debug("Initializing pois overview...")
@@ -158,8 +160,11 @@ class UI:
         logger.debug(f"Initializing {key} filter...")
         try:
             with st.container():
-                destinations = handle_get_request(path)[data_key]
-                st.multiselect(label, options=destinations, key=key)
+                result = handle_get_request(path)[data_key]
+                if key == "destinations":
+                    st.session_state.cities = result
+                    result = [city["Id"] for city in result]
+                st.multiselect(label, options=result, key=key)
                 logger.info(f"Initalized {key} filter.")
         except Exception as err:
             logger.error(f"Failed to get '{key}' form the server. Error: {err}")
@@ -259,6 +264,49 @@ class UI:
         logger.debug(f"Indices to pre-select: {indices}.")
         logger.info("Calculate index of rows to preselect.")
         return indices
+
+    def __init_route_layout(self) -> None:
+        logger.debug("Initializing route overview...")
+        map_grid, route_pois = st.columns([9, 3], border=True)
+        with map_grid:
+            self.__init_map()
+        with route_pois:
+            self.__init_route_pois()
+        logger.info("initalized route overview.")
+
+    def __init_map(self) -> None:
+        logger.debug("Initializing map...")
+
+        df_cities = pd.DataFrame(st.session_state.cities)
+
+        min_lat, max_lat = df_cities["lat"].min(), df_cities["lat"].max()
+        min_lon, max_lon = df_cities["lon"].min(), df_cities["lon"].max()
+
+        center_lat = (min_lat + max_lat) / 2
+        center_lon = (min_lon + max_lon) / 2
+
+        cities_layer = pdk.Layer(
+            "ScatterplotLayer",
+            data=df_cities,
+            get_position="[lon, lat]",
+            get_color="[200, 30, 0, 160]",
+            get_radius=5000,
+            pickable=True,
+        )
+
+        r = pdk.Deck(
+            layers=[cities_layer],
+            initial_view_state=pdk.ViewState(latitude=center_lat, longitude=center_lon, zoom=5, height=734),
+            tooltip={"text": "{name}"},
+        )
+
+        st.pydeck_chart(r, height=734)
+
+        logger.info("initalized map.")
+
+    def __init_route_pois(self) -> None:
+        logger.debug("Initializing route pois...")
+        logger.info("initalized route pois.")
 
     def run(self) -> None:
         logger.info("Starting UI.")
