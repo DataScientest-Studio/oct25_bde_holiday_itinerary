@@ -1,0 +1,302 @@
+from datetime import date
+from typing import Any
+
+import pandas as pd
+import pydeck as pdk
+import streamlit as st
+from grid import Grid
+from handler import Handler, handle_get_request
+from poi import Poi
+
+from logger import logger
+
+
+class UI:
+    title_name: str = "Holiday Itinerary"
+    layout: str = "wide"
+    poi_cols: list[str] = [
+        "label",
+        "city",
+        "description",
+        "street",
+        "postal_code",
+        "homepage",
+        "additional_information",
+        "comment",
+        "latitude",
+        "longitude",
+        "poiId",
+    ]
+    old_params: dict[str, Any] = {}
+    handler: Handler = Handler()
+
+    poi_overview_config = {
+        "columns": {
+            "label": {"maxWidth": 150, "headerName": "POI", "hide": False},
+            "city": {"maxWidth": 150, "headerName": "city", "hide": False},
+            "description": {"headerName": "Description", "hide": False},
+            "street": {"hide": True},
+            "postal_code": {"hide": True},
+            "homepage": {"hide": True},
+            "additional_information": {"hide": True},
+            "comment": {"hide": True},
+            "latitude": {"hide": True},
+            "longitude": {"hide": True},
+            "poiId": {"hide": True},
+        }
+    }
+
+    grid_route_config = {
+        "columns": {
+            "label": {"maxWidth": 150, "headerName": "POI", "hide": False},
+            "city": {"maxWidth": 150, "headerName": "city", "hide": False},
+            "description": {"hide": True},
+            "street": {"hide": True},
+            "postal_code": {"hide": True},
+            "homepage": {"hide": True},
+            "additional_information": {"hide": True},
+            "comment": {"hide": True},
+            "latitude": {"hide": True},
+            "longitude": {"hide": True},
+            "poiId": {"hide": True},
+        }
+    }
+
+    def __init__(self) -> None:
+        logger.debug("Initializing UI for holiday itinerary...")
+
+        st.set_page_config(page_title=self.title_name, layout=self.layout)
+        logger.debug(f"Set page title to '{self.title_name}' and layout style to '{self.layout}'.")
+
+        st.title(self.title_name)
+        logger.debug(f"Set title to '{self.title_name}'.")
+
+        self.__init_session_states()
+        self.__init_layout()
+
+        logger.success("Initialized UI.")
+
+    def __init_session_states(self) -> None:
+        logger.debug("Initializing session states...")
+        keys = ["cities", "destinations", "categories", "pois", "selected_poi", "add_point", "route_pois"]
+        values = [{}, [], [], self.init_empty_pois_dataframe(), None, None, self.init_empty_pois_dataframe()]
+        for key, value in zip(keys, values):
+            if not hasattr(st.session_state, key):
+                setattr(st.session_state, key, value)
+                logger.debug(f"Set {key} to: {getattr(st.session_state, key)}.")
+            # else:
+            #     logger.debug(f"Load previous {key}: {getattr(st.session_state, key)}.")
+
+        logger.success("Initialized session_states.")
+
+    def init_empty_pois_dataframe(self) -> pd.DataFrame:
+        df = pd.DataFrame(columns=self.poi_cols)
+        df.fillna("", inplace=True)
+        return df
+
+    def __init_layout(self) -> None:
+        logger.debug("Initializing layout...")
+        overview, poi_view = st.columns([8, 3], border=True)
+        logger.debug("Created columns for controls and poi overview.")
+        with overview:
+            controls, pois_overview = st.columns([2, 7])
+            with controls:
+                self.__init_controls()
+            with pois_overview:
+                self.__init_pois_overview_layout()
+        with poi_view:
+            self.__init_poi_overview_layout()
+            self.__init_poi_add_button()
+        logger.info("Initalized layout.")
+        self.__init_route_layout()
+
+    def __init_poi_overview_layout(self) -> None:
+        logger.debug("Initializing pois overview...")
+        with st.container(height=450):
+            if not st.session_state.selected_poi:
+                st.subheader("POI Overview")
+                logger.info("Initialized empty poi overview.")
+                return
+            poi: Poi = st.session_state.selected_poi
+            st.subheader(poi.label)
+            st.caption(f"📍 {poi.street}, {poi.postal_code} {poi.city}")
+            st.markdown("🌳 **Description**")
+            st.write(poi.description if poi.description else "Point of interest has no description.")
+            if poi.additional_information:
+                st.markdown("ℹ️ **Additional Information**")
+                st.write(poi.additional_information)
+            st.markdown(f"🌐 **Website**: [🌐 Visit website]({poi.homepage})")
+        logger.info("Initalized pois overview.")
+
+    def __init_poi_add_button(self) -> None:
+        logger.debug("Initializing add button...")
+        with st.container(horizontal_alignment="right", vertical_alignment="bottom"):
+            st.button("Add POI", on_click=self.add_poi)
+        logger.info("Initalized add button.")
+
+    def __init_controls(self) -> None:
+        logger.debug("Initializing controls...")
+        st.subheader("Filter")
+        self.__init_filter("destinations", "/city/all", "cities", "Itinerary Destinations")
+        self.__init_filter("categories", "/poi/types", "types", "Category of POIs")
+        self.__init_date_selector("start")
+        self.__init_date_selector("end")
+        self.__init_radius_handler()
+
+        logger.info("Initalized controls.")
+
+    def __init_filter(self, key: str, path: str, data_key: str, label: str) -> None:
+        logger.debug(f"Initializing {key} filter...")
+        try:
+            with st.container():
+                result = handle_get_request(path)[data_key]
+                if key == "destinations":
+                    st.session_state.cities = result
+                    result = [city["Id"] for city in result]
+                st.multiselect(label, options=result, key=key)
+                logger.info(f"Initalized {key} filter.")
+        except Exception as err:
+            logger.error(f"Failed to get '{key}' form the server. Error: {err}")
+
+    def __init_date_selector(self, name: str) -> None:
+        logger.debug(f"Initializing {name} selector...")
+        with st.container():
+            st.date_input(f"Itinerary {name}", value=date.today(), format="DD/MM/YYYY", key=name)
+        logger.info(f"Initalized {name} selector.")
+
+    def __init_radius_handler(self) -> None:
+        logger.debug("Initializing radius handler...")
+        with st.container():
+            st.slider("Distance from city", min_value=0, max_value=100, key="radius-filter")
+        logger.info("Initalized radius handler.")
+
+    def __init_pois_overview_layout(self) -> None:
+        logger.debug("Initializing pois overview...")
+        if st.session_state.destinations or st.session_state.categories:
+            params = {
+                "locations": st.session_state.destinations or "",
+                "types": st.session_state.categories or "",
+            }
+            if not params == self.old_params:
+                try:
+                    pois = handle_get_request("/poi/filter", params).get("pois", {})
+                    st.session_state.pois = (
+                        pd.DataFrame(pois, columns=self.poi_cols) if pois else self.init_empty_pois_dataframe()
+                    )
+                    st.session_state.pois.fillna("", inplace=True)
+                    self.old_params = params
+                    logger.info("Initalized poi overview.")
+                except Exception:
+                    logger.error("Failed to get '/poi/filter' form the server.")
+
+        grid = Grid(st.session_state.pois, "poi-overview", 500, self.poi_overview_config)
+        response = grid.run()
+        try:
+            logger.success(response.selected_rows)
+            self.create_poi(response.selected_rows)
+        except (TypeError, ValueError) as err:
+            logger.error(err)
+
+    def __init_route_layout(self) -> None:
+        logger.debug("Initializing route overview...")
+        map_grid, route_pois = st.columns([9, 2], border=True)
+        with map_grid:
+            self.__init_map()
+        with route_pois:
+            self.__init_route_pois()
+        logger.info("initalized route overview.")
+
+    def __init_map(self) -> None:
+        logger.debug("Initializing map...")
+
+        df_cities = pd.DataFrame(st.session_state.cities)
+
+        min_lat, max_lat = df_cities["lat"].min(), df_cities["lat"].max()
+        min_lon, max_lon = df_cities["lon"].min(), df_cities["lon"].max()
+
+        center_lat = (min_lat + max_lat) / 2
+        center_lon = (min_lon + max_lon) / 2
+
+        cities_layer = pdk.Layer(
+            "ScatterplotLayer",
+            data=df_cities,
+            get_position="[lon, lat]",
+            get_color="[200, 30, 0, 160]",
+            get_radius=5000,
+            pickable=True,
+        )
+
+        r = pdk.Deck(
+            layers=[cities_layer],
+            initial_view_state=pdk.ViewState(latitude=center_lat, longitude=center_lon, zoom=5, height=734),
+            tooltip={"text": "{name}"},
+        )
+
+        st.pydeck_chart(r, height=734)
+
+        logger.info("initalized map.")
+
+    def __init_route_pois(self) -> None:
+        logger.debug("Initializing route pois...")
+        with st.container():
+            grid = Grid(st.session_state.route_pois, "route-overview", 400, self.grid_route_config)
+            response = grid.run()
+            try:
+                self.create_poi(response.selected_rows)
+            except (TypeError, ValueError) as err:
+                logger.error(err)
+        with st.container():
+            self.__init_route_controller()
+        logger.info("initalized route pois.")
+
+    def __init_route_controller(self) -> None:
+        logger.debug("Initializing route controller...")
+        select_route, calculate_tour = st.columns([1, 1], vertical_alignment="bottom")
+        with select_route:
+            st.selectbox("Select itinerary type", options=["Roundtour", "Shortestpath"], key="itinerary-type")
+        with calculate_tour:
+            with st.container(horizontal_alignment="right", vertical_alignment="bottom"):
+                st.button("Calc route", on_click=self._handle_calculate_itinerary)
+        with st.container(horizontal_alignment="right", vertical_alignment="bottom"):
+            st.button("Delete POI", on_click=self.delete_poi)
+        logger.info("Initialized route controller...")
+
+    def add_poi(self) -> None:
+        logger.debug("Adding POI to route DataFrame.")
+        try:
+            st.session_state.route_pois = self.handler.add_poi(
+                st.session_state.route_pois, st.session_state.selected_poi
+            )
+            logger.info("Added point to route POIs DataFrame.")
+            st.session_state.pois = self.handler.remove_poi(st.session_state.pois, st.session_state.selected_poi)
+            logger.info("Removed POI from pois DataFrame.")
+        except (KeyError, ValueError) as err:
+            logger.error(err)
+            return
+
+    def delete_poi(self):
+        logger.debug("Deleteing POI from route DataFrame.")
+        try:
+            st.session_state.pois = self.handler.add_poi(st.session_state.pois, st.session_state.pois)
+            logger.info("Added point to route POIs DataFrame.")
+            st.session_state.route_pois = self.handler.remove_poi(
+                st.session_state.route_pois, st.session_state.selected_poi
+            )
+            logger.info("Removed POI from pois DataFrame.")
+        except (KeyError, ValueError) as err:
+            logger.error(err)
+            return
+
+    def _handle_calculate_itinerary(self):
+        pass
+
+    def create_poi(self, selected_rows: pd.DataFrame | None) -> None:
+        try:
+            st.session_state.selected_poi = Poi.from_dataframe(selected_rows)
+        except TypeError as err:
+            logger.info(err)
+        except ValueError as err:
+            logger.error(err)
+
+    def run(self) -> None:
+        logger.info("Starting UI.")
