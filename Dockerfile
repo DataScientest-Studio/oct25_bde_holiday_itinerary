@@ -61,7 +61,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY ./src/ui/ ./ui
 COPY ./src/logger/ ./logger
 
-ENTRYPOINT [ "streamlit", "run", "ui/app.py" ]
+ENTRYPOINT [ "streamlit", "run", "ui/main.py" ]
 
 # development image
 FROM python:3.13-slim-trixie AS development
