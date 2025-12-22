@@ -24,26 +24,24 @@ class Grid:
 
     def __build_config(self, config: dict[str, Any]):
         logger.info("Building config.")
-        if "columns" in config:
-            self.__config_columns(config)
-
+        if columns := config.get("columns", {}):
+            logger.debug("Configuring columns...")
+            self.__reorder_columns(columns)
+            gb = GridOptionsBuilder.from_dataframe(self.df)
+            for col, values in columns.items():
+                try:
+                    gb.configure_column(col, **values)
+                    logger.debug(f"Configured column {col} with {values}.")
+                except TypeError as err:
+                    logger.error(f"Invalid config for {col}. Error: {err}")
+            logger.info("Configured columns.")
+        else:
+            gb = GridOptionsBuilder.from_dataframe(self.df)
+        gb.configure_selection("single", use_checkbox=True)
+        logger.info("Configured selection.")
+        options = gb.build()
         logger.info("Builded config.")
-
-    def __config_columns(self, config: dict[str, Any]) -> None:
-        logger.debug("Configuring columns...")
-        if not (columns := config.get("columns", {})):
-            logger.warning("No columns to configure were found in config. Skipping function.")
-            return
-        self.__reorder_columns(columns)
-        gb = GridOptionsBuilder.from_dataframe(self.df)
-        for col, values in columns.items():
-            try:
-                gb.configure_column(col, **values)
-                logger.debug(f"Configured column {col} with {values}.")
-            except TypeError as err:
-                logger.error(f"Invalid config for {col}. Error: {err}")
-        logger.info("Configured columns.")
-        return gb.build()
+        return options
 
     def __reorder_columns(self, columns: dict[str, Any]) -> pd.DataFrame:
         logger.debug("Ordering columns...")
