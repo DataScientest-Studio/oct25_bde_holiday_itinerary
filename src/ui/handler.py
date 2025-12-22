@@ -43,7 +43,7 @@ class Handler:
             logger.debug("poiId already in dest.")
             raise ValueError(f"Row with poiId {src.poiId} already dataframe..")
 
-        dest.loc[len(dest)] = src
+        dest.loc[len(dest)] = {col: getattr(src, col, None) for col in dest.columns}
         logger.info("Added point to dataframe.")
         return dest
 
