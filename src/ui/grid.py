@@ -29,6 +29,7 @@ class Grid:
         else:
             gb = GridOptionsBuilder.from_dataframe(self.df)
         gb.configure_selection("single", use_checkbox=True)
+        gb.configure_grid_options(getRowId="params.data.poiId")
         logger.info("Configured selection.")
         options = gb.build()
         logger.info("Builded config.")
