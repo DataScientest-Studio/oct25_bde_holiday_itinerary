@@ -181,14 +181,6 @@ class UI:
             placeholder="-",
         )
 
-    def select_row(self, key) -> None:
-        df, _ = key.split("-")
-        rows = st.session_state[key]["selection"]["rows"]
-        if rows is not None:
-            index = rows[0]
-            st.session_state.selected_poi = st.session_state[df].loc[index]
-            logger.debug(f"Selected row {st.session_state.selected_poi} in dataframe '{df}'")
-
     def __init_poi_overview_layout(self) -> None:
         logger.debug("Initializing pois overview...")
         if st.session_state.selected_poi is None:
@@ -291,20 +283,28 @@ class UI:
             logger.info("Removed POI from pois DataFrame.")
         except (KeyError, ValueError) as err:
             logger.error(err)
-            return
 
     def delete_poi(self):
         logger.debug("Deleteing POI from route DataFrame.")
         try:
-            st.session_state.overview = self.handler.add_poi(st.session_state.overview, st.session_state.overview)
-            logger.info("Added point to route POIs DataFrame.")
-            st.session_state.route = self.handler.remove_poi(
-                st.session_state.route, st.session_state.selected_poi.poiId
-            )
-            logger.info("Removed POI from pois DataFrame.")
+            poi_id = st.session_state.selected_poi["poiId"]
+            if st.session_state.route["poiId"].eq(poi_id).any():
+                st.session_state.overview = self.handler.add_poi(
+                    st.session_state.overview, st.session_state.selected_poi
+                )
+                logger.info("Added point to route POIs DataFrame.")
+                st.session_state.route = self.handler.remove_poi(st.session_state.route, poi_id)
+            logger.info("Removed POI from route DataFrame.")
         except (KeyError, ValueError) as err:
             logger.error(err)
-            return
+
+    def select_row(self, key) -> None:
+        df, _ = key.split("-")
+        rows = st.session_state[key]["selection"]["rows"]
+        if rows is not None:
+            index = rows[0]
+            st.session_state.selected_poi = st.session_state[df].loc[index]
+            logger.debug(f"Selected row {st.session_state.selected_poi} in dataframe '{df}'")
 
     def _handle_calculate_itinerary(self):
         pass
