@@ -54,8 +54,21 @@ class UI:
             "add_point",
             "route",
             "old_params",
+            "start-poi",
+            "end-poi",
         ]
-        values = [{}, [], [], self.init_empty_pois_dataframe(), None, None, self.init_empty_pois_dataframe(), {}]
+        values = [
+            {},
+            [],
+            [],
+            self.init_empty_pois_dataframe(),
+            None,
+            None,
+            self.init_empty_pois_dataframe(),
+            {},
+            "",
+            "",
+        ]
         for key, value in zip(keys, values):
             if not hasattr(st.session_state, key):
                 setattr(st.session_state, key, value)
@@ -260,11 +273,7 @@ class UI:
 
     def __init_route_controller(self) -> None:
         logger.debug("Initializing route controller...")
-        start, end = st.columns([1, 1], vertical_alignment="bottom")
-        with start:
-            st.multiselect("Start POI", options=st.session_state.route["label"], key="start-poi")
-        with end:
-            st.multiselect("End POI", options=st.session_state.route["label"], key="end-poi")
+        self.__create_start_and_end_node_controller()
         select_route, calculate_tour = st.columns([1, 1], vertical_alignment="bottom")
         with select_route:
             st.selectbox("Select itinerary type", options=["Roundtour", "Shortestpath"], key="itinerary-type")
@@ -274,6 +283,19 @@ class UI:
         with st.container(horizontal_alignment="right", vertical_alignment="bottom"):
             st.button("Delete POI", on_click=self.delete_poi)
         logger.info("Initialized route controller...")
+
+    def __create_start_and_end_node_controller(self) -> None:
+        with st.container():
+            start, end = st.columns([1, 1], vertical_alignment="bottom")
+            with start:
+                st.selectbox("Start POI", options=self.__generate_possible_nodes("end-poi"), key="start-poi")
+            with end:
+                st.selectbox("End POI", options=self.__generate_possible_nodes("start-poi"), key="end-poi")
+
+    def __generate_possible_nodes(self, key_to_exclude) -> list[str]:
+        options = st.session_state.route["label"]
+        options.remove(st.session_state[key_to_exclude])
+        return options
 
     def add_poi(self) -> None:
         logger.debug("Adding POI to route DataFrame.")
