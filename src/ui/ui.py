@@ -239,16 +239,14 @@ class UI:
                 key=key,
                 height=500,
                 hide_index=True,
-                column_order=["label", "city", "description"],
+                column_order=["label", "city"],
                 column_config={
                     "label": st.column_config.TextColumn(
                         "POI",
-                        width=100,
                         help="The label of the POI.",
                     ),
                     "city": st.column_config.TextColumn(
                         "Location",
-                        width=100,
                         help="Location of the POI.",
                     ),
                 },
