@@ -26,38 +26,6 @@ class UI:
     ]
     handler: Handler = Handler()
 
-    poi_overview_config = {
-        "columns": {
-            "label": {"col-size": 0.1, "col-name": "POI", "hide": False},
-            "city": {"col-size": 0.1, "col-name": "city", "hide": False},
-            "description": {"col-name": "Description", "col-size": 0.7, "hide": False},
-            "street": {"hide": True},
-            "postal_code": {"hide": True},
-            "homepage": {"hide": True},
-            "additional_information": {"hide": True},
-            "comment": {"hide": True},
-            "latitude": {"hide": True},
-            "longitude": {"hide": True},
-            "poiId": {"hide": True},
-        }
-    }
-
-    grid_route_config = {
-        "columns": {
-            "label": {"col-size": 0.5, "col-name": "POI", "hide": False},
-            "city": {"col-size": 0.5, "col-name": "city", "hide": False},
-            "description": {"hide": True},
-            "street": {"hide": True},
-            "postal_code": {"hide": True},
-            "homepage": {"hide": True},
-            "additional_information": {"hide": True},
-            "comment": {"hide": True},
-            "latitude": {"hide": True},
-            "longitude": {"hide": True},
-            "poiId": {"hide": True},
-        }
-    }
-
     def __init__(self) -> None:
         logger.debug("Initializing UI for holiday itinerary...")
 
@@ -73,6 +41,9 @@ class UI:
         logger.success("Initialized UI.")
 
     def __init_session_states(self) -> None:
+        if hasattr(st.session_state, "_initialized"):
+            logger.info("session_state already initialized. Skipping...")
+            return
         logger.debug("Initializing session states...")
         keys = [
             "cities",
@@ -89,10 +60,9 @@ class UI:
             if not hasattr(st.session_state, key):
                 setattr(st.session_state, key, value)
                 logger.debug(f"Set {key} to: {getattr(st.session_state, key)}.")
-            # else:
-            #     logger.debug(f"Load previous {key}: {getattr(st.session_state, key)}.")
 
-        logger.success("Initialized session_states.")
+        st.session_state._initialized = True
+        logger.info("Initialized session_states.")
 
     def init_empty_pois_dataframe(self) -> pd.DataFrame:
         df = pd.DataFrame(columns=self.poi_cols)
