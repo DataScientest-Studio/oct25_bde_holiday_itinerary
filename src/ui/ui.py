@@ -84,7 +84,7 @@ class UI:
             self.__init_poi_add_button()
         logger.info("Initialized overview sections.")
 
-        map_grid, route = st.columns([9, 2], border=True)
+        map_grid, route = st.columns([8, 2], border=True)
         with map_grid:
             self.__init_map()
         with route:
@@ -260,6 +260,11 @@ class UI:
 
     def __init_route_controller(self) -> None:
         logger.debug("Initializing route controller...")
+        start, end = st.columns([1, 1], vertical_alignment="bottom")
+        with start:
+            st.multiselect("Start POI", options=st.session_state.route["label"], key="start-poi")
+        with end:
+            st.multiselect("End POI", options=st.session_state.route["label"], key="end-poi")
         select_route, calculate_tour = st.columns([1, 1], vertical_alignment="bottom")
         with select_route:
             st.selectbox("Select itinerary type", options=["Roundtour", "Shortestpath"], key="itinerary-type")
