@@ -4,7 +4,6 @@ import pandas as pd
 import pydeck as pdk
 import streamlit as st
 from handler import Handler, handle_get_request
-from poi import Poi
 
 from logger import logger
 
@@ -341,14 +340,6 @@ class UI:
 
     def _handle_calculate_itinerary(self):
         pass
-
-    def create_poi(self, selected_rows: pd.DataFrame | None) -> None:
-        try:
-            st.session_state.selected_poi = Poi.from_dataframe(selected_rows)
-        except TypeError as err:
-            logger.info(err)
-        except ValueError as err:
-            logger.error(err)
 
     def run(self) -> None:
         logger.info("Starting UI.")
