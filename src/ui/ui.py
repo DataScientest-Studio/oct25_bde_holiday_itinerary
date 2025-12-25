@@ -274,12 +274,7 @@ class UI:
     def __init_route_controller(self) -> None:
         logger.debug("Initializing route controller...")
         self.__create_start_and_end_node_controller()
-        select_route, calculate_tour = st.columns([1, 1], vertical_alignment="bottom")
-        with select_route:
-            st.selectbox("Select itinerary type", options=["Roundtour", "Shortestpath"], key="itinerary-type")
-        with calculate_tour:
-            with st.container(horizontal_alignment="right", vertical_alignment="bottom"):
-                st.button("Calc route", on_click=self._handle_calculate_itinerary)
+        self.__create_route_type_and_submit_button_controller()
         with st.container(horizontal_alignment="right", vertical_alignment="bottom"):
             st.button("Delete POI", on_click=self.delete_poi)
         logger.info("Initialized route controller...")
@@ -288,14 +283,33 @@ class UI:
         with st.container():
             start, end = st.columns([1, 1], vertical_alignment="bottom")
             with start:
-                st.selectbox("Start POI", options=self.__generate_possible_nodes("end-poi"), key="start-poi")
+                st.selectbox(
+                    "Start POI",
+                    options=self.__generate_possible_nodes("end-poi"),
+                    key="start-poi",
+                )
             with end:
-                st.selectbox("End POI", options=self.__generate_possible_nodes("start-poi"), key="end-poi")
+                st.selectbox(
+                    "End POI",
+                    options=self.__generate_possible_nodes("start-poi"),
+                    key="end-poi",
+                )
 
     def __generate_possible_nodes(self, key_to_exclude) -> list[str]:
         options = st.session_state.route["label"]
-        options.remove(st.session_state[key_to_exclude])
-        return options
+        filtered = options[options != st.session_state[key_to_exclude]].tolist()
+        if filtered:
+            return [""] + filtered
+        return filtered
+
+    def __create_route_type_and_submit_button_controller(self) -> None:
+        with st.container():
+            route, button = st.columns([1, 1], vertical_alignment="bottom")
+            with route:
+                st.selectbox("Select itinerary type", options=["Roundtour", "Shortestpath"], key="itinerary-type")
+            with button:
+                with st.container(horizontal_alignment="right", vertical_alignment="bottom"):
+                    st.button("Calculate route", on_click=self._handle_calculate_itinerary)
 
     def add_poi(self) -> None:
         logger.debug("Adding POI to route DataFrame.")
@@ -328,7 +342,7 @@ class UI:
         rows = st.session_state[key]["selection"]["rows"]
         if rows is not None:
             index = rows[0]
-            st.session_state.selected_poi = st.session_state[df].loc[index]
+            st.session_state.selected_poi = st.session_state[df].iloc[index]
             logger.debug(f"Selected row {st.session_state.selected_poi} in dataframe '{df}'")
 
     def _handle_calculate_itinerary(self):
