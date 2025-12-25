@@ -70,9 +70,9 @@ class UI:
         return df
 
     def __init_layout(self) -> None:
-        logger.debug("Initializing layout...")
+        logger.info("Initializing layout...")
         overview, poi_view = st.columns([8, 3], border=True)
-        logger.debug("Created columns for controls and poi overview.")
+
         with overview:
             controls, pois_overview = st.columns([2, 7])
             with controls:
@@ -82,7 +82,14 @@ class UI:
         with poi_view:
             self.__init_poi_overview_layout()
             self.__init_poi_add_button()
-        self.__init_route_layout()
+        logger.info("Initialized overview sections.")
+
+        map_grid, route = st.columns([9, 2], border=True)
+        with map_grid:
+            self.__init_map()
+        with route:
+            self.__init_route()
+        logger.info("Initialized route sections.")
         logger.info("Initalized layout.")
 
     def __init_poi_add_button(self) -> None:
@@ -200,15 +207,6 @@ class UI:
         if poi.get("homepage"):
             st.markdown(f"🌐 **Website**: [🌐 Visit website]({poi['homepage']})")
         logger.info("Initalized pois overview.")
-
-    def __init_route_layout(self) -> None:
-        logger.debug("Initializing route overview...")
-        map_grid, route = st.columns([9, 2], border=True)
-        with map_grid:
-            self.__init_map()
-        with route:
-            self.__init_route()
-        logger.info("initalized route overview.")
 
     def __init_map(self) -> None:
         logger.debug("Initializing map...")
