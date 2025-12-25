@@ -1,10 +1,8 @@
 from datetime import date
-from typing import Any
 
 import pandas as pd
 import pydeck as pdk
 import streamlit as st
-from grid import Grid
 from handler import Handler, handle_get_request
 from poi import Poi
 
@@ -27,14 +25,13 @@ class UI:
         "longitude",
         "poiId",
     ]
-    old_params: dict[str, Any] = {}
     handler: Handler = Handler()
 
     poi_overview_config = {
         "columns": {
-            "label": {"maxWidth": 150, "headerName": "POI", "hide": False},
-            "city": {"maxWidth": 150, "headerName": "city", "hide": False},
-            "description": {"headerName": "Description", "hide": False},
+            "label": {"col-size": 0.1, "col-name": "POI", "hide": False},
+            "city": {"col-size": 0.1, "col-name": "city", "hide": False},
+            "description": {"col-name": "Description", "col-size": 0.7, "hide": False},
             "street": {"hide": True},
             "postal_code": {"hide": True},
             "homepage": {"hide": True},
@@ -48,8 +45,8 @@ class UI:
 
     grid_route_config = {
         "columns": {
-            "label": {"maxWidth": 150, "headerName": "POI", "hide": False},
-            "city": {"maxWidth": 150, "headerName": "city", "hide": False},
+            "label": {"col-size": 0.5, "col-name": "POI", "hide": False},
+            "city": {"col-size": 0.5, "col-name": "city", "hide": False},
             "description": {"hide": True},
             "street": {"hide": True},
             "postal_code": {"hide": True},
@@ -78,8 +75,17 @@ class UI:
 
     def __init_session_states(self) -> None:
         logger.debug("Initializing session states...")
-        keys = ["cities", "destinations", "categories", "pois", "selected_poi", "add_point", "route_pois"]
-        values = [{}, [], [], self.init_empty_pois_dataframe(), None, None, self.init_empty_pois_dataframe()]
+        keys = [
+            "cities",
+            "destinations",
+            "categories",
+            "overview",
+            "selected_poi",
+            "add_point",
+            "route",
+            "old_params",
+        ]
+        values = [{}, [], [], self.init_empty_pois_dataframe(), None, None, self.init_empty_pois_dataframe(), {}]
         for key, value in zip(keys, values):
             if not hasattr(st.session_state, key):
                 setattr(st.session_state, key, value)
@@ -107,26 +113,8 @@ class UI:
         with poi_view:
             self.__init_poi_overview_layout()
             self.__init_poi_add_button()
-        logger.info("Initalized layout.")
         self.__init_route_layout()
-
-    def __init_poi_overview_layout(self) -> None:
-        logger.debug("Initializing pois overview...")
-        with st.container(height=450):
-            if not st.session_state.selected_poi:
-                st.subheader("POI Overview")
-                logger.info("Initialized empty poi overview.")
-                return
-            poi: Poi = st.session_state.selected_poi
-            st.subheader(poi.label)
-            st.caption(f"📍 {poi.street}, {poi.postal_code} {poi.city}")
-            st.markdown("🌳 **Description**")
-            st.write(poi.description if poi.description else "Point of interest has no description.")
-            if poi.additional_information:
-                st.markdown("ℹ️ **Additional Information**")
-                st.write(poi.additional_information)
-            st.markdown(f"🌐 **Website**: [🌐 Visit website]({poi.homepage})")
-        logger.info("Initalized pois overview.")
+        logger.info("Initalized layout.")
 
     def __init_poi_add_button(self) -> None:
         logger.debug("Initializing add button...")
@@ -177,33 +165,80 @@ class UI:
                 "locations": st.session_state.destinations or "",
                 "types": st.session_state.categories or "",
             }
-            if not params == self.old_params:
+            if params != st.session_state.old_params:
                 try:
                     pois = handle_get_request("/poi/filter", params).get("pois", {})
-                    st.session_state.pois = (
+                    st.session_state.overview = (
                         pd.DataFrame(pois, columns=self.poi_cols) if pois else self.init_empty_pois_dataframe()
                     )
-                    st.session_state.pois.fillna("", inplace=True)
-                    self.old_params = params
+                    st.session_state.overview.fillna("", inplace=True)
+                    st.session_state.old_params = params
                     logger.info("Initalized poi overview.")
                 except Exception:
                     logger.error("Failed to get '/poi/filter' form the server.")
 
-        grid = Grid(st.session_state.pois, "poi-overview", 500, self.poi_overview_config)
-        response = grid.run()
-        try:
-            logger.success(response.selected_rows)
-            self.create_poi(response.selected_rows)
-        except (TypeError, ValueError) as err:
-            logger.error(err)
+        key = "overview-pois"
+        _ = st.dataframe(
+            st.session_state.overview,
+            key=key,
+            height=500,
+            hide_index=True,
+            column_order=["label", "city", "description"],
+            column_config={
+                "label": st.column_config.TextColumn(
+                    "POI",
+                    width=100,
+                    help="The label of the POI.",
+                ),
+                "city": st.column_config.TextColumn(
+                    "Location",
+                    width=100,
+                    help="Location of the POI.",
+                ),
+                "description": st.column_config.TextColumn(
+                    "Description",
+                    help="Description of the POI.",
+                ),
+            },
+            on_select=lambda: self.select_row(key),
+            selection_mode="single-row",
+            placeholder="-",
+        )
+
+    def select_row(self, key) -> None:
+        df, _ = key.split("-")
+        rows = st.session_state[key]["selection"]["rows"]
+        if rows is not None:
+            index = rows[0]
+            st.session_state.selected_poi = st.session_state[df].loc[index]
+            logger.debug(f"Selected row {st.session_state.selected_poi} in dataframe '{df}'")
+
+    def __init_poi_overview_layout(self) -> None:
+        logger.debug("Initializing pois overview...")
+        if st.session_state.selected_poi is None:
+            st.subheader("POI Overview")
+            return
+
+        poi = st.session_state.selected_poi
+
+        st.subheader(poi["label"])
+        st.caption(f"📍 {poi['street']}, {poi['postal_code']} {poi['city']}")
+        st.markdown("🌳 **Description**")
+        st.write(poi["description"] or "Point of interest has no description.")
+        if poi.get("additional_information"):
+            st.markdown("ℹ️ **Additional Information**")
+            st.write(poi["additional_information"])
+        if poi.get("homepage"):
+            st.markdown(f"🌐 **Website**: [🌐 Visit website]({poi['homepage']})")
+        logger.info("Initalized pois overview.")
 
     def __init_route_layout(self) -> None:
         logger.debug("Initializing route overview...")
-        map_grid, route_pois = st.columns([9, 2], border=True)
+        map_grid, route = st.columns([9, 2], border=True)
         with map_grid:
             self.__init_map()
-        with route_pois:
-            self.__init_route_pois()
+        with route:
+            self.__init_route()
         logger.info("initalized route overview.")
 
     def __init_map(self) -> None:
@@ -236,15 +271,32 @@ class UI:
 
         logger.info("initalized map.")
 
-    def __init_route_pois(self) -> None:
+    def __init_route(self) -> None:
         logger.debug("Initializing route pois...")
         with st.container():
-            grid = Grid(st.session_state.route_pois, "route-overview", 400, self.grid_route_config)
-            response = grid.run()
-            try:
-                self.create_poi(response.selected_rows)
-            except (TypeError, ValueError) as err:
-                logger.error(err)
+            key = "route-pois"
+            _ = st.dataframe(
+                st.session_state.route,
+                key=key,
+                height=500,
+                hide_index=True,
+                column_order=["label", "city", "description"],
+                column_config={
+                    "label": st.column_config.TextColumn(
+                        "POI",
+                        width=100,
+                        help="The label of the POI.",
+                    ),
+                    "city": st.column_config.TextColumn(
+                        "Location",
+                        width=100,
+                        help="Location of the POI.",
+                    ),
+                },
+                on_select=lambda: self.select_row(key),
+                selection_mode="single-row",
+                placeholder="-",
+            )
         with st.container():
             self.__init_route_controller()
         logger.info("initalized route pois.")
@@ -264,11 +316,11 @@ class UI:
     def add_poi(self) -> None:
         logger.debug("Adding POI to route DataFrame.")
         try:
-            st.session_state.route_pois = self.handler.add_poi(
-                st.session_state.route_pois, st.session_state.selected_poi
-            )
+            st.session_state.route = self.handler.add_poi(st.session_state.route, st.session_state.selected_poi)
             logger.info("Added point to route POIs DataFrame.")
-            st.session_state.pois = self.handler.remove_poi(st.session_state.pois, st.session_state.selected_poi)
+            st.session_state.overview = self.handler.remove_poi(
+                st.session_state.overview, st.session_state.selected_poi.poiId
+            )
             logger.info("Removed POI from pois DataFrame.")
         except (KeyError, ValueError) as err:
             logger.error(err)
@@ -277,10 +329,10 @@ class UI:
     def delete_poi(self):
         logger.debug("Deleteing POI from route DataFrame.")
         try:
-            st.session_state.pois = self.handler.add_poi(st.session_state.pois, st.session_state.pois)
+            st.session_state.overview = self.handler.add_poi(st.session_state.overview, st.session_state.overview)
             logger.info("Added point to route POIs DataFrame.")
-            st.session_state.route_pois = self.handler.remove_poi(
-                st.session_state.route_pois, st.session_state.selected_poi
+            st.session_state.route = self.handler.remove_poi(
+                st.session_state.route, st.session_state.selected_poi.poiId
             )
             logger.info("Removed POI from pois DataFrame.")
         except (KeyError, ValueError) as err:

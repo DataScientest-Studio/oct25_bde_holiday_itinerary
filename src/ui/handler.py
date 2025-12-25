@@ -47,8 +47,16 @@ class Handler:
         logger.info("Added point to dataframe.")
         return dest
 
+    def remove_df_from_df(self, target: pd.DataFrame, src: pd.DataFrame) -> pd.DataFrame:
+        logger.debug("Removing df from df...")
+        poi_ids = src["poi_id"].tolist()
+        for poi_id in poi_ids:
+            self.remove_poi(target, poi_id)
+        logger.info(f"Removed poiIds {poi_ids} from target.")
+        return target
+
     def remove_poi(self, target: pd.DataFrame, poi_id: str) -> pd.DataFrame:
-        logger.debug("Removing row from DataFrame...")
+        logger.debug(f"Removing row with poiId {poi_id} from DataFrame...")
         if "poiId" not in target.columns:
             logger.debug("Target has no dataframe.")
             raise KeyError(f"Dataframe {target} has no column named 'poiId'.")
