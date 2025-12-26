@@ -54,7 +54,7 @@ class UI:
             "add_point",
             "route",
             "old_params",
-            "start-poi",
+            "itinerary-type" "start-poi",
             "end-poi",
         ]
         values = [
@@ -66,6 +66,7 @@ class UI:
             None,
             self.init_empty_pois_dataframe(),
             {},
+            "",
             "",
             "",
         ]
