@@ -307,7 +307,15 @@ class UI:
         with st.container():
             route, button = st.columns([1, 1], vertical_alignment="bottom")
             with route:
-                st.selectbox("Select itinerary type", options=["Roundtour", "Shortestpath"], key="itinerary-type")
+                st.selectbox(
+                    "Select itinerary type",
+                    options=[
+                        "Round trip",
+                        "One-way trip (flexible end)",
+                        "One-way trip (fixed destination)",
+                    ],
+                    key="itinerary-type",
+                )
             with button:
                 with st.container(horizontal_alignment="right", vertical_alignment="bottom"):
                     st.button("Calculate route", on_click=self._handle_calculate_itinerary)
