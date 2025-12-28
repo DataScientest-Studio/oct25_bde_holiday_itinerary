@@ -64,3 +64,47 @@ class Handler:
         target = target[target["poiId"] != poi_id]
         logger.info(f"Removed 'poiId' from {target}")
         return target
+
+    def request_itinerary_type(
+        self, itinerary_type: str, pois: pd.DataFrame, start: str | None = None, end: str | None = None
+    ) -> tuple[pd.DataFrame, float]:
+        if pois.shape[0] < 3:
+            logger.error("At least 3 POIs are needed.")
+            raise ValueError("Given POIs are not enough for a route.")
+        match itinerary_type:
+            case "Round trip":
+                return self.roundtrip(pois)
+            case "One-way trip (flexible end)":
+                pass
+            case "One-way trip (fixed destination)":
+                pass
+            case _:
+                raise ValueError(f"'{itinerary_type}' is not a valid itinerary_type.")
+        return pois, 0.0
+
+    def roundtrip(self, pois: pd.DataFrame) -> tuple[pd.DataFrame, float]:
+        params = self.prepare_params(pois)
+        itinerary = handle_get_request("/tsp/shortest-round-tour", params)
+        logger.debug(itinerary)
+        pois = pois.set_index("poiId").loc[itinerary["poi_order"]].reset_index()
+        return pois, itinerary["total_distance"]
+
+    def prepare_params(self, pois: pd.DataFrame, poi_id: str | None = None) -> dict[str, Any]:
+        poi_ids = pois["poiId"].tolist()
+        if poi_id:
+            logger.debug(f"Start/End POI {poi_id} is set. Removing it from existing list.")
+            poi_ids.remove(poi_id)
+            poi_ids = [poi_id] + poi_ids
+        logger.info("Created parameter for trip tour.")
+        return {"poi_ids": poi_ids}
+
+    def node_is_valid(self, pois: pd.DataFrame, poi: str | None) -> bool:
+        if not poi:
+            logger.error(f"POI '{poi}' is not a valid poiId.")
+            return False
+
+        if poi not in pois["poiId"].values:
+            logger.error(f"POI '{poi}' is not in the DataFrame.")
+            return False
+
+        return True

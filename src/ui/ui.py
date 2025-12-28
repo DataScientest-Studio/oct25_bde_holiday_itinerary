@@ -54,8 +54,9 @@ class UI:
             "add_point",
             "route",
             "old_params",
-            "itinerary-type" "start-poi",
-            "end-poi",
+            "itinerary_type",
+            "start_poi",
+            "end_poi",
         ]
         values = [
             {},
@@ -286,21 +287,21 @@ class UI:
             with start:
                 st.selectbox(
                     "Start POI",
-                    options=self.__generate_possible_nodes("end-poi"),
-                    key="start-poi",
+                    options=self.__generate_possible_nodes("end_poi"),
+                    key="start_poi",
                 )
             with end:
                 st.selectbox(
                     "End POI",
-                    options=self.__generate_possible_nodes("start-poi"),
-                    key="end-poi",
+                    options=self.__generate_possible_nodes("start_poi"),
+                    key="end_poi",
                 )
 
     def __generate_possible_nodes(self, key_to_exclude) -> list[str]:
         options = st.session_state.route["label"]
         filtered = options[options != st.session_state[key_to_exclude]].tolist()
-        if filtered:
-            return [""] + filtered
+        # if filtered:
+        #     return [""] + filtered
         return filtered
 
     def __create_route_type_and_submit_button_controller(self) -> None:
@@ -314,7 +315,7 @@ class UI:
                         "One-way trip (flexible end)",
                         "One-way trip (fixed destination)",
                     ],
-                    key="itinerary-type",
+                    key="itinerary_type",
                 )
             with button:
                 with st.container(horizontal_alignment="right", vertical_alignment="bottom"):
@@ -355,7 +356,14 @@ class UI:
             logger.debug(f"Selected row {st.session_state.selected_poi} in dataframe '{df}'")
 
     def _handle_calculate_itinerary(self):
-        pass
+        logger.debug(st.session_state.itinerary_type)
+        st.session_state.route, distance = self.handler.request_itinerary_type(
+            st.session_state.itinerary_type,
+            st.session_state.route,
+            st.session_state.start_poi,
+            st.session_state.end_poi,
+        )
+        logger.debug(st.session_state.route)
 
     def run(self) -> None:
         logger.info("Starting UI.")
