@@ -7,8 +7,6 @@ from handler import Handler, handle_get_request
 
 from logger import logger
 
-# from pydeck.types import String
-
 
 class UI:
     title_name: str = "Holiday Itinerary"
@@ -228,7 +226,7 @@ class UI:
             layers=[self.create_overview_points(), self.create_route_points()],
             initial_view_state=pdk.ViewState(latitude=center_lat, longitude=center_lon, zoom=zoom, height=734),
             map_style="road",
-            tooltip={"text": "{name}"},
+            # tooltip={"text": "{name}"},
         )
 
         st.pydeck_chart(r, height=734)
