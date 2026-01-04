@@ -223,9 +223,13 @@ class UI:
         df_cities = pd.DataFrame(st.session_state.cities)
 
         center_lat, center_lon, zoom = self.center_map(df_cities)
+        if st.session_state.selected_poi is None:
+            layers = [self.create_route_points()]
+        else:
+            layers = [self.create_selected_poi(), self.create_route_points()]
 
         r = pdk.Deck(
-            layers=[self.create_selected_poi(), self.create_route_points()],
+            layers=layers,
             initial_view_state=pdk.ViewState(latitude=center_lat, longitude=center_lon, zoom=zoom, height=734),
             map_style="road",
             # tooltip={"text": "{name}"},
@@ -236,17 +240,21 @@ class UI:
         logger.info("initalized map.")
 
     def create_selected_poi(self) -> pdk.Layer:
-        if st.session_state.selected_poi is None or st.session_state.selected_poi["poiId"] in st.session_state.route:
-            return pdk.Layer("ScatterplotLayer", id="selected-poi")
+        color = [255, 0, 255] if st.session_state.selected_poi["poiId"] in st.session_state.route else [0, 0, 255]
+        df = pd.DataFrame([st.session_state.selected_poi])
+        df["longitude"] = pd.to_numeric(df["longitude"], errors="coerce")
+        df["latitude"] = pd.to_numeric(df["latitude"], errors="coerce")
+        logger.warning(df["longitude"])
+        logger.warning(df["latitude"])
         return pdk.Layer(
             "ScatterplotLayer",
             id="selected-poi",
-            data=st.session_state.selected_poi,
+            data=df,
             get_position=["longitude", "latitude"],
             radius_units="pixels",
             radius_min_pixels=2,
             radius_max_pixels=2,
-            get_color=[0, 0, 255],
+            get_color=color,
             pickable=True,
         )
 
@@ -264,13 +272,20 @@ class UI:
         )
 
     def center_map(self, data_pois: pd.DataFrame) -> tuple[float, float, int]:
-        if not st.session_state.overview.empty or not st.session_state.route.empty:
-            data_pois = pd.concat(
-                [
-                    st.session_state.overview[["latitude", "longitude"]],
-                    st.session_state.route[["latitude", "longitude"]],
-                ]
+        dfs = []
+        if st.session_state.selected_poi is not None and not st.session_state.selected_poi.empty:
+            dfs.append(
+                pd.DataFrame(
+                    {
+                        "longitude": [float(st.session_state.selected_poi["longitude"])],
+                        "latitude": [float(st.session_state.selected_poi["latitude"])],
+                    }
+                ),
             )
+        if not st.session_state.route.empty:
+            dfs.append(st.session_state.route[["latitude", "longitude"]])
+        if dfs:
+            data_pois = pd.concat(dfs)
         min_lat, max_lat = data_pois["latitude"].min(), data_pois["latitude"].max()
         min_lon, max_lon = data_pois["longitude"].min(), data_pois["longitude"].max()
         lat = (min_lat + max_lat) / 2
@@ -282,8 +297,10 @@ class UI:
         lat_span = abs(max_lat - min_lat)
         lon_span = abs(max_lon - min_lon)
 
+        if lat_span == 0 and lon_span == 0:
+            return 12
+
         max_span = max(lat_span, lon_span)
-        logger.warning(max_span)
         if max_span < 0.00034:
             return 20
         elif max_span < 0.00069:
