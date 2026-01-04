@@ -1,10 +1,8 @@
 from datetime import date
 
 import pandas as pd
-import pydeck as pdk
 import streamlit as st
 from handler import Handler, handle_get_request
-from pydeck.types import String
 
 from logger import logger
 
@@ -218,53 +216,24 @@ class UI:
 
     def __init_map(self) -> None:
         logger.debug("Initializing map...")
-
-        df_cities = pd.DataFrame(st.session_state.cities)
-
-        city_dots, city_text = self.create_city_layer(df_cities)
-        center_lat, center_lon = self.center_map(df_cities)
-
-        r = pdk.Deck(
-            layers=[city_dots, city_text],
-            initial_view_state=pdk.ViewState(latitude=center_lat, longitude=center_lon, zoom=5, height=734),
-            map_style="light_no_labels",
-            tooltip={"text": "{name}"},
+        st.map(
+            data=self.select_what_to_show(),
+            latitude="latitude",
+            longitude="longitude",
+            color="#ffaa00",
+            size=None,
+            zoom=None,
+            width="stretch",
+            height=734,
         )
-
-        st.pydeck_chart(r, height=734)
 
         logger.info("initalized map.")
 
-    def create_city_layer(self, cities: pd.DataFrame) -> tuple[pdk.Layer, ...]:
-        cities_to_show = cities[cities["population"] >= 200000.0].copy()
-        logger.warning(cities_to_show.columns)
-        logger.debug(cities_to_show.head(5))
-        city_dots = pdk.Layer(
-            "ScatterplotLayer",
-            id="city-dots",
-            data=cities_to_show,
-            get_position="[lon, lat]",
-            get_radius="population / 100000",
-            radius_units="pixels",
-            radius_min_pixels=1,
-            radius_max_pixels=4,
-            get_color=[0, 0, 255],
-            pickable=True,
-        )
-        city_text = pdk.Layer(
-            "TextLayer",
-            id="city-names",
-            data=cities_to_show,
-            get_position="[lon, lat]",
-            get_text="name",
-            get_size=16,
-            get_color=[0, 0, 0],
-            get_angle=0,
-            get_text_anchor=String("middle"),
-            get_alignment_baseline=String("bottom"),
-        )
-
-        return city_dots, city_text
+    def select_what_to_show(self) -> pd.DataFrame:
+        if st.session_state.route.empty:
+            cities = pd.DataFrame(st.session_state.cities)
+            return cities[cities["population"] >= 200000.0]
+        return st.session_state.route
 
     def center_map(self, df_cities: pd.DataFrame) -> tuple[float, float]:
         min_lat, max_lat = df_cities["lat"].min(), df_cities["lat"].max()
