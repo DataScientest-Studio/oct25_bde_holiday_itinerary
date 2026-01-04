@@ -225,7 +225,7 @@ class UI:
         center_lat, center_lon, zoom = self.center_map(df_cities)
 
         r = pdk.Deck(
-            layers=[self.create_overview_points(), self.create_route_points()],
+            layers=[self.create_selected_poi(), self.create_route_points()],
             initial_view_state=pdk.ViewState(latitude=center_lat, longitude=center_lon, zoom=zoom, height=734),
             map_style="road",
             # tooltip={"text": "{name}"},
@@ -235,11 +235,13 @@ class UI:
 
         logger.info("initalized map.")
 
-    def create_overview_points(self) -> pdk.Layer:
+    def create_selected_poi(self) -> pdk.Layer:
+        if st.session_state.selected_poi is None or st.session_state.selected_poi["poiId"] in st.session_state.route:
+            return pdk.Layer("ScatterplotLayer", id="selected-poi")
         return pdk.Layer(
             "ScatterplotLayer",
-            id="pois",
-            data=st.session_state.overview,
+            id="selected-poi",
+            data=st.session_state.selected_poi,
             get_position=["longitude", "latitude"],
             radius_units="pixels",
             radius_min_pixels=2,
