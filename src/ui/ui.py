@@ -4,6 +4,7 @@ import pandas as pd
 import pydeck as pdk
 import streamlit as st
 from handler import Handler, handle_get_request
+from pydeck.types import String
 
 from logger import logger
 
@@ -131,7 +132,7 @@ class UI:
                 result = handle_get_request(path)[data_key]
                 if key == "destinations":
                     st.session_state.cities = result
-                    result = [city["Id"] for city in result]
+                    result = [city["name"] for city in result]
                 st.multiselect(label, options=result, key=key)
                 logger.info(f"Initalized {key} filter.")
         except Exception as err:
@@ -220,30 +221,57 @@ class UI:
 
         df_cities = pd.DataFrame(st.session_state.cities)
 
-        min_lat, max_lat = df_cities["lat"].min(), df_cities["lat"].max()
-        min_lon, max_lon = df_cities["lon"].min(), df_cities["lon"].max()
-
-        center_lat = (min_lat + max_lat) / 2
-        center_lon = (min_lon + max_lon) / 2
-
-        cities_layer = pdk.Layer(
-            "ScatterplotLayer",
-            data=df_cities,
-            get_position="[lon, lat]",
-            get_color="[200, 30, 0, 160]",
-            get_radius=5000,
-            pickable=True,
-        )
+        city_dots, city_text = self.create_city_layer(df_cities)
+        center_lat, center_lon = self.center_map(df_cities)
 
         r = pdk.Deck(
-            layers=[cities_layer],
+            layers=[city_dots, city_text],
             initial_view_state=pdk.ViewState(latitude=center_lat, longitude=center_lon, zoom=5, height=734),
+            map_style="light_no_labels",
             tooltip={"text": "{name}"},
         )
 
         st.pydeck_chart(r, height=734)
 
         logger.info("initalized map.")
+
+    def create_city_layer(self, cities: pd.DataFrame) -> tuple[pdk.Layer, ...]:
+        cities_to_show = cities[cities["population"] >= 200000.0].copy()
+        logger.warning(cities_to_show.columns)
+        logger.debug(cities_to_show.head(5))
+        city_dots = pdk.Layer(
+            "ScatterplotLayer",
+            id="city-dots",
+            data=cities_to_show,
+            get_position="[lon, lat]",
+            get_radius="population / 100000",
+            radius_units="pixels",
+            radius_min_pixels=1,
+            radius_max_pixels=4,
+            get_color=[0, 0, 255],
+            pickable=True,
+        )
+        city_text = pdk.Layer(
+            "TextLayer",
+            id="city-names",
+            data=cities_to_show,
+            get_position="[lon, lat]",
+            get_text="name",
+            get_size=16,
+            get_color=[0, 0, 0],
+            get_angle=0,
+            get_text_anchor=String("middle"),
+            get_alignment_baseline=String("bottom"),
+        )
+
+        return city_dots, city_text
+
+    def center_map(self, df_cities: pd.DataFrame) -> tuple[float, float]:
+        min_lat, max_lat = df_cities["lat"].min(), df_cities["lat"].max()
+        min_lon, max_lon = df_cities["lon"].min(), df_cities["lon"].max()
+        lat = (min_lat + max_lat) / 2
+        lon = (min_lon + max_lon) / 2
+        return lat, lon
 
     def __init_route(self) -> None:
         logger.debug("Initializing route pois...")
