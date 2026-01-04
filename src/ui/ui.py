@@ -1,10 +1,13 @@
 from datetime import date
 
 import pandas as pd
+import pydeck as pdk
 import streamlit as st
 from handler import Handler, handle_get_request
 
 from logger import logger
+
+# from pydeck.types import String
 
 
 class UI:
@@ -216,31 +219,111 @@ class UI:
 
     def __init_map(self) -> None:
         logger.debug("Initializing map...")
-        st.map(
-            data=self.select_what_to_show(),
-            latitude="latitude",
-            longitude="longitude",
-            color="#ffaa00",
-            size=None,
-            zoom=None,
-            width="stretch",
-            height=734,
+
+        df_cities = pd.DataFrame(st.session_state.cities)
+
+        center_lat, center_lon, zoom = self.center_map(df_cities)
+
+        r = pdk.Deck(
+            layers=[self.create_overview_points(), self.create_route_points()],
+            initial_view_state=pdk.ViewState(latitude=center_lat, longitude=center_lon, zoom=zoom, height=734),
+            map_style="road",
+            tooltip={"text": "{name}"},
         )
+
+        st.pydeck_chart(r, height=734)
 
         logger.info("initalized map.")
 
-    def select_what_to_show(self) -> pd.DataFrame:
-        if st.session_state.route.empty:
-            cities = pd.DataFrame(st.session_state.cities)
-            return cities[cities["population"] >= 200000.0]
-        return st.session_state.route
+    def create_overview_points(self) -> pdk.Layer:
+        return pdk.Layer(
+            "ScatterplotLayer",
+            id="pois",
+            data=st.session_state.overview,
+            get_position=["longitude", "latitude"],
+            radius_units="pixels",
+            radius_min_pixels=2,
+            radius_max_pixels=2,
+            get_color=[0, 0, 255],
+            pickable=True,
+        )
 
-    def center_map(self, df_cities: pd.DataFrame) -> tuple[float, float]:
-        min_lat, max_lat = df_cities["lat"].min(), df_cities["lat"].max()
-        min_lon, max_lon = df_cities["lon"].min(), df_cities["lon"].max()
+    def create_route_points(self) -> pdk.Layer:
+        return pdk.Layer(
+            "ScatterplotLayer",
+            id="route",
+            data=st.session_state.route,
+            get_position=["longitude", "latitude"],
+            radius_units="pixels",
+            radius_min_pixels=2,
+            radius_max_pixels=2,
+            get_color=[255, 0, 0],
+            pickable=True,
+        )
+
+    def center_map(self, data_pois: pd.DataFrame) -> tuple[float, float, int]:
+        if not st.session_state.overview.empty or not st.session_state.route.empty:
+            data_pois = pd.concat(
+                [
+                    st.session_state.overview[["latitude", "longitude"]],
+                    st.session_state.route[["latitude", "longitude"]],
+                ]
+            )
+        min_lat, max_lat = data_pois["latitude"].min(), data_pois["latitude"].max()
+        min_lon, max_lon = data_pois["longitude"].min(), data_pois["longitude"].max()
         lat = (min_lat + max_lat) / 2
         lon = (min_lon + max_lon) / 2
-        return lat, lon
+        return lat, lon, self.calculate_zoom(min_lat, max_lat, min_lon, max_lon)
+
+    def calculate_zoom(self, min_lat, max_lat, min_lon, max_lon):
+        # https://wiki.openstreetmap.org/wiki/Zoom_levels
+        lat_span = abs(max_lat - min_lat)
+        lon_span = abs(max_lon - min_lon)
+
+        max_span = max(lat_span, lon_span)
+        logger.warning(max_span)
+        if max_span < 0.00034:
+            return 20
+        elif max_span < 0.00069:
+            return 19
+        elif max_span < 0.0014:
+            return 18
+        elif max_span < 0.0027:
+            return 17
+        elif max_span < 0.0055:
+            return 16
+        elif max_span < 0.011:
+            return 15
+        elif max_span < 0.022:
+            return 14
+        elif max_span < 0.044:
+            return 13
+        elif max_span < 0.088:
+            return 12
+        elif max_span < 0.176:
+            return 11
+        elif max_span < 0.352:
+            return 10
+        elif max_span < 0.703:
+            return 9
+        elif max_span < 1.406:
+            return 8
+        elif max_span < 2.813:
+            return 7
+        elif max_span < 5.625:
+            return 6
+        elif max_span < 11.25:
+            return 5
+        elif max_span < 22.5:
+            return 5  # Fixed zoom for france.
+        elif max_span < 45:
+            return 3
+        elif max_span < 90:
+            return 2
+        elif max_span < 180:
+            return 1
+        else:
+            return 0
 
     def __init_route(self) -> None:
         logger.debug("Initializing route pois...")
