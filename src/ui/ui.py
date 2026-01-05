@@ -100,7 +100,7 @@ class UI:
                 self.__init_poi_add_button()
         logger.info("Initialized overview sections.")
 
-        map_grid, route = st.columns([8, 2], border=True)
+        map_grid, route = st.columns([6, 2], border=True)
         with map_grid:
             self.__init_map()
         with route:
