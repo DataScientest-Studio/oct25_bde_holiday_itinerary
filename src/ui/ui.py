@@ -232,7 +232,7 @@ class UI:
             layers=layers,
             initial_view_state=pdk.ViewState(latitude=center_lat, longitude=center_lon, zoom=zoom, height=734),
             map_style="road",
-            # tooltip={"text": "{name}"},
+            tooltip=None,
         )
 
         st.pydeck_chart(r, height=734)
@@ -240,20 +240,18 @@ class UI:
         logger.info("initalized map.")
 
     def create_selected_poi(self) -> pdk.Layer:
-        color = [255, 0, 255] if st.session_state.selected_poi["poiId"] in st.session_state.route else [0, 0, 255]
+        color = [255, 0, 0] if st.session_state.selected_poi["poiId"] in st.session_state.route else [0, 0, 255]
         df = pd.DataFrame([st.session_state.selected_poi])
         df["longitude"] = pd.to_numeric(df["longitude"], errors="coerce")
         df["latitude"] = pd.to_numeric(df["latitude"], errors="coerce")
-        logger.warning(df["longitude"])
-        logger.warning(df["latitude"])
         return pdk.Layer(
             "ScatterplotLayer",
             id="selected-poi",
             data=df,
             get_position=["longitude", "latitude"],
             radius_units="pixels",
-            radius_min_pixels=2,
-            radius_max_pixels=2,
+            radius_min_pixels=3,
+            radius_max_pixels=3,
             get_color=color,
             pickable=True,
         )
@@ -265,8 +263,8 @@ class UI:
             data=st.session_state.route,
             get_position=["longitude", "latitude"],
             radius_units="pixels",
-            radius_min_pixels=2,
-            radius_max_pixels=2,
+            radius_min_pixels=3,
+            radius_max_pixels=3,
             get_color=[255, 0, 0],
             pickable=True,
         )
