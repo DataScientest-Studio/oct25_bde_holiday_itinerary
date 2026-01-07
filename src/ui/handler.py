@@ -86,8 +86,8 @@ class Handler:
         params = self.prepare_params(pois)
         itinerary = handle_get_request("/tsp/shortest-round-tour", params)
         logger.debug(itinerary)
-        pois = pois.set_index("poiId").loc[itinerary["poi_order"]].reset_index()
-        return pois, itinerary["total_distance"]
+        ordered_df = pois.set_index("poiId").loc[itinerary["poi_order"]].reset_index()
+        return ordered_df, itinerary["total_distance"]
 
     def prepare_params(self, pois: pd.DataFrame, poi_id: str | None = None) -> dict[str, Any]:
         poi_ids = pois["poiId"].tolist()
