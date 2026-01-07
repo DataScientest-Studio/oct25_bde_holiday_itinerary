@@ -57,6 +57,8 @@ class UI:
             "itinerary_type",
             "start_poi",
             "end_poi",
+            "ordered_route",
+            "distance",
         ]
         values = [
             {},
@@ -70,6 +72,8 @@ class UI:
             "",
             "",
             "",
+            self.init_empty_pois_dataframe(),
+            0.0,
         ]
         for key, value in zip(keys, values):
             if not hasattr(st.session_state, key):
@@ -228,6 +232,9 @@ class UI:
         else:
             layers = [self.create_selected_poi(), self.create_route_points()]
 
+        if st.session_state.distance != 0.0 and not st.session_state.route.empty:
+            layers.append(self.create_route_edges())
+
         r = pdk.Deck(
             layers=layers,
             initial_view_state=pdk.ViewState(latitude=center_lat, longitude=center_lon, zoom=zoom, height=734),
@@ -267,6 +274,17 @@ class UI:
             radius_max_pixels=3,
             get_color=[255, 0, 0],
             pickable=True,
+        )
+
+    def create_route_edges(self) -> pdk.Layer:
+        path_coords = st.session_state.ordered_route[["longitude", "latitude"]].values.tolist()
+        return pdk.Layer(
+            "LineLayer",
+            id="route-edges",
+            data=pd.DataFrame({"path": [path_coords]}),  # list of list of coordinates
+            get_path="path",
+            get_color=[0, 0, 0],  # red line
+            get_width=5,
         )
 
     def center_map(self, data_pois: pd.DataFrame) -> tuple[float, float, int]:
@@ -454,12 +472,13 @@ class UI:
 
     def _handle_calculate_itinerary(self):
         logger.debug(st.session_state.itinerary_type)
-        st.session_state.route, distance = self.handler.request_itinerary_type(
+        st.session_state.ordered_route, st.session_state.distance = self.handler.request_itinerary_type(
             st.session_state.itinerary_type,
             st.session_state.route,
             st.session_state.start_poi,
             st.session_state.end_poi,
         )
+        st.session_state.route = st.session_state.ordered_route
         logger.debug(st.session_state.route)
 
     def run(self) -> None:
