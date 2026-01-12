@@ -282,6 +282,7 @@ class UI:
 
     def create_route_edges(self) -> pdk.Layer:
         path_coords = st.session_state.ordered_route[["longitude", "latitude"]].values.tolist()
+        logger.warning(path_coords)
         route = pdk.Layer(
             "PathLayer",
             id="route-edges",
