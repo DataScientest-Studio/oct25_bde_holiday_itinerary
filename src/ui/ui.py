@@ -57,7 +57,6 @@ class UI:
             "itinerary_type",
             "start_poi",
             "end_poi",
-            "ordered_route",
             "distance",
         ]
         values = [
@@ -72,7 +71,6 @@ class UI:
             "",
             "",
             "",
-            self.init_empty_pois_dataframe(),
             0.0,
         ]
         for key, value in zip(keys, values):
@@ -277,14 +275,15 @@ class UI:
         )
 
     def create_route_edges(self) -> pdk.Layer:
-        path_coords = st.session_state.ordered_route[["longitude", "latitude"]].values.tolist()
+        path_coords = st.session_state.route[["longitude", "latitude"]].values.tolist()
+        logger.warning(path_coords)
         return pdk.Layer(
-            "LineLayer",
+            "PathLayer",
             id="route-edges",
-            data=pd.DataFrame({"path": [path_coords]}),  # list of list of coordinates
+            data=pd.DataFrame({"path": [path_coords]}),
             get_path="path",
-            get_color=[0, 0, 0],  # red line
-            get_width=5,
+            get_color=[0, 0, 0],
+            width_min_pixels=1,
         )
 
     def center_map(self, data_pois: pd.DataFrame) -> tuple[float, float, int]:
@@ -415,8 +414,6 @@ class UI:
     def __generate_possible_nodes(self, key_to_exclude) -> list[str]:
         options = st.session_state.route["label"]
         filtered = options[options != st.session_state[key_to_exclude]].tolist()
-        # if filtered:
-        #     return [""] + filtered
         return filtered
 
     def __create_route_type_and_submit_button_controller(self) -> None:
@@ -472,13 +469,12 @@ class UI:
 
     def _handle_calculate_itinerary(self):
         logger.debug(st.session_state.itinerary_type)
-        st.session_state.ordered_route, st.session_state.distance = self.handler.request_itinerary_type(
+        st.session_state.route, st.session_state.distance = self.handler.request_itinerary_type(
             st.session_state.itinerary_type,
             st.session_state.route,
             st.session_state.start_poi,
             st.session_state.end_poi,
         )
-        st.session_state.route = st.session_state.ordered_route
         logger.debug(st.session_state.route)
 
     def run(self) -> None:
