@@ -25,7 +25,7 @@ def get_types(request: Request) -> dict[str, Any]:
 
 @router.get("/filter")  # type: ignore[misc]
 def get_filtered_pois(
-    request: Request, locations: list[str] = Query(...), types: list[str] = Query(...)
+    request: Request, locations: list[str] = Query(...), types: list[str] = Query(...), radius: int = 0
 ) -> dict[str, Any]:
     driver = request.app.state.driver
-    return driver.get_filtered_pois(locations, types)
+    return driver.get_filtered_pois(locations, types, radius)
