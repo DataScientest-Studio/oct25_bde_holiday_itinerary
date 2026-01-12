@@ -57,6 +57,7 @@ class UI:
             "itinerary_type",
             "start_poi",
             "end_poi",
+            "ordered_route",
             "distance",
         ]
         values = [
@@ -71,6 +72,7 @@ class UI:
             "",
             "",
             "",
+            self.init_empty_pois_dataframe(),
             0.0,
         ]
         for key, value in zip(keys, values):
@@ -230,8 +232,8 @@ class UI:
         else:
             layers = [self.create_selected_poi(), self.create_route_points()]
 
-        if st.session_state.distance != 0.0 and not st.session_state.route.empty:
-            layers.append(self.create_route_edges())
+        if not st.session_state.ordered_route.empty:
+            layers.extend(self.create_route_edges())
 
         r = pdk.Deck(
             layers=layers,
@@ -262,10 +264,14 @@ class UI:
         )
 
     def create_route_points(self) -> pdk.Layer:
+        pois = st.session_state.route
+        if not st.session_state.ordered_route.empty:
+            start_poi = st.session_state.ordered_route.iloc[0]["poiId"]
+            pois = st.session_state.route[st.session_state.route["poiId"] != start_poi].reset_index(drop=True)
         return pdk.Layer(
             "ScatterplotLayer",
             id="route",
-            data=st.session_state.route,
+            data=pois,
             get_position=["longitude", "latitude"],
             radius_units="pixels",
             radius_min_pixels=3,
@@ -275,9 +281,8 @@ class UI:
         )
 
     def create_route_edges(self) -> pdk.Layer:
-        path_coords = st.session_state.route[["longitude", "latitude"]].values.tolist()
-        logger.warning(path_coords)
-        return pdk.Layer(
+        path_coords = st.session_state.ordered_route[["longitude", "latitude"]].values.tolist()
+        route = pdk.Layer(
             "PathLayer",
             id="route-edges",
             data=pd.DataFrame({"path": [path_coords]}),
@@ -285,6 +290,19 @@ class UI:
             get_color=[0, 0, 0],
             width_min_pixels=1,
         )
+        start = pdk.Layer(
+            "ScatterplotLayer",
+            id="start-node",
+            data=st.session_state.ordered_route.iloc[:1],
+            get_position=["longitude", "latitude"],
+            radius_units="pixels",
+            radius_min_pixels=3,
+            radius_max_pixels=3,
+            get_color=[0, 255, 0],
+            pickable=True,
+        )
+
+        return route, start
 
     def center_map(self, data_pois: pd.DataFrame) -> tuple[float, float, int]:
         dfs = []
@@ -469,12 +487,13 @@ class UI:
 
     def _handle_calculate_itinerary(self):
         logger.debug(st.session_state.itinerary_type)
-        st.session_state.route, st.session_state.distance = self.handler.request_itinerary_type(
+        st.session_state.ordered_route, st.session_state.distance = self.handler.request_itinerary_type(
             st.session_state.itinerary_type,
             st.session_state.route,
             st.session_state.start_poi,
             st.session_state.end_poi,
         )
+        st.session_state.route = st.session_state.ordered_route
         logger.debug(st.session_state.route)
 
     def run(self) -> None:
