@@ -59,6 +59,7 @@ class UI:
             "end_poi",
             "ordered_route",
             "distance",
+            "radius",
         ]
         values = [
             {},
@@ -74,6 +75,7 @@ class UI:
             "",
             self.init_empty_pois_dataframe(),
             0.0,
+            0,
         ]
         for key, value in zip(keys, values):
             if not hasattr(st.session_state, key):
@@ -151,7 +153,7 @@ class UI:
     def __init_radius_handler(self) -> None:
         logger.debug("Initializing radius handler...")
         with st.container():
-            st.slider("Distance from city", min_value=0, max_value=100, key="radius-filter")
+            st.slider("Distance from city", min_value=0, max_value=100, key="radius")
         logger.info("Initalized radius handler.")
 
     def __init_pois_overview_layout(self) -> None:
@@ -160,6 +162,7 @@ class UI:
             params = {
                 "locations": st.session_state.destinations or "",
                 "types": st.session_state.categories or "",
+                "radius": st.session_state.radius * 1000,
             }
             if params != st.session_state.old_params:
                 try:
