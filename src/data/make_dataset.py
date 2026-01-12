@@ -56,12 +56,15 @@ def get_data_from_poi(id, index_label, d):
     result = {key: get_nested(d, path) for key, path in path_map.items()}
     result["label_index"] = index_label
     result["id"] = id
+    # escaped " caused some problems with import
+    if result["comment"] is not None:
+        result["comment"] = result["comment"].replace('\\"', '"')
+    if result["description"] is not None:
+        result["description"] = result["description"].replace('\\"', '"')
     return result
 
-
-def store_nodes_and_edges(df):
-    """stores nodes separately from edges for easy neo4j import"""
-    poi_nodes_df = df.drop(columns=["types"]).rename(
+def create_poi_nodes_df(input_df):
+    poi_nodes_df = input_df.drop(columns=["types"]).rename(
         columns={
             "id": "poiId:ID(POI)",
             "lat": "latitude:FLOAT",
@@ -72,19 +75,61 @@ def store_nodes_and_edges(df):
     duplicates = poi_nodes_df[poi_nodes_df.duplicated(subset="poiId:ID(POI)", keep=False)].sort_values("poiId:ID(POI)")
     if not duplicates.empty:
         raise Exception("duplicates found in poiID")
-    poi_nodes_df.to_csv(output_directory / "poi_nodes.csv", index=False)
+    return poi_nodes_df
 
+def create_type_nodes_df(df):
     rels_df = df.explode("types")
     rels_df = rels_df[~rels_df["types"].str.contains("schema:")]
     type_nodes_df = rels_df["types"].unique()
     type_nodes_df = pd.DataFrame(type_nodes_df, columns=["typeId:ID(Type)"])
     type_nodes_df[":LABEL"] = "Type"
     type_nodes_df = type_nodes_df[~type_nodes_df["typeId:ID(Type)"].str.contains("schema:")]
-    type_nodes_df.to_csv(output_directory / "type_nodes.csv", index=False)
+    return type_nodes_df
 
+def create_poi_is_a_type_rels_df(df):
+    rels_df = df.explode("types")
+    rels_df = rels_df[~rels_df["types"].str.contains("schema:")]
     poi_is_a_type_df = rels_df[["id", "types"]].rename(columns={"id": ":START_ID(POI)", "types": ":END_ID(Type)"})
     poi_is_a_type_df[":TYPE"] = "IS_A"
+    return poi_is_a_type_df
+
+def store_nodes_and_edges(df):
+    """stores nodes separately from edges for easy neo4j import"""
+    poi_nodes_df = create_poi_nodes_df(df)
+    poi_nodes_df.to_csv(output_directory / "poi_nodes.csv", index=False)
+
+    # rels_df = df.explode("types")
+    # rels_df = rels_df[~rels_df["types"].str.contains("schema:")]
+    # type_nodes_df = rels_df["types"].unique()
+    # type_nodes_df = pd.DataFrame(type_nodes_df, columns=["typeId:ID(Type)"])
+    # type_nodes_df[":LABEL"] = "Type"
+    # type_nodes_df = type_nodes_df[~type_nodes_df["typeId:ID(Type)"].str.contains("schema:")]
+    type_nodes_df = create_type_nodes_df(df)
+    type_nodes_df.to_csv(output_directory / "type_nodes.csv", index=False)
+
+    # poi_is_a_type_df = rels_df[["id", "types"]].rename(columns={"id": ":START_ID(POI)", "types": ":END_ID(Type)"})
+    # poi_is_a_type_df[":TYPE"] = "IS_A"
+    poi_is_a_type_df = create_poi_is_a_type_rels_df(df)
     poi_is_a_type_df.to_csv(output_directory / "poi_is_a_type_rels.csv", index=False)
+
+def process_data(directory):
+    data = []
+    with open(directory / "index.json") as f:
+        index_data = json.load(f)
+        for item in index_data:
+            with open(directory / "objects" / item["file"]) as poi_file:
+                data.append(get_data_from_poi(get_id_from_filename(item["file"]), item.get("label", None), json.load(poi_file)))
+
+    df = pd.DataFrame.from_records(data)
+    df = df.astype(
+        {
+            "lat": "float",
+            "long": "float",
+        }
+    )
+    df.insert(0, "label", df["label_en"].combine_first(df["label_fr"]).combine_first(df["label_index"]))
+    df.drop(columns=["label_en", "label_fr", "label_index"], inplace=True)
+    return df
 
 
 def main():

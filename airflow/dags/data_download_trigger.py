@@ -26,12 +26,12 @@ def trigger_download():
 
 
 @task
-def wait_for_download_complete():
+def wait_for_status_complete(process):
     """
     Polls the /data/status endpoint until status == 'completed'
     """
     hook = HttpHook(http_conn_id="NEO4J_API_CONN", method='GET')
-    endpoint = f"/data/status"
+    endpoint = f"/data/{process}/status"
 
     max_attempts = 15
     poll_interval = 60
@@ -40,7 +40,7 @@ def wait_for_download_complete():
         response = hook.run(endpoint=endpoint)
         data = response.json()
         status = data.get('status')
-        print(f"Attempt {attempt}: Download status = {status}")
+        print(f"Attempt {attempt}: status = {status}")
 
         if status == 'completed':
             file_location = data.get('details')["filename"]
@@ -57,7 +57,7 @@ def wait_for_download_complete():
 def branch_download(status_code):
     print("status code in branch_download:", status_code)
     if status_code == 202:
-            return "wait_for_download_complete"
+            return "wait_for_download"
     if status_code == 409:
             return "do_nothing"
     if status_code == 404:
@@ -69,10 +69,52 @@ def do_nothing():
     print("nothing to do")
 
 @task
-def trigger_import_new_data_to_neo4j():
+def trigger_unzip_data():
     hook = HttpHook(http_conn_id="NEO4J_API_CONN", method='GET')
     response = hook.run(
-        endpoint='/data/trigger-import-new-data',
+        endpoint='/data/trigger-unzip',
+        headers={"Content-Type": "application/json"},
+    )
+    print(f"Status code: {response.status_code}")
+    print(f"Response body: {response.json()}")
+    return {
+        "return_value": response.json(),
+        "status_code": response.status_code,
+    }
+
+@task
+def trigger_extract_new_data():
+    hook = HttpHook(http_conn_id="NEO4J_API_CONN", method='GET')
+    response = hook.run(
+        endpoint='/data/trigger-extract-data',
+        headers={"Content-Type": "application/json"},
+    )
+    print(f"Status code: {response.status_code}")
+    print(f"Response body: {response.json()}")
+    return {
+        "return_value": response.json(),
+        "status_code": response.status_code,
+    }
+
+@task
+def trigger_import_new_data():
+    hook = HttpHook(http_conn_id="NEO4J_API_CONN", method='GET')
+    response = hook.run(
+        endpoint='/data/trigger-import-data',
+        headers={"Content-Type": "application/json"},
+    )
+    print(f"Status code: {response.status_code}")
+    print(f"Response body: {response.json()}")
+    return {
+        "return_value": response.json(),
+        "status_code": response.status_code,
+    }
+
+@task
+def trigger_import_cleanup():
+    hook = HttpHook(http_conn_id="NEO4J_API_CONN", method='GET')
+    response = hook.run(
+        endpoint='/data/trigger-import-cleanup',
         headers={"Content-Type": "application/json"},
     )
     print(f"Status code: {response.status_code}")
@@ -99,12 +141,26 @@ def download_dag():
     branch_task = branch_download(status_code)
 
     do_nothing_ = do_nothing()
-    wait_for_download = wait_for_download_complete()
+    wait_for_download = wait_for_status_complete.override(task_id="wait_for_download")("download")
     branch_task >> [do_nothing_, wait_for_download]
 
-    trigger_import_new_data_to_neo4j_ = trigger_import_new_data_to_neo4j()
+    unzip_data = trigger_unzip_data()
+    wait_for_unzip = wait_for_status_complete.override(task_id="wait_for_unzip")("unzip")
 
-    wait_for_download >> trigger_import_new_data_to_neo4j_
+    extract_new_data = trigger_extract_new_data()
+    wait_for_extract = wait_for_status_complete.override(task_id="wait_for_extract")("extract")
+
+    import_new_data = trigger_import_new_data()
+    wait_for_import = wait_for_status_complete.override(task_id="wait_for_import")("import")
+
+    cleanup_import = trigger_import_cleanup()
+    wait_for_cleanup = wait_for_status_complete.override(task_id="wait_for_cleanup")("cleanup")
+
+    wait_for_download >> unzip_data >> wait_for_unzip
+    wait_for_unzip >> extract_new_data >> wait_for_extract
+    wait_for_extract >> import_new_data >> wait_for_import
+    wait_for_import >> cleanup_import >> wait_for_cleanup
+
 
 
 dag = download_dag()
