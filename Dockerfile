@@ -32,6 +32,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ./src/neo4j_api /app/src/neo4j_api
 COPY ./src/neo4j_driver /app/src/neo4j_driver
+COPY ./src/data/make_dataset.py /app/src/data/make_dataset.py
 
 ENV PYTHONPATH=/app
 

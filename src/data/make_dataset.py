@@ -98,17 +98,9 @@ def store_nodes_and_edges(df):
     poi_nodes_df = create_poi_nodes_df(df)
     poi_nodes_df.to_csv(output_directory / "poi_nodes.csv", index=False)
 
-    # rels_df = df.explode("types")
-    # rels_df = rels_df[~rels_df["types"].str.contains("schema:")]
-    # type_nodes_df = rels_df["types"].unique()
-    # type_nodes_df = pd.DataFrame(type_nodes_df, columns=["typeId:ID(Type)"])
-    # type_nodes_df[":LABEL"] = "Type"
-    # type_nodes_df = type_nodes_df[~type_nodes_df["typeId:ID(Type)"].str.contains("schema:")]
     type_nodes_df = create_type_nodes_df(df)
     type_nodes_df.to_csv(output_directory / "type_nodes.csv", index=False)
 
-    # poi_is_a_type_df = rels_df[["id", "types"]].rename(columns={"id": ":START_ID(POI)", "types": ":END_ID(Type)"})
-    # poi_is_a_type_df[":TYPE"] = "IS_A"
     poi_is_a_type_df = create_poi_is_a_type_rels_df(df)
     poi_is_a_type_df.to_csv(output_directory / "poi_is_a_type_rels.csv", index=False)
 

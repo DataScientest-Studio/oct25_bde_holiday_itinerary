@@ -43,7 +43,7 @@ def wait_for_status_complete(process):
         print(f"Attempt {attempt}: status = {status}")
 
         if status == 'completed':
-            file_location = data.get('details')["filename"]
+            file_location = data.get('details').get("filename")
             return {
                 'status': 'completed',
                 'file_location': file_location,

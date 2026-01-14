@@ -16,11 +16,11 @@ if [ ! -d "$DB_DIR" ] || [ ! -f "$FLAG" ]; then
         --multiline-fields=true \
         --nodes="City=/import/cities_nodes.zip" \
         --relationships="ROAD_TO=/import/roads_rels.zip"
-#        --nodes="POI=/import/poi_nodes.zip" \
-#        --nodes="POIType=/import/type_nodes.zip" \
-#        --relationships="IS_A=/import/poi_is_a_type_rels.zip"\
-#        --relationships="IS_IN=/import/poi_is_in_rels.zip" \
-#        --relationships="IS_NEARBY=/import/poi_is_nearby_rels.zip"
+        --nodes="POI=/import/poi_nodes.zip" \
+        --nodes="POIType=/import/type_nodes.zip" \
+        --relationships="IS_A=/import/poi_is_a_type_rels.zip"\
+        --relationships="IS_IN=/import/poi_is_in_rels.zip" \
+        --relationships="IS_NEARBY=/import/poi_is_nearby_rels.zip"
 
     chown -R neo4j:neo4j /data
 
