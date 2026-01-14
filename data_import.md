@@ -65,6 +65,7 @@ The import process requires the following environment variables (configured in `
 | `DATATOURISME_LOGIN_URL` | Login page for authentication. |
 | `DATATOURISME_EMAIL` | User email for DATAtourisme. |
 | `DATATOURISME_PASSWORD` | User password for DATAtourisme. |
+| `DATATOURISME_VERIFY_SSL` | (Optional) Whether to verify SSL certificates (default: `true`). Set to `false` if you encounter certificate verification errors. |
 | `DATATOURISME_SAVE_DIR` | Local directory to store downloaded/unzipped data. |
 | `DATATOURISME_IMPORT_DIR` | Directory where CSVs are generated (mounted to Neo4j). |
 | `NEO4J_URI` | URI for the Neo4j database. |

@@ -58,7 +58,7 @@ def import_pois(driver, import_from_dir, import_version) -> dict:
            t.importedAt = timestamp()",
 
       {
-        batchSize: 2000, 
+        batchSize: 1000, 
         parallel: false, 
         params: {
             import_version: $import_version,
@@ -98,7 +98,7 @@ def import_poi_is_a_type_rels(driver, import_from_dir, import_version) -> dict:
        MERGE (p) - [r:IS_A] -> (t)
        SET r.importVersion = $import_version",
       {
-        batchSize: 2000, 
+        batchSize: 1000, 
         parallel: false, 
         params: {
             import_version: $import_version,
@@ -143,7 +143,7 @@ def set_is_in_rels(driver, import_version):
        MERGE (p)-[r:IS_IN]->(c)
        SET r.importVersion = $import_version",
       {
-        batchSize: 2000,
+        batchSize: 1000,
         parallel: true,
         params: { import_version: $import_version }
       }

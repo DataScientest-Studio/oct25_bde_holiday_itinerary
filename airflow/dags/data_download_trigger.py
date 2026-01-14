@@ -48,9 +48,12 @@ def wait_for_status_complete(process):
                 'status': 'completed',
                 'file_location': file_location,
             }
+        if status == "failed":
+            raise Exception(f"Failed")
+
         time.sleep(poll_interval)
 
-    raise Exception(f"Timed out waiting for download to complete")
+    raise Exception(f"Timed out waiting for {process} to complete")
 
 
 @task.branch

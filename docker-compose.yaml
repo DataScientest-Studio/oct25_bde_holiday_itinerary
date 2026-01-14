@@ -18,6 +18,9 @@ services:
       - DATATOURISME_PASSWORD=FrzuaKjW3v!trx3
       - DATATOURISME_SAVE_DIR=./feed_data
       - DATATOURISME_IMPORT_DIR=./import_data
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     depends_on:
       - neo4j
     volumes:
