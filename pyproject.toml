@@ -16,6 +16,8 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.13.0 <3.14"
+beautifulsoup4 = "==4.14.3"
+aiohttp = "^3.13.3"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "4.2.0"
@@ -24,6 +26,7 @@ isort = "7.0.0"
 flake8 = "7.3.0"
 mypy = "1.18.2"
 pytest = "9.0.1"
+requests = "^2.32.5"
 
 [tool.poetry.group.neo4j_driver.dependencies]
 neo4j = "6.0.3"
@@ -33,6 +36,8 @@ python-tsp = "0.5.0"
 [tool.poetry.group.neo4j_api.dependencies]
 uvicorn = "0.38.0"
 fastapi = {version = "^0.122.0", extras = ["standard"]}
+pandas = "^2.3.3"
+tqdm = "^4.67.1"
 
 [tool.poetry.group.make_dataset.dependencies]
 pandas = "2.3.3"

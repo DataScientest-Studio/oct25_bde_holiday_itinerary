@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi.testclient import TestClient
 
-from neo4j_api import app
+from src.neo4j_api import app
 
 
 @pytest.fixture
@@ -50,7 +50,7 @@ def mock_driver(monkeypatch):
         ],
         "total_distance": 8717.794314578783,
     }
-    monkeypatch.setattr("neo4j_api.main.Neo4jDriver", lambda: driver_mock)
+    monkeypatch.setattr("src.neo4j_api.main.Neo4jDriver", lambda: driver_mock)
 
     app.state.driver = driver_mock
     return driver_mock

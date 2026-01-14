@@ -14,7 +14,7 @@ def run_server():
     uvicorn.run(
         "src.neo4j_api.main:app",
         host=os.getenv("HOST", "0.0.0.0"),
-        port=int(os.getenv("PORT", "8081")),
+        port=int(os.getenv("PORT", "8080")),
         reload=True,
         reload_dirs=["src/"],
         use_colors=True,
