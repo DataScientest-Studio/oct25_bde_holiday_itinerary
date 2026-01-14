@@ -97,7 +97,7 @@ async def check_download(auth_client: AuthenticatedClient, save_dir) -> Dict[str
         return True
 
 
-async def perform_download(save_dir: Path, auth_client: AuthenticatedClient) -> Dict[str, Any]:
+async def perform_download(save_dir: Path, auth_client: AuthenticatedClient) -> Dict[str, Any]:  # noqa: C901
     """download the new flux file"""
     with ProcessLock(save_dir, "download"):
         timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")

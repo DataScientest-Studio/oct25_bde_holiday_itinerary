@@ -11,14 +11,14 @@ from src.neo4j_api.datatourisme_handler import AuthenticatedClient, NoDataAvaila
 from src.neo4j_api.import_data import perform_import_data
 from src.neo4j_api.status_handler import ProcessLock, ProcessRunning, get_status_file, get_status_file_content
 
-SAVE_DIR = os.getenv("DATATOURISME_SAVE_DIR")
+SAVE_DIR = os.getenv("DATATOURISME_SAVE_DIR", "./data/datatourisme")
 if not os.path.exists(SAVE_DIR):
-    os.mkdir(SAVE_DIR)
+    os.makedirs(SAVE_DIR, exist_ok=True)
 SAVE_DIR = Path(SAVE_DIR)
 
-IMPORT_DIR = os.getenv("DATATOURISME_IMPORT_DIR")
+IMPORT_DIR = os.getenv("DATATOURISME_IMPORT_DIR", "./data/import")
 if not os.path.exists(IMPORT_DIR):
-    os.mkdir(IMPORT_DIR)
+    os.makedirs(IMPORT_DIR, exist_ok=True)
 IMPORT_DIR = Path(IMPORT_DIR)
 
 router = APIRouter()
