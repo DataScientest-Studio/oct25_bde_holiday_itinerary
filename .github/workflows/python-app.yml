@@ -27,7 +27,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install --no-cache-dir poetry==2.2.1 && poetry config virtualenvs.create false
-        RUN poetry install --no-interaction --no-ansi --no-root --without dev,make_dataset
+        poetry install --no-interaction --no-ansi --no-root --without dev,make_dataset
         pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Lint with flake8
