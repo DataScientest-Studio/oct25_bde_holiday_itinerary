@@ -3,6 +3,7 @@
 import json
 from pathlib import Path
 
+
 class ProcessRunning(Exception):
     def __init__(self, process: str, lock_file: Path):
         self.process = process
@@ -16,7 +17,7 @@ class ProcessLock:
     def __init__(self, save_dir, process):
         self.save_dir = Path(save_dir)
         self.process = process
-        self.lock_file =  self.save_dir / f"{process}_in_progress.lock"
+        self.lock_file = self.save_dir / f"{process}_in_progress.lock"
 
     def __enter__(self):
         self.raise_for_in_process()
@@ -33,9 +34,9 @@ class ProcessLock:
             raise ProcessRunning(self.process, self.lock_file)
 
 
-
 def get_status_file(save_dir, process):
     return save_dir / f"last_{process}.json"
+
 
 def get_status_file_content(save_dir, process):
     with open(get_status_file(save_dir, process), "r") as f:

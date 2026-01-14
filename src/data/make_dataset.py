@@ -63,6 +63,7 @@ def get_data_from_poi(id, index_label, d):
         result["description"] = result["description"].replace('\\"', '"')
     return result
 
+
 def create_poi_nodes_df(input_df):
     poi_nodes_df = input_df.drop(columns=["types"]).rename(
         columns={
@@ -77,6 +78,7 @@ def create_poi_nodes_df(input_df):
         raise Exception("duplicates found in poiID")
     return poi_nodes_df
 
+
 def create_type_nodes_df(df):
     rels_df = df.explode("types")
     rels_df = rels_df[~rels_df["types"].str.contains("schema:")]
@@ -86,12 +88,14 @@ def create_type_nodes_df(df):
     type_nodes_df = type_nodes_df[~type_nodes_df["typeId:ID(Type)"].str.contains("schema:")]
     return type_nodes_df
 
+
 def create_poi_is_a_type_rels_df(df):
     rels_df = df.explode("types")
     rels_df = rels_df[~rels_df["types"].str.contains("schema:")]
     poi_is_a_type_df = rels_df[["id", "types"]].rename(columns={"id": ":START_ID(POI)", "types": ":END_ID(Type)"})
     poi_is_a_type_df[":TYPE"] = "IS_A"
     return poi_is_a_type_df
+
 
 def store_nodes_and_edges(df):
     """stores nodes separately from edges for easy neo4j import"""
@@ -104,13 +108,16 @@ def store_nodes_and_edges(df):
     poi_is_a_type_df = create_poi_is_a_type_rels_df(df)
     poi_is_a_type_df.to_csv(output_directory / "poi_is_a_type_rels.csv", index=False)
 
+
 def process_data(directory):
     data = []
     with open(directory / "index.json") as f:
         index_data = json.load(f)
         for item in index_data:
             with open(directory / "objects" / item["file"]) as poi_file:
-                data.append(get_data_from_poi(get_id_from_filename(item["file"]), item.get("label", None), json.load(poi_file)))
+                data.append(
+                    get_data_from_poi(get_id_from_filename(item["file"]), item.get("label", None), json.load(poi_file))
+                )
 
     df = pd.DataFrame.from_records(data)
     df = df.astype(

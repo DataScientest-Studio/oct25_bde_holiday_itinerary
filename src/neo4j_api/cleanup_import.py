@@ -1,9 +1,11 @@
 """module for cleanup after data import"""
 
-from datetime import datetime, UTC
 import json
-from src.neo4j_api.status_handler import ProcessLock, get_status_file
 import shutil
+from datetime import UTC, datetime
+
+from src.neo4j_api.status_handler import ProcessLock, get_status_file
+
 
 def remove_old_db_data(driver, current_import_version):
     query = """
@@ -44,4 +46,3 @@ def perform_cleanup_import(save_dir, zip_file_path, unzipped_data_path, extracte
         with open(get_status_file(save_dir, "cleanup"), "w") as f:
             json.dump(status, fp=f)
         return status
-

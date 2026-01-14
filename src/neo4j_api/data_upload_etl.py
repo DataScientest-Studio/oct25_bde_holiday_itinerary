@@ -1,12 +1,12 @@
 """functions related to data upload"""
 
 import json
-from datetime import datetime, UTC
+import zipfile
+from datetime import UTC, datetime
 from pathlib import Path
 
+from src.data.make_dataset import create_poi_is_a_type_rels_df, create_poi_nodes_df, create_type_nodes_df, process_data
 from src.neo4j_api.status_handler import ProcessLock, get_status_file
-import zipfile
-from src.data.make_dataset import process_data, create_type_nodes_df, create_poi_nodes_df, create_poi_is_a_type_rels_df
 
 
 def unzip_data(file_path, save_dir, extract_to):
@@ -23,7 +23,6 @@ def unzip_data(file_path, save_dir, extract_to):
         with open(get_status_file(save_dir, "unzip"), "w") as f:
             json.dump(status, fp=f)
     return extract_to
-
 
 
 def perform_extract_data(data_path: Path, save_dir: Path, import_dir: Path):

@@ -4,7 +4,7 @@ from fastapi import FastAPI
 
 from src.neo4j_driver.neo4j_driver import Neo4jDriver
 
-from .routes import city, dijkstra, distance, poi, travel, tsp, data_update
+from .routes import city, data_update, dijkstra, distance, poi, travel, tsp
 
 
 @asynccontextmanager

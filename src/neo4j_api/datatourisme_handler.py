@@ -1,16 +1,16 @@
 """handlers for datatourisme API"""
 
 import json
-import os
 import logging
-from tqdm import tqdm
-from datetime import datetime, UTC
+import os
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Dict
 
-from bs4 import BeautifulSoup
 import aiohttp
+from bs4 import BeautifulSoup
 from fastapi import HTTPException
+from tqdm import tqdm
 
 from src.neo4j_api.status_handler import ProcessLock, get_status_file
 
@@ -27,11 +27,12 @@ VERIFY_SSL = os.getenv("DATATOURISME_VERIFY_SSL", "true").lower() == "true"
 
 class NoDataAvailable(Exception):
     def __str__(self):
-        return f"No new flux data available for download"
+        return "No new flux data available for download"
 
 
 class AuthenticatedClient:
     """Manages login and provides an authenticated async client."""
+
     def __init__(self):
         connector = aiohttp.TCPConnector(limit=50, limit_per_host=20, ssl=False)
         self.session = aiohttp.ClientSession(
@@ -69,6 +70,7 @@ class AuthenticatedClient:
 
     async def close(self):
         await self.session.close()
+
 
 async def check_download(auth_client: AuthenticatedClient, save_dir) -> Dict[str, Any]:
     """check if new flux data available for download"""
@@ -113,14 +115,14 @@ async def perform_download(save_dir: Path, auth_client: AuthenticatedClient) -> 
             form = soup.find("form", {"action": "/flux/24943/download/complete"})
             if not form:
                 raise HTTPException(status_code=500, detail="Download form not found in modal")
-            
+
             # Use the actual action from the form and the final URL to construct the POST URL
             action = form.get("action")
             # Ensure we use the base URL from the final response URL in case of redirects
             base_url = f"{get_resp.url.scheme}://{get_resp.url.host}"
             if get_resp.url.port:
                 base_url += f":{get_resp.url.port}"
-            
+
             post_url = f"{base_url}{action}/get"
             details = {
                 key.strip(): value.strip()
@@ -140,7 +142,7 @@ async def perform_download(save_dir: Path, auth_client: AuthenticatedClient) -> 
                     }
             except FileNotFoundError:
                 pass
-            
+
             logger.info("Starting download of new DataTourisme flux...")
             async with auth_client.session.post(post_url, allow_redirects=True) as post_resp:
                 if post_resp.status != 200:
@@ -148,32 +150,35 @@ async def perform_download(save_dir: Path, auth_client: AuthenticatedClient) -> 
 
                 content_disposition = post_resp.headers.get("Content-Disposition", "")
                 if "attachment" not in content_disposition and post_resp.headers.get("Content-Type", "").startswith(
-                        "text/html"):
+                    "text/html"
+                ):
                     # Fallback: save response for debugging
                     with open(os.path.join(save_dir, "debug_last_response.html"), "wb") as f:
                         f.write(await post_resp.read())
                     # Ensure we close session if we fail here
                     await auth_client.close()
-                    raise HTTPException(status_code=500,
-                                        detail="Received HTML instead of file after POST - check debug_last_response.html")
+                    raise HTTPException(
+                        status_code=500,
+                        detail="Received HTML instead of file after POST - check debug_last_response.html",
+                    )
 
                 # Streaming save the real file
                 total_size = int(post_resp.headers.get("Content-Length", 0)) or None
                 desc = f"Downloading {filename}"
                 try:
                     with tqdm(
-                            desc=desc,
-                            total=total_size,
-                            unit="B",
-                            unit_scale=True,
-                            unit_divisor=1024,
-                            miniters=1,
-                            dynamic_ncols=True,
-                            disable=False,
-                            ascii=True,
+                        desc=desc,
+                        total=total_size,
+                        unit="B",
+                        unit_scale=True,
+                        unit_divisor=1024,
+                        miniters=1,
+                        dynamic_ncols=True,
+                        disable=False,
+                        ascii=True,
                     ) as pbar:
                         with open(filepath, "wb") as f:
-                            async for chunk in post_resp.content.iter_chunked(8192*4):
+                            async for chunk in post_resp.content.iter_chunked(8192 * 4):
                                 f.write(chunk)
                                 pbar.update(len(chunk))
                 finally:
@@ -183,7 +188,7 @@ async def perform_download(save_dir: Path, auth_client: AuthenticatedClient) -> 
             "last_download_utc": datetime.now(UTC).isoformat(),
             "last_feed_generation": details["Date"],
             "filename": filename,
-            "size_bytes": os.path.getsize(filepath)
+            "size_bytes": os.path.getsize(filepath),
         }
         with open(get_status_file(save_dir, "download"), "w") as f:
             json.dump(status, fp=f)

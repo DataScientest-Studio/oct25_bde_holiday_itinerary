@@ -30,32 +30,35 @@ There is a GitHub Actions workflow file located at
 This workflow runs pre-commit checks and tests whenever code is pushed to
 the `master` branch or when a pull request targeting `master` is opened.
 
----
+______________________________________________________________________
 
 ## Underlying Data Structure
 
 The system uses a graph database to represent cities, roads, and points of interest.
 
 ### 1. Cities and Roads
+
 ![Cities](img/city_road_to.png)
 *Representation of City nodes and ROAD_TO relationships. Reproduce with:*
+
 ```
 match(c1:City {name: "Marseille"})-[r2:ROAD_TO]->(c2:City) limit 5
 return c1, c2
 ```
-
 
 Since no suitable road dataset was readily available, a road network was simulated to enable routing between cities.
 detailed description in [cities_roads_dataset.md](cities_roads_dataset.md)
 
 - **City Nodes:** Represent 627 French cities with properties like name, population, and geographical coordinates (stored as Neo4j `Point`).
 - **ROAD_TO Relationships:** A simulated road network connects cities.
-    - **KNN:** Each city is connected to its 5 nearest neighbors.
-    - **Connectivity:** The graph is ensured to be a single connected component using Weakly Connected Components (WCC) analysis, with manual bridges added where necessary.
+  - **KNN:** Each city is connected to its 5 nearest neighbors.
+  - **Connectivity:** The graph is ensured to be a single connected component using Weakly Connected Components (WCC) analysis, with manual bridges added where necessary.
 
 ### 2. Points of Interest (POI) and Types
+
 ![City, Poi and Type](img/city_poi_type.png)
 *Representation of City, Pois and Types with IS_A relationships. Reproduce with:*
+
 ```
 match(c:City {name: "Lyon"})
 match(p:Poi) - [IS_IN] -(c) limit 5
@@ -65,31 +68,34 @@ MATCH (q)-[:IS_A]->(t2:Type)
 return c,p,q,t1,t2
 ```
 
-
 - **POI Nodes:** Tourist attractions, hotels, and restaurants imported from DATAtourisme.fr.
 - **Type Nodes:** Instead of using multiple labels on POI nodes, we use a "Super-Node Pattern."
 - **IS_A Relationship:** Connects a `POI` to one or more `Type` nodes. This approach offers flexibility for overlapping categories and future hierarchical expansions.
 
 ### 3. Spatial Relationships
+
 - **IS_IN:** Connects a `POI` directly to a `City` if the location matches exactly.
 - **IS_NEARBY:** For POIs outside city limits, this links the POI to the nearest city within a 100km radius, storing the `distance_km`.
 
----
+______________________________________________________________________
 
 ## Data Import Pipeline
 
 The project supports both automated and manual data ingestion.
 
 ### Automated ETL (Airflow & FastAPI)
+
 detailed description in [data_import.md](data_import.md)
 An Apache Airflow DAG (`download-trigger`) orchestrates the ETL process via FastAPI endpoints:
-1.  **Download:** Fetches the latest ZIP archive from DATAtourisme.fr.
-2.  **Unzip:** Extracts the raw JSON data.
-3.  **Extract:** Processes JSON files and generates Neo4j-compatible CSVs (`poi_nodes.csv`, `type_nodes.csv`, etc.).
-4.  **Import:** Loads CSVs into Neo4j using `LOAD CSV` and establishes spatial relationships.
-5.  **Cleanup:** Removes temporary files and old data versions.
+
+1. **Download:** Fetches the latest ZIP archive from DATAtourisme.fr.
+2. **Unzip:** Extracts the raw JSON data.
+3. **Extract:** Processes JSON files and generates Neo4j-compatible CSVs (`poi_nodes.csv`, `type_nodes.csv`, etc.).
+4. **Import:** Loads CSVs into Neo4j using `LOAD CSV` and establishes spatial relationships.
+5. **Cleanup:** Removes temporary files and old data versions.
 
 ### Manual Data Import
+
 dataset from datatourisme.fr can be downloaded here: [dataset](https://diffuseur.datatourisme.fr/webservice/b2ea75c3cd910637ff11634adec636ef/2644ca0a-e70f-44d5-90a5-3785f610c4b5)
 Latest dataset download here: [latest dataset](https://diffuseur.datatourisme.fr/flux/24943/download/complete)
 
@@ -116,26 +122,29 @@ File `type_nodes.csv` and `poi_is_a_type_rels.csv` contain that information.
 | additional_information | some additional info                |                                        |
 
 If you need to import data manually using `neo4j-admin`:
-1.  download and extract new feed data into __example_data__ create dataset with `make_dataset.py`
-2.  **Stop Neo4j:** `docker compose down`
+
+1. download and extract new feed data into __example_data__ create dataset with `make_dataset.py`
+2. **Stop Neo4j:** `docker compose down`
 3. If the `docker compose up` command wasn't yet executed and thus no volume has been created, we have to create it:
+
 ```shell
 docker volume create neo4j_data
 ```
-3.  **Import Command:** from the root directory
-    ```bash
-    docker run --rm \
-        --volume=$PWD/example_data:/import \
-        --volume=$(docker volume inspect -f '{{.Mountpoint}}' neo4j_data):/data \
-        neo4j:2025.10.1 \
-        neo4j-admin database import full --overwrite-destination \
-            --multiline-fields=true \
-            --nodes="POI=/import/poi_nodes.zip" \
-            --nodes="Type=/import/type_nodes.zip" \
-            --relationships="IS_A=/import/poi_is_a_type_rels.zip"\
-            --nodes="City=/import/cities_nodes.zip" \
-            --relationships="ROAD_TO=/import/roads_rels.zip"
-    ```
+
+3. **Import Command:** from the root directory
+   ```bash
+   docker run --rm \
+       --volume=$PWD/example_data:/import \
+       --volume=$(docker volume inspect -f '{{.Mountpoint}}' neo4j_data):/data \
+       neo4j:2025.10.1 \
+       neo4j-admin database import full --overwrite-destination \
+           --multiline-fields=true \
+           --nodes="POI=/import/poi_nodes.zip" \
+           --nodes="Type=/import/type_nodes.zip" \
+           --relationships="IS_A=/import/poi_is_a_type_rels.zip"\
+           --nodes="City=/import/cities_nodes.zip" \
+           --relationships="ROAD_TO=/import/roads_rels.zip"
+   ```
 4. Create `IS_IN` relationships
    ```
    CALL apoc.periodic.iterate(
@@ -155,7 +164,7 @@ docker volume create neo4j_data
 5. create `IS_NEARBY` relationships
    ```
    CALL apoc.periodic.iterate(
-          "MATCH (p:Poi {importVersion: $import_version}) 
+          "MATCH (p:Poi {importVersion: $import_version})
            WHERE NOT (p)-[:IS_IN]->(:City) AND p.location IS NOT NULL
            RETURN p",
           "MATCH (c:City)
@@ -176,7 +185,8 @@ docker volume create neo4j_data
         YIELD batches, total, errorMessages, committedOperations
         RETURN batches, total, errorMessages, committedOperations;
    ```
----
+
+______________________________________________________________________
 
 Starting the DB with docker-compose uses the `EXTENSION_SCRIPT` ENV which runs `import_script.sh` from `init` directory.
 This makes initial data import automatically done once.
@@ -234,7 +244,6 @@ get restaurants in Avignon:\
 `MATCH (p:POI {city: "Avignon"})-[r:IS_A]->(t:Type {typeId: "Restaurant"}) return p`
 
 ______________________________________________________________________
-
 
 ## Neo4j Driver
 

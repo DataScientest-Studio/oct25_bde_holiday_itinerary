@@ -2,10 +2,9 @@
 
 import json
 import uuid
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 
-from src.neo4j_api.status_handler import ProcessLock, get_status_file
-from src.neo4j_api.status_handler import get_status_file_content
+from src.neo4j_api.status_handler import ProcessLock, get_status_file, get_status_file_content
 
 
 def import_types(driver, import_from_dir, import_version) -> dict:
@@ -19,24 +18,20 @@ def import_types(driver, import_from_dir, import_version) -> dict:
         } IN TRANSACTIONS OF 2000 ROWS
         """
     with driver.driver.session() as session:
-        result = session.run(
-            query,
-            import_version=import_version,
-            file=f"file:///{import_from_dir}/type_nodes.csv"
-        )
+        result = session.run(query, import_version=import_version, file=f"file:///{import_from_dir}/type_nodes.csv")
         summary = result.consume()
         counters = summary.counters
     return {
-        "message": f"import successfull: Types",
+        "message": "import successfull: Types",
         "nodes_created": counters.nodes_created,
         "properties_set": counters.properties_set,
-        "file": "type_nodes.csv"
+        "file": "type_nodes.csv",
     }
 
 
 def import_pois(driver, import_from_dir, import_version) -> dict:
     poi_constraint = """
-    CREATE CONSTRAINT poi_id IF NOT EXISTS 
+    CREATE CONSTRAINT poi_id IF NOT EXISTS
     FOR (p:Poi) REQUIRE p.id IS UNIQUE;
     """
 
@@ -58,8 +53,8 @@ def import_pois(driver, import_from_dir, import_version) -> dict:
            t.importedAt = timestamp()",
 
       {
-        batchSize: 1000, 
-        parallel: false, 
+        batchSize: 1000,
+        parallel: false,
         params: {
             import_version: $import_version,
             file: $file
@@ -73,20 +68,17 @@ def import_pois(driver, import_from_dir, import_version) -> dict:
         session.run(poi_constraint)
 
     with driver.driver.session() as session:
-        result = session.run(
-            query,
-            import_version=import_version,
-            file=f"file:///{import_from_dir}/poi_nodes.csv"
-        )
+        result = session.run(query, import_version=import_version, file=f"file:///{import_from_dir}/poi_nodes.csv")
         record = result.single()
         committed = record["committedOperations"]
         errors = record["errorMessages"]
     return {
-        "message": f"import successfull: Import Poi",
+        "message": "import successfull: Import Poi",
         "committed_operations": committed,
         "errors": errors,
-        "file": "poi_nodes.csv"
+        "file": "poi_nodes.csv",
     }
+
 
 def import_poi_is_a_type_rels(driver, import_from_dir, import_version) -> dict:
 
@@ -98,8 +90,8 @@ def import_poi_is_a_type_rels(driver, import_from_dir, import_version) -> dict:
        MERGE (p) - [r:IS_A] -> (t)
        SET r.importVersion = $import_version",
       {
-        batchSize: 1000, 
-        parallel: false, 
+        batchSize: 1000,
+        parallel: false,
         params: {
             import_version: $import_version,
             file: $file
@@ -112,28 +104,30 @@ def import_poi_is_a_type_rels(driver, import_from_dir, import_version) -> dict:
 
     with driver.driver.session() as session:
         result = session.run(
-            query,
-            import_version=import_version,
-            file=f"file:///{import_from_dir}/poi_is_a_type_rels.csv"
+            query, import_version=import_version, file=f"file:///{import_from_dir}/poi_is_a_type_rels.csv"
         )
         record = result.single()
         committed = record["committedOperations"]
         errors = record["errorMessages"]
     return {
-        "message": f"import successfull: Import Poi IS_A relationships",
+        "message": "import successfull: Import Poi IS_A relationships",
         "committed_operations": committed,
         "errors": errors,
-        "file": "poi_is_a_type_rels.csv"
+        "file": "poi_is_a_type_rels.csv",
     }
+
 
 def prepare_point_index(driver, import_version):
     with driver.driver.session() as session:
-        session.run("""
+        session.run(
+            """
                     MATCH (n) WHERE (n:Poi OR n:City) AND n.location IS NULL
                     SET n.location = point({latitude: n.latitude, longitude: n.longitude})
-                """)
+                """
+        )
         # Create the Index
         session.run("CREATE POINT INDEX city_loc_idx IF NOT EXISTS FOR (c:City) ON (c.location)")
+
 
 def set_is_in_rels(driver, import_version):
     query = """
@@ -157,7 +151,7 @@ def set_is_in_rels(driver, import_version):
         committed = record["committedOperations"]
         errors = record["errorMessages"]
     return {
-        "message": f"import successfull: Create IS_IN relationships",
+        "message": "import successfull: Create IS_IN relationships",
         "committed_operations": committed,
         "errors": errors,
     }
@@ -166,7 +160,7 @@ def set_is_in_rels(driver, import_version):
 def set_is_nearby_rels(driver, import_version):
     query = """
         CALL apoc.periodic.iterate(
-          "MATCH (p:Poi {importVersion: $import_version}) 
+          "MATCH (p:Poi {importVersion: $import_version})
            WHERE NOT (p)-[:IS_IN]->(:City) AND p.location IS NOT NULL
            RETURN p",
           "MATCH (c:City)
@@ -193,7 +187,7 @@ def set_is_nearby_rels(driver, import_version):
         committed = record["committedOperations"]
         errors = record["errorMessages"]
     return {
-        "message": f"import successfull: Create IS_NEARBY relationships",
+        "message": "import successfull: Create IS_NEARBY relationships",
         "committed_operations": committed,
         "errors": errors,
     }
