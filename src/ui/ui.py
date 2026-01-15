@@ -433,19 +433,34 @@ class UI:
     def __create_start_and_end_node_controller(self) -> None:
         with st.container():
             start, end = st.columns([1, 1], vertical_alignment="bottom")
+
+            start_options = self.__generate_possible_nodes("end_poi")
+            end_options = self.__generate_possible_nodes("start_poi")
+
             with start:
                 st.selectbox(
                     "Start POI",
-                    options=self.__generate_possible_nodes("end_poi"),
-                    index=None,
+                    options=start_options,
                     key="start_poi",
+                    index=(
+                        start_options.index(st.session_state.start_poi)
+                        if st.session_state.get("start_poi") in start_options
+                        else None
+                    ),
+                    placeholder="Select start POI",
                 )
+
             with end:
                 st.selectbox(
                     "End POI",
-                    options=self.__generate_possible_nodes("start_poi"),
-                    index=None,
+                    options=end_options,
                     key="end_poi",
+                    index=(
+                        end_options.index(st.session_state.end_poi)
+                        if st.session_state.get("end_poi") in end_options
+                        else None
+                    ),
+                    placeholder="Select end POI",
                 )
 
     def __generate_possible_nodes(self, key_to_exclude) -> list[str]:
