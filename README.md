@@ -61,8 +61,8 @@ detailed description in [cities_roads_dataset.md](cities_roads_dataset.md)
 
 ```
 match(c:City {name: "Lyon"})
-match(p:Poi) - [IS_IN] -(c) limit 5
-match(q:Poi) - [IS_NEARBY] -(c) limit 5
+match(p:POI) - [IS_IN] -(c) limit 5
+match(q:POI) - [IS_NEARBY] -(c) limit 5
 MATCH (p)-[:IS_A]->(t1:Type)
 MATCH (q)-[:IS_A]->(t2:Type)
 return c,p,q,t1,t2
@@ -148,7 +148,7 @@ docker volume create neo4j_data
 4. Create `IS_IN` relationships
    ```
    CALL apoc.periodic.iterate(
-      "MATCH (p:Poi {importVersion: $import_version}) WHERE p.city IS NOT NULL RETURN p",
+      "MATCH (p:POI {importVersion: $import_version}) WHERE p.city IS NOT NULL RETURN p",
       "MATCH (c:City {name: p.city})
        MERGE (p)-[r:IS_IN]->(c)
        SET r.importVersion = $import_version",
@@ -164,7 +164,7 @@ docker volume create neo4j_data
 5. create `IS_NEARBY` relationships
    ```
    CALL apoc.periodic.iterate(
-          "MATCH (p:Poi {importVersion: $import_version})
+          "MATCH (p:POI {importVersion: $import_version})
            WHERE NOT (p)-[:IS_IN]->(:City) AND p.location IS NOT NULL
            RETURN p",
           "MATCH (c:City)

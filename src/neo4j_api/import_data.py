@@ -32,13 +32,13 @@ def import_types(driver, import_from_dir, import_version) -> dict:
 def import_pois(driver, import_from_dir, import_version) -> dict:
     poi_constraint = """
     CREATE CONSTRAINT poi_id IF NOT EXISTS
-    FOR (p:Poi) REQUIRE p.id IS UNIQUE;
+    FOR (p:POI) REQUIRE p.id IS UNIQUE;
     """
 
     query = """
     CALL apoc.periodic.iterate(
       "LOAD CSV WITH HEADERS FROM $file AS row RETURN row",
-      "MERGE (t:Poi {id: row['poiId:ID(POI)']})
+      "MERGE (t:POI {id: row['poiId:ID(POI)']})
        SET t.label = row.label,
            t.comment = row.comment,
            t.description = row.description,
@@ -73,7 +73,7 @@ def import_pois(driver, import_from_dir, import_version) -> dict:
         committed = record["committedOperations"]
         errors = record["errorMessages"]
     return {
-        "message": "import successfull: Import Poi",
+        "message": "import successfull: Import POI",
         "committed_operations": committed,
         "errors": errors,
         "file": "poi_nodes.csv",
@@ -85,7 +85,7 @@ def import_poi_is_a_type_rels(driver, import_from_dir, import_version) -> dict:
     query = """
     CALL apoc.periodic.iterate(
       "LOAD CSV WITH HEADERS FROM $file AS row RETURN row",
-      "MATCH (p:Poi {id: row[':START_ID(POI)'], importVersion: $import_version})
+      "MATCH (p:POI {id: row[':START_ID(POI)'], importVersion: $import_version})
        MATCH (t:Type {id: row[':END_ID(Type)'], importVersion: $import_version})
        MERGE (p) - [r:IS_A] -> (t)
        SET r.importVersion = $import_version",
@@ -110,7 +110,7 @@ def import_poi_is_a_type_rels(driver, import_from_dir, import_version) -> dict:
         committed = record["committedOperations"]
         errors = record["errorMessages"]
     return {
-        "message": "import successfull: Import Poi IS_A relationships",
+        "message": "import successfull: Import POI IS_A relationships",
         "committed_operations": committed,
         "errors": errors,
         "file": "poi_is_a_type_rels.csv",
@@ -121,7 +121,7 @@ def prepare_point_index(driver, import_version):
     with driver.driver.session() as session:
         session.run(
             """
-                    MATCH (n) WHERE (n:Poi OR n:City) AND n.location IS NULL
+                    MATCH (n) WHERE (n:POI OR n:City) AND n.location IS NULL
                     SET n.location = point({latitude: n.latitude, longitude: n.longitude})
                 """
         )
@@ -132,7 +132,7 @@ def prepare_point_index(driver, import_version):
 def set_is_in_rels(driver, import_version):
     query = """
     CALL apoc.periodic.iterate(
-      "MATCH (p:Poi {importVersion: $import_version}) WHERE p.city IS NOT NULL RETURN p",
+      "MATCH (p:POI {importVersion: $import_version}) WHERE p.city IS NOT NULL RETURN p",
       "MATCH (c:City {name: p.city})
        MERGE (p)-[r:IS_IN]->(c)
        SET r.importVersion = $import_version",
@@ -160,7 +160,7 @@ def set_is_in_rels(driver, import_version):
 def set_is_nearby_rels(driver, import_version):
     query = """
         CALL apoc.periodic.iterate(
-          "MATCH (p:Poi {importVersion: $import_version})
+          "MATCH (p:POI {importVersion: $import_version})
            WHERE NOT (p)-[:IS_IN]->(:City) AND p.location IS NOT NULL
            RETURN p",
           "MATCH (c:City)
