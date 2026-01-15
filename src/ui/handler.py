@@ -73,7 +73,7 @@ class Handler:
             raise ValueError("Given POIs are not enough for a route.")
         match itinerary_type:
             case "Round trip":
-                return self.roundtrip(pois)
+                return self.roundtrip(pois, start)
             case "One-way trip (flexible end)":
                 pass
             case "One-way trip (fixed destination)":
@@ -82,14 +82,15 @@ class Handler:
                 raise ValueError(f"'{itinerary_type}' is not a valid itinerary_type.")
         return pois, 0.0
 
-    def roundtrip(self, pois: pd.DataFrame) -> tuple[pd.DataFrame, float]:
-        params = self.prepare_params(pois)
+    def roundtrip(self, pois: pd.DataFrame, start: str | None = None) -> tuple[pd.DataFrame, float]:
+        params = self.prepare_params(pois, start)
         itinerary = handle_get_request("/tsp/shortest-round-tour", params)
-        logger.debug(itinerary)
         ordered_df = pois.set_index("poiId").loc[itinerary["poi_order"]].reset_index()
         return ordered_df, itinerary["total_distance"]
 
     def prepare_params(self, pois: pd.DataFrame, poi_id: str | None = None) -> dict[str, Any]:
+        if poi_id:
+            poi_id = pois.loc[pois["label"] == poi_id, "poiId"].iloc[0]
         poi_ids = pois["poiId"].tolist()
         if poi_id:
             logger.debug(f"Start/End POI {poi_id} is set. Removing it from existing list.")

@@ -271,6 +271,8 @@ class UI:
         if not st.session_state.ordered_route.empty:
             start_poi = st.session_state.ordered_route.iloc[0]["poiId"]
             pois = st.session_state.route[st.session_state.route["poiId"] != start_poi].reset_index(drop=True)
+            end_poi = st.session_state.ordered_route.iloc[0]["poiId"]
+            pois = pois[pois["poiId"] != end_poi].reset_index(drop=True)
         return pdk.Layer(
             "ScatterplotLayer",
             id="route",
@@ -313,7 +315,7 @@ class UI:
             radius_units="pixels",
             radius_min_pixels=3,
             radius_max_pixels=3,
-            get_color=[0, 255, 0],
+            get_color=[0, 255, 255],
             pickable=True,
         )
 
@@ -503,7 +505,6 @@ class UI:
             logger.debug(f"Selected row {st.session_state.selected_poi} in dataframe '{df}'")
 
     def _handle_calculate_itinerary(self):
-        logger.debug(st.session_state.itinerary_type)
         st.session_state.ordered_route, st.session_state.distance = self.handler.request_itinerary_type(
             st.session_state.itinerary_type,
             st.session_state.route,
