@@ -10,7 +10,7 @@ from src.neo4j_api.status_handler import ProcessLock, get_status_file
 def remove_old_db_data(driver, current_import_version):
     query = """
     CALL apoc.periodic.iterate(
-      "MATCH (n:Poi|Type) WHERE n.importVersion <> $import_version RETURN n",
+      "MATCH (n:POI|Type) WHERE n.importVersion <> $import_version RETURN n",
       "DETACH DELETE n",
       {
         batchSize: 1000,
