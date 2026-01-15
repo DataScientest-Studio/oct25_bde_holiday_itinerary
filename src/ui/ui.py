@@ -315,7 +315,7 @@ class UI:
             radius_units="pixels",
             radius_min_pixels=3,
             radius_max_pixels=3,
-            get_color=[0, 255, 255],
+            get_color=[255, 0, 255],
             pickable=True,
         )
 
