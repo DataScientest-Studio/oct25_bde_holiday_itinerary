@@ -266,7 +266,7 @@ class UI:
             pickable=True,
         )
 
-    def create_route_points(self) -> pdk.Layer:
+    def create_route_points(self) -> tuple[pdk.Layer, ...]:
         pois = st.session_state.route
         if not st.session_state.ordered_route.empty:
             start_poi = st.session_state.ordered_route.iloc[0]["poiId"]
@@ -305,8 +305,19 @@ class UI:
             get_color=[0, 255, 0],
             pickable=True,
         )
+        end = pdk.Layer(
+            "ScatterplotLayer",
+            id="end-node",
+            data=st.session_state.ordered_route.iloc[-1:],
+            get_position=["longitude", "latitude"],
+            radius_units="pixels",
+            radius_min_pixels=3,
+            radius_max_pixels=3,
+            get_color=[0, 255, 0],
+            pickable=True,
+        )
 
-        return route, start
+        return route, start, end
 
     def center_map(self, data_pois: pd.DataFrame) -> tuple[float, float, int]:
         dfs = []
@@ -424,12 +435,14 @@ class UI:
                 st.selectbox(
                     "Start POI",
                     options=self.__generate_possible_nodes("end_poi"),
+                    index=None,
                     key="start_poi",
                 )
             with end:
                 st.selectbox(
                     "End POI",
                     options=self.__generate_possible_nodes("start_poi"),
+                    index=None,
                     key="end_poi",
                 )
 
