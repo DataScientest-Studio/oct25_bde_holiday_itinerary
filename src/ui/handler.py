@@ -1,30 +1,10 @@
-from json import loads
 from typing import Any
 
 import pandas as pd
 import streamlit as st
-from requests import get
-from requests.models import HTTPError
+from handlers import get_request
 
 from logger import logger
-
-
-def handle_get_request(target: str, query_params: dict[str, str] | None = None) -> dict[str, Any]:
-    logger.info(f"Sending GET request to http://neo4j_api:8080{target} with params: {query_params}")
-    try:
-        response = get(f"http://neo4j_api:8080{target}", params=query_params)
-        logger.debug(f"Received response returned status code {response.status_code}")
-
-        match response.status_code:
-            case 200:
-                logger.success(f"GET request to http://neo4j_api:8080{target} succeeded")
-                return loads(response.text)
-            case _:
-                logger.warning(f"GET request to {target} returned {response.status_code}")
-                raise HTTPError(f"Request did not return 200. It returned {response.status_code}.")
-    except Exception as err:
-        logger.error(f"GET request to http://neo4j_api:8080{target} failed: {err}")
-        raise
 
 
 class Handler:
@@ -130,7 +110,7 @@ class Handler:
 
     def roundtrip(self, pois: pd.DataFrame, start: str | None = None) -> tuple[pd.DataFrame, float]:
         params = self.prepare_params(pois, start)
-        itinerary = handle_get_request("/tsp/shortest-round-tour", params)
+        itinerary = get_request("/tsp/shortest-round-tour", params)
         ordered_df = pois.set_index("poiId").loc[itinerary["poi_order"]].reset_index()
         ordered_df = pd.concat(
             [ordered_df, ordered_df.iloc[:1]],
@@ -141,7 +121,7 @@ class Handler:
     def one_way_trip_flex_end(self, pois: pd.DataFrame, start: str) -> tuple[pd.DataFrame, float]:
         pois = pois.drop_duplicates(subset=["poiId", "label"], keep="first")
         params = self.prepare_params(pois, start)
-        itinerary = handle_get_request("/tsp/shortest-path-no-return", params)
+        itinerary = get_request("/tsp/shortest-path-no-return", params)
         ordered_df = pois.set_index("poiId").loc[itinerary["poi_order"]].reset_index()
         return ordered_df, itinerary["total_distance"]
 
@@ -149,7 +129,7 @@ class Handler:
         pois = pois.drop_duplicates(subset=["poiId", "label"], keep="first")
         params = self.prepare_params(pois, start, end)
         logger.warning(params)
-        itinerary = handle_get_request("/tsp/shortest-path-fixed-dest", params)
+        itinerary = get_request("/tsp/shortest-path-fixed-dest", params)
         ordered_df = pois.set_index("poiId").loc[itinerary["poi_order"]].reset_index()
         return ordered_df, itinerary["total_distance"]
 

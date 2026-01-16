@@ -1,7 +1,7 @@
 from datetime import date
 
 import streamlit as st
-from handler import handle_get_request
+from handlers import get_request
 from loguru import logger
 
 
@@ -21,7 +21,7 @@ class Controls:
         logger.debug(f"Initializing {key} filter...")
         try:
             with st.container():
-                result = handle_get_request(path)[data_key]
+                result = get_request(path)[data_key]
                 if key == "destinations":
                     st.session_state.cities = result
                     result = [city["name"] for city in result]

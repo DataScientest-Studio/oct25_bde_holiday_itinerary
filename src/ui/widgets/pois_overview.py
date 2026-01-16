@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 from config import POI_COLUMNS
-from handler import handle_get_request
+from handlers import get_request
 from loguru import logger
 from utils import init_empty_df, select_overview_df
 
@@ -17,7 +17,7 @@ class PoisOverview:
             }
             if params != st.session_state.old_params:
                 try:
-                    pois = handle_get_request("/poi/filter", params).get("pois", {})
+                    pois = get_request("/poi/filter", params).get("pois", {})
                     st.session_state.overview = pd.DataFrame(pois, columns=POI_COLUMNS) if pois else init_empty_df()
                     st.session_state.overview.fillna("", inplace=True)
                     st.session_state.old_params = params
