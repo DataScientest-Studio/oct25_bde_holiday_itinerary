@@ -9,10 +9,10 @@ class PoiOverview:
     def __init__(self, handler: Handler):
         self.handler = handler
         with st.container(border=False, height=500):
-            self.__init_poi_overview_layout()
-            self.__init_poi_add_button()
+            self.init_overview()
+            self.add_button()
 
-    def __init_poi_overview_layout(self) -> None:
+    def init_overview(self) -> None:
         with st.container(border=False, height=435):
             logger.debug("Initializing pois overview...")
             if st.session_state.selected_poi is None:
@@ -32,7 +32,7 @@ class PoiOverview:
                 st.markdown(f"🌐 **Website**: [🌐 Visit website]({poi['homepage']})")
             logger.info("Initalized pois overview.")
 
-    def __init_poi_add_button(self) -> None:
+    def add_button(self) -> None:
         logger.debug("Initializing add button...")
         with st.container(horizontal_alignment="right", vertical_alignment="bottom"):
             st.button("Add POI", on_click=self.handler.add_poi)
