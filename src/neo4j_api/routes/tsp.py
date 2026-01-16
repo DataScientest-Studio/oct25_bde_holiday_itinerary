@@ -16,8 +16,6 @@ def shortest_path_no_return(request: Request, poi_ids: list[str] = Query(...)) -
 
 
 @router.get("/shortest-path-fixed-dest")  # type: ignore[misc]
-def shortest_path_fixed_dest(
-    request: Request, dest: str, poi_ids: list[str] = Query(...)
-) -> dict[str, list[str] | float]:
+def shortest_path_fixed_dest(request: Request, poi_ids: list[str] = Query(...)) -> dict[str, list[str] | float]:
     driver = request.app.state.driver
-    return driver.calculate_shortest_path_fixed_dest(dest, poi_ids)  # type: ignore[no-any-return]
+    return driver.calculate_shortest_path_fixed_dest(poi_ids)  # type: ignore[no-any-return]

@@ -100,7 +100,8 @@ class Handler:
 
     def one_way_trip_flex_fixed_end(self, pois: pd.DataFrame, start: str, end: str) -> tuple[pd.DataFrame, float]:
         pois = pois.drop_duplicates(subset=["poiId", "label"], keep="first")
-        params = self.prepare_params(pois, start)
+        params = self.prepare_params(pois, start, end)
+        logger.warning(params)
         itinerary = handle_get_request("/tsp/shortest-path-fixed-dest", params)
         ordered_df = pois.set_index("poiId").loc[itinerary["poi_order"]].reset_index()
         return ordered_df, itinerary["total_distance"]
@@ -119,7 +120,7 @@ class Handler:
             poi_ids = [poi_start] + poi_ids
         if poi_end:
             logger.debug(f"End POI {poi_end} is set. Removing it from existing list.")
-            pois.remove(poi_end)
+            poi_ids.remove(poi_end)
             poi_ids += [poi_end]
 
         logger.info("Created parameter for trip tour.")

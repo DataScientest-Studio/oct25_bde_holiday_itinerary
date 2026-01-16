@@ -251,11 +251,16 @@ class Neo4jDriver:
         weights[:, 0] = 0
         return self.calculate_tsp(weights, poi_ids)
 
-    def calculate_shortest_path_fixed_dest(self, dest: str, poi_ids: list[str]) -> dict[str, list[str] | float]:
-        poi_ids.remove(dest)
+    def calculate_shortest_path_fixed_dest(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
+        dest = poi_ids.pop()
+        start = poi_ids.pop(0)
         poi_ids.insert(0, dest)
         tsp_result = self.calculate_shortest_path_no_return(poi_ids)
         tsp_result["poi_order"] = list(reversed(tsp_result["poi_order"]))  # type: ignore[arg-type]
+        tsp_result["distance"] = self.calculate_distance_between_two_nodes(
+            start, tsp_result["poi_order"][0]
+        )  # type: ignore
+        tsp_result["poi_order"].insert(0, start)  # type: ignore
         return tsp_result
 
     def calculate_shortest_round_tour(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
