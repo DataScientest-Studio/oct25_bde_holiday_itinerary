@@ -3,86 +3,10 @@ from typing import Any
 import pandas as pd
 import streamlit as st
 from handlers import get_request
+from loguru import logger
 
-from logger import logger
 
-
-class Handler:
-
-    def __init__(self) -> None:
-        logger.info("Initialized UIHandler.")
-
-    def add_poi(self) -> None:
-        logger.debug("Adding POI to route DataFrame.")
-        try:
-            st.session_state.route = self.add_poi_to_df(
-                st.session_state.route,
-                st.session_state.selected_poi,
-            )
-            logger.info("Added point to route POIs DataFrame.")
-            st.session_state.overview = self.remove_poi(
-                st.session_state.overview,
-                st.session_state.selected_poi.poiId,
-            )
-            logger.info("Removed POI from pois DataFrame.")
-        except (KeyError, ValueError) as err:
-            logger.error(err)
-
-    def add_poi_to_df(self, df: pd.DataFrame, poi: pd.DataFrame) -> pd.DataFrame:
-        logger.debug("Handle add point to dataframe.")
-
-        self.validate_df(df)
-        self.validate_poi(poi)
-
-        if poi["poiId"] in df["poiId"].values:
-            logger.debug("poiId already in dest.")
-            raise ValueError(f"Row with poiId {poi.poiId} already dataframe..")
-
-        df.loc[len(df)] = {col: getattr(poi, col, None) for col in df.columns}
-        logger.info("Added point to dataframe.")
-
-        return df
-
-    def validate_df(self, route: pd.DataFrame):
-        if "poiId" not in route.columns:
-            logger.debug("Dest has no dataframe.")
-            raise KeyError(f"Dataframe {route} has no column named 'poiId'.")
-
-    def validate_poi(self, poi: pd.DataFrame):
-        if not hasattr(poi, "poiId"):
-            logger.debug("Src has no dataframe.")
-            raise KeyError(f"Dataframe {poi} has no column named 'poiId'.")
-
-    def delete_poi(self):
-        logger.debug("Deleteing POI from route DataFrame.")
-        try:
-            poi_id = st.session_state.selected_poi["poiId"]
-            if st.session_state.route["poiId"].eq(poi_id).any():
-                st.session_state.overview = self.add_poi_to_df(st.session_state.overview, st.session_state.selected_poi)
-                logger.info("Added point to route POIs DataFrame.")
-                st.session_state.route = self.remove_poi(st.session_state.route, poi_id)
-            logger.info("Removed POI from route DataFrame.")
-        except (KeyError, ValueError) as err:
-            logger.error(err)
-
-    def remove_df_from_df(self, target: pd.DataFrame, src: pd.DataFrame) -> pd.DataFrame:
-        logger.debug("Removing df from df...")
-        poi_ids = src["poi_id"].tolist()
-        for poi_id in poi_ids:
-            self.remove_poi(target, poi_id)
-        logger.info(f"Removed poiIds {poi_ids} from target.")
-        return target
-
-    def remove_poi(self, target: pd.DataFrame, poi_id: str) -> pd.DataFrame:
-        logger.debug(f"Removing row with poiId {poi_id} from DataFrame...")
-        if "poiId" not in target.columns:
-            logger.debug("Target has no dataframe.")
-            raise KeyError(f"Dataframe {target} has no column named 'poiId'.")
-
-        target = target[target["poiId"] != poi_id]
-        logger.info(f"Removed 'poiId' from {target}")
-        return target
-
+class Itinerary:
     def calculate_itinerary(self):
         st.session_state.ordered_route, st.session_state.distance = self.request_itinerary_type(
             st.session_state.itinerary_type,
