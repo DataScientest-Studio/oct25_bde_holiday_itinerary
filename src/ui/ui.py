@@ -1,5 +1,5 @@
 import streamlit as st
-from handler import Handler
+from handlers import Handler
 from layout import Layout
 from session_states import init_session_states
 

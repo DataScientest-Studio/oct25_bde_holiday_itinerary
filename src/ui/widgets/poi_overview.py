@@ -1,7 +1,7 @@
 import ast
 
 import streamlit as st
-from handler import Handler
+from handlers import Handler
 from loguru import logger
 
 

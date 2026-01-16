@@ -2,8 +2,8 @@ import pandas as pd
 import streamlit as st
 from loguru import logger
 
-from .handlers.utils import remove_poi
-from .handlers.validators import has_attr, is_column
+from .utils import remove_poi
+from .validators import has_attr, is_column
 
 
 class AddPoi:

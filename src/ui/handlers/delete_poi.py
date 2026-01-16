@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 from loguru import logger
 
-from .handlers.utils import remove_poi
+from .utils import remove_poi
 
 
 class DeletePoi:
