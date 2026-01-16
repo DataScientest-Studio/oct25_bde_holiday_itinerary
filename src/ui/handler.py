@@ -73,6 +73,18 @@ class Handler:
             logger.debug("Src has no dataframe.")
             raise KeyError(f"Dataframe {poi} has no column named 'poiId'.")
 
+    def delete_poi(self):
+        logger.debug("Deleteing POI from route DataFrame.")
+        try:
+            poi_id = st.session_state.selected_poi["poiId"]
+            if st.session_state.route["poiId"].eq(poi_id).any():
+                st.session_state.overview = self.add_poi_to_df(st.session_state.overview, st.session_state.selected_poi)
+                logger.info("Added point to route POIs DataFrame.")
+                st.session_state.route = self.remove_poi(st.session_state.route, poi_id)
+            logger.info("Removed POI from route DataFrame.")
+        except (KeyError, ValueError) as err:
+            logger.error(err)
+
     def remove_df_from_df(self, target: pd.DataFrame, src: pd.DataFrame) -> pd.DataFrame:
         logger.debug("Removing df from df...")
         poi_ids = src["poi_id"].tolist()
@@ -90,6 +102,15 @@ class Handler:
         target = target[target["poiId"] != poi_id]
         logger.info(f"Removed 'poiId' from {target}")
         return target
+
+    def calculate_itinerary(self):
+        st.session_state.ordered_route, st.session_state.distance = self.request_itinerary_type(
+            st.session_state.itinerary_type,
+            st.session_state.route,
+            st.session_state.start_poi,
+            st.session_state.end_poi,
+        )
+        st.session_state.route = st.session_state.ordered_route
 
     def request_itinerary_type(
         self, itinerary_type: str, pois: pd.DataFrame, start: str | None = None, end: str | None = None

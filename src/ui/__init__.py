@@ -3,7 +3,7 @@ from .map import Map
 from .session_states import init_session_states
 from .ui import UI
 from .utils import init_empty_df, select_overview_df
-from .widgets import Controls, PoiOverview, PoisOverview
+from .widgets import Controls, PoiOverview, PoisOverview, Route
 
 __all__ = [
     "Handler",
@@ -16,4 +16,5 @@ __all__ = [
     "Controls",
     "PoiOverview",
     "PoisOverview",
+    "Route",
 ]
