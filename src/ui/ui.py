@@ -1,11 +1,7 @@
 import streamlit as st
 from handler import Handler
 from session_states import init_session_states
-from widgets.controls import Controls
-from widgets.map import Map
-from widgets.poi_overview import PoiOverview
-from widgets.pois_overview import PoisOverview
-from widgets.route import Route
+from widgets import Controls, Map, PoiOverview, PoisOverview, Route
 
 from logger import logger
 
