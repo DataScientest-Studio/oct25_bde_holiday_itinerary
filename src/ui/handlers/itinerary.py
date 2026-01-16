@@ -2,8 +2,9 @@ from typing import Any
 
 import pandas as pd
 import streamlit as st
-from handlers import get_request
 from loguru import logger
+
+from .get_request import get_request
 
 
 class Itinerary:

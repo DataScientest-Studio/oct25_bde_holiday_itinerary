@@ -1,6 +1,4 @@
-import handlers
-import widgets
-
+from . import handlers, widgets
 from .layout import Layout
 from .session_states import init_session_states
 from .ui import UI

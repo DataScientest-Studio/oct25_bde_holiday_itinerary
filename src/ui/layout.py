@@ -1,7 +1,8 @@
 import streamlit as st
-from handlers import Handler
 from loguru import logger
-from widgets import Controls, Map, PoiOverview, PoisOverview, Route
+
+from ui.handlers import Handler
+from ui.widgets import Controls, Map, PoiOverview, PoisOverview, Route
 
 
 class Layout:

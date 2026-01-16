@@ -1,7 +1,8 @@
 import pandas as pd
 import streamlit as st
-from config import POI_COLUMNS
 from loguru import logger
+
+from ui.config import POI_COLUMNS
 
 
 def init_empty_df() -> pd.DataFrame:

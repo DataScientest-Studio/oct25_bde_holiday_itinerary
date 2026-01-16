@@ -1,8 +1,9 @@
 from datetime import date
 
 import streamlit as st
-from handlers import get_request
 from loguru import logger
+
+from ui.handlers import get_request
 
 
 class Controls:

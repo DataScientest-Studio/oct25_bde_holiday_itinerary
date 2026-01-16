@@ -1,7 +1,8 @@
 import streamlit as st
-from handlers import Handler
 from loguru import logger
-from utils import select_overview_df
+
+from ui.handlers import Handler
+from ui.utils import select_overview_df
 
 
 class Route:

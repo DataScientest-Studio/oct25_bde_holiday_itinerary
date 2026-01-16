@@ -3,7 +3,8 @@ from typing import NamedTuple
 import pandas as pd
 import streamlit as st
 from loguru import logger
-from utils import init_empty_df
+
+from ui.utils import init_empty_df
 
 
 class StateSpec(NamedTuple):

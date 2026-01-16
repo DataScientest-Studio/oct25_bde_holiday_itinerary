@@ -1,8 +1,9 @@
 import ast
 
 import streamlit as st
-from handlers import Handler
 from loguru import logger
+
+from ui.handlers import Handler
 
 
 class PoiOverview:

@@ -1,9 +1,10 @@
 import pandas as pd
 import streamlit as st
-from config import POI_COLUMNS
-from handlers import get_request
 from loguru import logger
-from utils import init_empty_df, select_overview_df
+
+from ui.config import POI_COLUMNS
+from ui.handlers import get_request
+from ui.utils import init_empty_df, select_overview_df
 
 
 class PoisOverview:
