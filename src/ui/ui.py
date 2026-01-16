@@ -2,8 +2,10 @@ from datetime import date
 
 import pandas as pd
 import streamlit as st
+from config import POI_COLUMNS, init_empty_df
 from handler import Handler, handle_get_request
 from map import Map
+from session_states import init_session_states
 
 from logger import logger
 
@@ -11,19 +13,6 @@ from logger import logger
 class UI:
     title_name: str = "Holiday Itinerary"
     layout: str = "wide"
-    poi_cols: list[str] = [
-        "label",
-        "city",
-        "description",
-        "street",
-        "postal_code",
-        "homepage",
-        "additional_information",
-        "comment",
-        "latitude",
-        "longitude",
-        "poiId",
-    ]
     handler: Handler = Handler()
 
     def __init__(self) -> None:
@@ -35,60 +24,11 @@ class UI:
         st.title(self.title_name)
         logger.debug(f"Set title to '{self.title_name}'.")
 
-        self.__init_session_states()
+        init_session_states()
+
         self.__init_layout()
 
         logger.success("Initialized UI.")
-
-    def __init_session_states(self) -> None:
-        if hasattr(st.session_state, "_initialized"):
-            logger.info("session_state already initialized. Skipping...")
-            return
-        logger.debug("Initializing session states...")
-        keys = [
-            "cities",
-            "destinations",
-            "categories",
-            "overview",
-            "selected_poi",
-            "add_point",
-            "route",
-            "old_params",
-            "itinerary_type",
-            "start_poi",
-            "end_poi",
-            "ordered_route",
-            "distance",
-            "radius",
-        ]
-        values = [
-            {},
-            [],
-            [],
-            self.init_empty_pois_dataframe(),
-            None,
-            None,
-            self.init_empty_pois_dataframe(),
-            {},
-            "",
-            "",
-            "",
-            self.init_empty_pois_dataframe(),
-            0.0,
-            0,
-        ]
-        for key, value in zip(keys, values):
-            if not hasattr(st.session_state, key):
-                setattr(st.session_state, key, value)
-                logger.debug(f"Set {key} to: {getattr(st.session_state, key)}.")
-
-        st.session_state._initialized = True
-        logger.info("Initialized session_states.")
-
-    def init_empty_pois_dataframe(self) -> pd.DataFrame:
-        df = pd.DataFrame(columns=self.poi_cols)
-        df.fillna("", inplace=True)
-        return df
 
     def __init_layout(self) -> None:
         logger.info("Initializing layout...")
@@ -167,9 +107,7 @@ class UI:
             if params != st.session_state.old_params:
                 try:
                     pois = handle_get_request("/poi/filter", params).get("pois", {})
-                    st.session_state.overview = (
-                        pd.DataFrame(pois, columns=self.poi_cols) if pois else self.init_empty_pois_dataframe()
-                    )
+                    st.session_state.overview = pd.DataFrame(pois, columns=POI_COLUMNS) if pois else init_empty_df()
                     st.session_state.overview.fillna("", inplace=True)
                     st.session_state.old_params = params
                     logger.info("Initalized poi overview.")
