@@ -1,7 +1,7 @@
 import streamlit as st
 from handler import Handler
+from layout import Layout
 from session_states import init_session_states
-from widgets import Controls, Map, PoiOverview, PoisOverview, Route
 
 from logger import logger
 
@@ -22,31 +22,9 @@ class UI:
 
         init_session_states()
 
-        self.__init_layout()
+        Layout(self.handler)
 
         logger.success("Initialized UI.")
-
-    def __init_layout(self) -> None:
-        logger.info("Initializing layout...")
-        overview, poi_view = st.columns([8, 3], border=True)
-
-        with overview:
-            controls, pois_overview = st.columns([2, 7])
-            with controls:
-                Controls()
-            with pois_overview:
-                PoisOverview()
-        with poi_view:
-            PoiOverview(self.handler)
-        logger.info("Initialized overview sections.")
-
-        map_grid, route = st.columns([6, 2], border=True)
-        with map_grid:
-            Map()
-        with route:
-            Route(self.handler)
-        logger.info("Initialized route sections.")
-        logger.info("Initalized layout.")
 
     def run(self) -> None:
         logger.info("Starting UI.")
