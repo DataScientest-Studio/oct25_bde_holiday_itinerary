@@ -2,8 +2,8 @@ from typing import NamedTuple
 
 import pandas as pd
 import streamlit as st
-from config import init_empty_df
 from loguru import logger
+from utils import init_empty_df
 
 
 class StateSpec(NamedTuple):

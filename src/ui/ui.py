@@ -1,10 +1,12 @@
 import pandas as pd
 import streamlit as st
-from config import POI_COLUMNS, init_empty_df
+from config import POI_COLUMNS
 from handler import Handler, handle_get_request
 from map import Map
 from session_states import init_session_states
+from utils import init_empty_df
 from widgets.controls import Controls
+from widgets.pois_overview import PoisOverview
 
 from logger import logger
 
@@ -38,7 +40,7 @@ class UI:
             with controls:
                 Controls()
             with pois_overview:
-                self.__init_pois_overview_layout()
+                PoisOverview()
         with poi_view:
             with st.container(border=False, height=500):
                 self.__init_poi_overview_layout()

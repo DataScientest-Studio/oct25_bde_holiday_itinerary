@@ -1,5 +1,3 @@
-import pandas as pd
-
 POI_COLUMNS: list[str] = [
     "label",
     "city",
@@ -13,9 +11,3 @@ POI_COLUMNS: list[str] = [
     "longitude",
     "poiId",
 ]
-
-
-def init_empty_df() -> pd.DataFrame:
-    df = pd.DataFrame(columns=POI_COLUMNS)
-    df.fillna("", inplace=True)
-    return df
