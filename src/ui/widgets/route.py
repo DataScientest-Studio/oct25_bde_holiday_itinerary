@@ -23,6 +23,7 @@ class Route:
                 column_config={
                     "label": st.column_config.TextColumn(
                         "POI",
+                        width=100,
                         help="The label of the POI.",
                     ),
                     "city": st.column_config.TextColumn(
