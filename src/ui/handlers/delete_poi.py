@@ -13,7 +13,7 @@ class DeletePoi:
             if st.session_state.route["poiId"].eq(poi_id).any():
                 st.session_state.overview = self.add_poi_to_df(st.session_state.overview, st.session_state.selected_poi)
                 logger.info("Added point to route POIs DataFrame.")
-                st.session_state.route = self.remove_poi(st.session_state.route, poi_id)
+                st.session_state.route = remove_poi(st.session_state.route, poi_id)
             logger.info("Removed POI from route DataFrame.")
         except (KeyError, ValueError) as err:
             logger.error(err)
