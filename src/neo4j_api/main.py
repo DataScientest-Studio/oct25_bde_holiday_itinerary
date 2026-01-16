@@ -4,7 +4,7 @@ from fastapi import FastAPI
 
 from src.neo4j_driver.neo4j_driver import Neo4jDriver
 
-from .routes import city, dijkstra, distance, poi, travel, tsp
+from .routes import city, data_update, dijkstra, distance, poi, travel, tsp
 
 
 @asynccontextmanager
@@ -23,3 +23,4 @@ app.include_router(poi.router, prefix="/poi", tags=["POI"])
 app.include_router(distance.router, prefix="/distance", tags=["Distance"])
 app.include_router(tsp.router, prefix="/tsp", tags=["TSP"])
 app.include_router(dijkstra.router, prefix="/dijkstra", tags=["DIJKSTRA"])
+app.include_router(data_update.router, prefix="/data", tags=["DATA"])

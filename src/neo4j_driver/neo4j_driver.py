@@ -197,12 +197,12 @@ class Neo4jDriver:
 
     def get_nearby_points(self, poi_id: str, radius: float) -> dict[str, list[dict[Any, Any]]]:
         query = """
-            MATCH (p1:POI {poiId: $poi_id})
+            MATCH (p1:POI {id: $poi_id})
             MATCH (p2:POI)
             WHERE p1 <> p2
                 AND point.distance(p1.location, p2.location) <= $radius
             RETURN
-                p2.poiId AS poiId,
+                p2.id AS id,
                 p2.label AS label,
                 p2.comment AS comment,
                 p2.description AS description,
@@ -220,12 +220,9 @@ class Neo4jDriver:
 
     def calculate_distance_between_two_nodes(self, poi1_id: str, poi2_id: str) -> float:
         query = """
-            MATCH (p1:POI {poiId: $poi1_id})
-            MATCH (p2:POI {poiId: $poi2_id})
-            RETURN point.distance(
-                point({latitude: p2.latitude, longitude: p2.longitude}),
-                point({latitude: p1.latitude, longitude: p1.longitude})
-            ) AS distance
+            MATCH(p1:POI {id: $poi1_id})
+            MATCH(p2:POI {id: $poi2_id})
+            RETURN point.distance(p2.location, p1.location) AS distance
         """
         if result := self.execute_query(query, poi1_id=poi1_id, poi2_id=poi2_id):
             return result[0]["distance"]  # type: ignore[no-any-return]
@@ -251,16 +248,11 @@ class Neo4jDriver:
         weights[:, 0] = 0
         return self.calculate_tsp(weights, poi_ids)
 
-    def calculate_shortest_path_fixed_dest(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
-        dest = poi_ids.pop()
-        start = poi_ids.pop(0)
+    def calculate_shortest_path_fixed_dest(self, dest: str, poi_ids: list[str]) -> dict[str, list[str] | float]:
+        poi_ids.remove(dest)
         poi_ids.insert(0, dest)
         tsp_result = self.calculate_shortest_path_no_return(poi_ids)
         tsp_result["poi_order"] = list(reversed(tsp_result["poi_order"]))  # type: ignore[arg-type]
-        tsp_result["distance"] = self.calculate_distance_between_two_nodes(
-            start, tsp_result["poi_order"][0]
-        )  # type: ignore
-        tsp_result["poi_order"].insert(0, start)  # type: ignore
         return tsp_result
 
     def calculate_shortest_round_tour(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
@@ -286,9 +278,9 @@ class Neo4jDriver:
     def create_edges(self, poi_ids: list[str]) -> None:
         query = """
             MATCH (p1:POI), (p2:POI)
-            WHERE p1.poiId <> p2.poiId
-                AND p1.poiId IN $poi_ids
-                AND p2.poiId IN $poi_ids
+            WHERE p1.id <> p2.id
+                AND p1.id IN $poi_ids
+                AND p2.id IN $poi_ids
             MERGE (p1)-[edge:CONNECTED]->(p2)
             SET edge.distance = point.distance(p1.location, p2.location)
         """
@@ -297,7 +289,7 @@ class Neo4jDriver:
     def delete_edges(self, poi_ids: list[str]) -> None:
         query = """
             MATCH (p1:POI)-[edge:CONNECTED]->(p2:POI)
-            WHERE p1.poiId IN $poi_ids AND p2.poiId IN $poi_ids
+            WHERE p1.id IN $poi_ids AND p2.id IN $poi_ids
             DELETE edge
         """
         self.execute_query(query, poi_ids=poi_ids)
@@ -308,8 +300,8 @@ class Neo4jDriver:
             end = poi_ids[-1]
             self.create_edges(poi_ids)
             query = """
-                MATCH (start:POI {poiId: $start})
-                MATCH (end:POI {poiId: $end})
+                MATCH (start:POI {id: $start})
+                MATCH (end:POI {id: $end})
                 CALL apoc.algo.dijkstra(start, end, 'CONNECTED>', 'distance') YIELD path, weight
                 RETURN path, weight
             """
@@ -317,7 +309,7 @@ class Neo4jDriver:
                 poi_order = []
                 for node in result[0]["path"]:
                     if isinstance(node, dict):
-                        poi_order.append(node["poiId"])
+                        poi_order.append(node["id"])
                 return {"poi_order": poi_order, "total_distance": result[0]["weight"]}
             return {"poi_order": [], "total_distance": 0.0}
 
