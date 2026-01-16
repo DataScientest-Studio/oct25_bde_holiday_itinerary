@@ -1,11 +1,10 @@
-from datetime import date
-
 import pandas as pd
 import streamlit as st
 from config import POI_COLUMNS, init_empty_df
 from handler import Handler, handle_get_request
 from map import Map
 from session_states import init_session_states
+from widgets.controls import Controls
 
 from logger import logger
 
@@ -37,7 +36,7 @@ class UI:
         with overview:
             controls, pois_overview = st.columns([2, 7])
             with controls:
-                self.__init_controls()
+                Controls()
             with pois_overview:
                 self.__init_pois_overview_layout()
         with poi_view:
@@ -59,42 +58,6 @@ class UI:
         with st.container(horizontal_alignment="right", vertical_alignment="bottom"):
             st.button("Add POI", on_click=self.add_poi)
         logger.info("Initalized add button.")
-
-    def __init_controls(self) -> None:
-        logger.debug("Initializing controls...")
-        st.subheader("Filter")
-        self.__init_filter("destinations", "/city/all", "cities", "Itinerary Destinations")
-        self.__init_filter("categories", "/poi/types", "types", "Category of POIs")
-        self.__init_date_selector("start")
-        self.__init_date_selector("end")
-        self.__init_radius_handler()
-
-        logger.info("Initalized controls.")
-
-    def __init_filter(self, key: str, path: str, data_key: str, label: str) -> None:
-        logger.debug(f"Initializing {key} filter...")
-        try:
-            with st.container():
-                result = handle_get_request(path)[data_key]
-                if key == "destinations":
-                    st.session_state.cities = result
-                    result = [city["name"] for city in result]
-                st.multiselect(label, options=result, key=key)
-                logger.info(f"Initalized {key} filter.")
-        except Exception as err:
-            logger.error(f"Failed to get '{key}' form the server. Error: {err}")
-
-    def __init_date_selector(self, name: str) -> None:
-        logger.debug(f"Initializing {name} selector...")
-        with st.container():
-            st.date_input(f"Itinerary {name}", value=date.today(), format="DD/MM/YYYY", key=name)
-        logger.info(f"Initalized {name} selector.")
-
-    def __init_radius_handler(self) -> None:
-        logger.debug("Initializing radius handler...")
-        with st.container():
-            st.slider("Distance from city", min_value=0, max_value=100, key="radius")
-        logger.info("Initalized radius handler.")
 
     def __init_pois_overview_layout(self) -> None:
         logger.debug("Initializing pois overview...")
