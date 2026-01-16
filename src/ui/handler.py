@@ -2,6 +2,7 @@ from json import loads
 from typing import Any
 
 import pandas as pd
+import streamlit as st
 from requests import get
 from requests.models import HTTPError
 
@@ -31,21 +32,46 @@ class Handler:
     def __init__(self) -> None:
         logger.info("Initialized UIHandler.")
 
-    def add_poi(self, dest: pd.DataFrame, src: pd.DataFrame) -> pd.DataFrame:
-        logger.debug("Handle add point to dataframe.")
-        if "poiId" not in dest.columns:
-            logger.debug("Dest has no dataframe.")
-            raise KeyError(f"Dataframe {dest} has no column named 'poiId'.")
-        if not hasattr(src, "poiId"):
-            logger.debug("Src has no dataframe.")
-            raise KeyError(f"Dataframe {src} has no column named 'poiId'.")
-        if src["poiId"] in dest["poiId"].values:
-            logger.debug("poiId already in dest.")
-            raise ValueError(f"Row with poiId {src.poiId} already dataframe..")
+    def add_poi(self) -> None:
+        logger.debug("Adding POI to route DataFrame.")
+        try:
+            st.session_state.route = self.add_poi_to_df(
+                st.session_state.route,
+                st.session_state.selected_poi,
+            )
+            logger.info("Added point to route POIs DataFrame.")
+            st.session_state.overview = self.remove_poi(
+                st.session_state.overview,
+                st.session_state.selected_poi.poiId,
+            )
+            logger.info("Removed POI from pois DataFrame.")
+        except (KeyError, ValueError) as err:
+            logger.error(err)
 
-        dest.loc[len(dest)] = {col: getattr(src, col, None) for col in dest.columns}
+    def add_poi_to_df(self, df: pd.DataFrame, poi: pd.DataFrame) -> pd.DataFrame:
+        logger.debug("Handle add point to dataframe.")
+
+        self.validate_df(df)
+        self.validate_poi(poi)
+
+        if poi["poiId"] in df["poiId"].values:
+            logger.debug("poiId already in dest.")
+            raise ValueError(f"Row with poiId {poi.poiId} already dataframe..")
+
+        df.loc[len(df)] = {col: getattr(poi, col, None) for col in df.columns}
         logger.info("Added point to dataframe.")
-        return dest
+
+        return df
+
+    def validate_df(self, route: pd.DataFrame):
+        if "poiId" not in route.columns:
+            logger.debug("Dest has no dataframe.")
+            raise KeyError(f"Dataframe {route} has no column named 'poiId'.")
+
+    def validate_poi(self, poi: pd.DataFrame):
+        if not hasattr(poi, "poiId"):
+            logger.debug("Src has no dataframe.")
+            raise KeyError(f"Dataframe {poi} has no column named 'poiId'.")
 
     def remove_df_from_df(self, target: pd.DataFrame, src: pd.DataFrame) -> pd.DataFrame:
         logger.debug("Removing df from df...")

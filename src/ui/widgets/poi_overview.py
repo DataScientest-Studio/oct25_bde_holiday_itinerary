@@ -1,9 +1,13 @@
+import ast
+
 import streamlit as st
+from handler import Handler
 from loguru import logger
 
 
 class PoiOverview:
-    def __init__(self):
+    def __init__(self, handler: Handler):
+        self.handler = handler
         with st.container(border=False, height=500):
             self.__init_poi_overview_layout()
             self.__init_poi_add_button()
@@ -23,7 +27,7 @@ class PoiOverview:
             st.write(poi["description"] or "Point of interest has no description.")
             if poi.get("additional_information"):
                 st.markdown("ℹ️ **Additional Information**")
-                st.write(poi["additional_information"])
+                st.write(self.parse_readable_string(poi["additional_information"]))
             if poi.get("homepage"):
                 st.markdown(f"🌐 **Website**: [🌐 Visit website]({poi['homepage']})")
             logger.info("Initalized pois overview.")
@@ -31,5 +35,11 @@ class PoiOverview:
     def __init_poi_add_button(self) -> None:
         logger.debug("Initializing add button...")
         with st.container(horizontal_alignment="right", vertical_alignment="bottom"):
-            st.button("Add POI", on_click=self.add_poi)
+            st.button("Add POI", on_click=self.handler.add_poi)
         logger.info("Initalized add button.")
+
+    def parse_readable_string(self, raw: str) -> str:
+        parsed = ast.literal_eval(raw)
+        text = parsed[0]
+        text = text.replace("\r\n", "\n").strip()
+        return text
