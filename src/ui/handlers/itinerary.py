@@ -17,18 +17,15 @@ class Itinerary:
                 st.session_state.end_poi,
             )
         )
-        order_index = {city: i for i, city in enumerate(st.session_state.ordered_route)}
-
-        st.session_state.route = (
-            st.session_state.route.assign(_order=st.session_state.route["city"].map(order_index))
-            .sort_values("_order")
-            .drop(columns="_order")
-            .reset_index(drop=True)
+        st.session_state.route["city"] = pd.Categorical(
+            st.session_state.route["city"], categories=st.session_state.ordered_route, ordered=True
         )
+
+        st.session_state.route = st.session_state.route.sort_values("city").reset_index(drop=True)
 
     def request_itinerary_type(
         self, itinerary_type: str, pois: pd.DataFrame, start: str | None = None, end: str | None = None
-    ) -> tuple[pd.DataFrame, float]:
+    ) -> tuple[pd.DataFrame, float, list[list[float]]]:
         if pois.shape[0] < 3:
             logger.error("At least 3 POIs are needed.")
             raise ValueError("Given POIs are not enough for a route.")
@@ -42,30 +39,26 @@ class Itinerary:
             case _:
                 raise ValueError(f"'{itinerary_type}' is not a valid itinerary_type.")
 
-    def roundtrip(self, pois: pd.DataFrame, start: str | None = None) -> tuple[pd.DataFrame, float]:
+    def roundtrip(self, pois: pd.DataFrame, start: str | None = None) -> tuple[pd.DataFrame, float, list[list[float]]]:
         params = self.prepare_params(pois, start)
         itinerary = get_request("/tsp/shortest-round-tour", params)
-        ordered_df = pois.set_index("poiId").loc[itinerary["poi_order"]].reset_index()
-        ordered_df = pd.concat(
-            [ordered_df, ordered_df.iloc[:1]],
-            ignore_index=True,
-        )
-        return ordered_df, itinerary["total_distance"]
+        itinerary["route"].append(itinerary["route"][0])
+        return itinerary["city_order"], itinerary["total_distance"], itinerary["route"]
 
-    def one_way_trip_flex_end(self, pois: pd.DataFrame, start: str) -> tuple[pd.DataFrame, float]:
+    def one_way_trip_flex_end(self, pois: pd.DataFrame, start: str) -> tuple[pd.DataFrame, float, list[list[float]]]:
         pois = pois.drop_duplicates(subset=["poiId", "label"], keep="first")
         params = self.prepare_params(pois, start)
         itinerary = get_request("/tsp/shortest-path-no-return", params)
-        ordered_df = pois.set_index("poiId").loc[itinerary["poi_order"]].reset_index()
-        return ordered_df, itinerary["total_distance"]
+        return itinerary["city_order"], itinerary["total_distance"], itinerary["route"]
 
-    def one_way_trip_flex_fixed_end(self, pois: pd.DataFrame, start: str, end: str) -> tuple[pd.DataFrame, float]:
+    def one_way_trip_flex_fixed_end(
+        self, pois: pd.DataFrame, start: str, end: str
+    ) -> tuple[pd.DataFrame, float, list[list[float]]]:
         pois = pois.drop_duplicates(subset=["poiId", "label"], keep="first")
         params = self.prepare_params(pois, start, end)
         logger.warning(params)
         itinerary = get_request("/tsp/shortest-path-fixed-dest", params)
-        ordered_df = pois.set_index("poiId").loc[itinerary["poi_order"]].reset_index()
-        return ordered_df, itinerary["total_distance"]
+        return itinerary["city_order"], itinerary["total_distance"], itinerary["route"]
 
     def prepare_params(
         self, pois: pd.DataFrame, poi_start: str | None = None, poi_end: str | None = None
