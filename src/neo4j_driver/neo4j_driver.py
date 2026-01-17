@@ -292,7 +292,7 @@ class Neo4jDriver:
                 weights[j][i] = weights[i][j]
         return weights
 
-    def get_cities_for_poiIds(self, poi_ids: list[str]) -> dict[str, list]:
+    def get_cities_for_poiIds(self, poi_ids: list[str]) -> dict[str, list[str]]:
         query = """
             UNWIND $poiIds AS poiId
             MATCH (p:POI {poiId: poiId})
@@ -307,7 +307,8 @@ class Neo4jDriver:
         return {"poi_order": [poi_ids[i] for i in permutation], "total_distance": distance}
 
     def calculate_shortest_path_no_return(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
-        weights = self.create_weight_matrix(poi_ids)
+        cities = self.get_cities_for_poiIds(poi_ids)["cities"]
+        weights = self.create_weight_matrix(cities)
         weights[:, 0] = 0
         return self.calculate_tsp(weights, poi_ids)
 
@@ -324,7 +325,8 @@ class Neo4jDriver:
         return tsp_result
 
     def calculate_shortest_round_tour(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
-        weights = self.create_weight_matrix(poi_ids)
+        cities = self.get_cities_for_poiIds(poi_ids)["cities"]
+        weights = self.create_weight_matrix(cities)
         return self.calculate_tsp(weights, poi_ids)
 
     def shortest_path_between_all_nodes_with_fixed_start_and_fixed_end(
@@ -335,7 +337,8 @@ class Neo4jDriver:
         weights_to_end = [self.calculate_distance_between_two_nodes(poi1_id=end, poi2_id=node) for node in poi_ids]
         total_distance = np.inf
         for _ in poi_ids:
-            weights = self.create_weight_matrix(poi_ids)
+            cities = self.get_cities_for_poiIds(poi_ids)["cities"]
+            weights = self.create_weight_matrix(cities)
             permutation, distance = solve_tsp_dynamic_programming(weights)
             if distance + weights_to_end[permutation[-1]] < total_distance:
                 total_distance = distance + weights_to_end
