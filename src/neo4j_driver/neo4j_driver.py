@@ -32,10 +32,10 @@ class Neo4jDriver:
         poi = self.execute_query(query, poi_id=poi_id)
         return poi[0]["p"] if poi else {}
 
-    def get_filtered_pois(self, locations: list[str], types: list[str], radius: int) -> dict[str, Any]:
+    def get_filtered_pois(self, locations: list[str] | None, types: list[str] | None, radius: int) -> dict[str, Any]:
 
-        locations = [s for s in locations if s.strip()]
-        types = [s for s in types if s.strip()]
+        locations = self.normalize_param(locations)
+        types = self.normalize_param(types)
 
         kwargs: dict[str, Any] = {
             "locations": locations or None,
@@ -46,9 +46,9 @@ class Neo4jDriver:
         if radius > 0:
             query = """
                 CALL {
-                    MATCH (n:POI)
-                    WHERE n.city IN $locations
-                      AND ($types IS NULL OR n.type IN $types)
+                    MATCH (n:POI)-[:IS_A]->(tFilter:POIType)
+                    WHERE ($locations IS NULL OR n.city IN $locations)
+                        AND ($types IS NULL OR tFilter.typeId IN $types)
                     RETURN n
 
                     UNION
@@ -56,29 +56,38 @@ class Neo4jDriver:
                     MATCH (c:City)
                     WHERE c.name IN $locations
                     WITH point({latitude: c.latitude, longitude: c.longitude}) AS cityPoint
-                    MATCH (n:POI)
+                    MATCH (n:POI)-[:IS_A]->(tFilter:POIType)
                     WHERE point.distance(
                             cityPoint,
                             point({latitude: n.latitude, longitude: n.longitude})
                           ) <= $radius
-                      AND ($types IS NULL OR n.type IN $types)
+                        AND ($types IS NULL OR tFilter.typeId IN $types)
                     RETURN n
                 }
                 WITH DISTINCT n
-                ORDER BY n.city, n.name
-                RETURN collect(properties(n)) AS pois
+                ORDER BY n.city, n.label
+                MATCH (n)-[:IS_A]->(tAll:POIType)
+                WITH n, collect(DISTINCT tAll.typeId) AS poiTypes
+                RETURN collect(n { .*, types: poiTypes }) AS pois
             """
         else:
             query = """
-                MATCH (n:POI)
+                MATCH (n:POI)-[:IS_A]->(tFilter:POIType)
                 WHERE ($locations IS NULL OR n.city IN $locations)
-                    AND ($types IS NULL OR n.type IN $types)
-                WITH DISTINCT n
-                RETURN collect(properties(n)) AS pois
+                    AND ($types IS NULL OR tFilter.typeId IN $types)
+                MATCH (n)-[:IS_A]->(tAll:POIType)
+                WITH n, collect(DISTINCT tAll.typeId) AS poiTypes
+                RETURN collect(n { .*, types: poiTypes }) AS pois
             """
 
         result = self.execute_query(query, **kwargs)
         return result[0] if result else []
+
+    def normalize_param(self, values: list[str] | None) -> list[str] | None:
+        if not values:
+            return None
+        cleaned = [v.strip() for v in values if v and v.strip()]
+        return cleaned or None
 
     def get_types(self) -> dict[str, Any]:
         query = "MATCH (t:Type) RETURN t.typeId AS typeId"
