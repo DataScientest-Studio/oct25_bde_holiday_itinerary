@@ -244,7 +244,7 @@ class Neo4jDriver:
         """
         self.execute_query(query)
 
-    def get_distance_between_cities(self, start: str, dest: str) -> float:
+    def get_total_distance_between_cities(self, start: str, dest: str) -> float:
         query = """
             MATCH (s:City {cityId: $start_city})
             MATCH (t:City {cityId: $end_city})
@@ -288,7 +288,7 @@ class Neo4jDriver:
                 dest = cities[j]
                 if start == dest:
                     continue
-                weights[i][j] = self.get_distance_between_cities(start=start, dest=dest)
+                weights[i][j] = self.get_total_distance_between_cities(start=start, dest=dest)
                 weights[j][i] = weights[i][j]
         return weights
 
@@ -302,15 +302,44 @@ class Neo4jDriver:
         result = self.execute_query(query, poiIds=poi_ids)
         return {"cities": [city for city in result[0]] if result else []}
 
-    def calculate_tsp(self, weights: np.ndarray[Any, Any], poi_ids: list[str]) -> dict[str, list[str] | float]:
+    def get_route(self, start: str, dest: str) -> list[dict[str, float]]:
+        query = """
+            MATCH (s:City {cityId: $start})
+            MATCH (t:City {cityId: $dest})
+            CALL gds.shortestPath.dijkstra.stream(
+                'city-road-graph',
+                {
+                    sourceNode: id(s),
+                    targetNode: id(t),
+                    relationshipWeightProperty: 'km'
+                }
+            )
+            YIELD nodeIds
+
+            RETURN [nodeId IN nodeIds | {
+                latitude:  gds.util.asNode(nodeId).latitude,
+                longitude:  gds.util.asNode(nodeId).longitude
+            }
+            ] AS coords
+        """
+        result = self.execute_query(query, start=start, dest=dest)
+        return result[0]["coords"] if result else [{}]
+
+    def calculate_tsp(self, weights: np.ndarray[Any, Any], cities: list[str]) -> dict[str, list[str] | float]:
         permutation, distance = solve_tsp_dynamic_programming(weights)
-        return {"poi_order": [poi_ids[i] for i in permutation], "total_distance": distance}
+        return {"poi_order": [cities[i] for i in permutation], "total_distance": distance}
+
+    def get_city_pathes(self, cities: list[str]) -> list[tuple[float, float]]:
+        route: list[tuple[float, float]] = []
+        for i in range(0, len(cities) - 1):
+            pass
+        return route
 
     def calculate_shortest_path_no_return(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
         cities = self.get_cities_for_poiIds(poi_ids)["cities"]
         weights = self.create_weight_matrix(cities)
         weights[:, 0] = 0
-        return self.calculate_tsp(weights, poi_ids)
+        return self.calculate_tsp(weights, cities)
 
     def calculate_shortest_path_fixed_dest(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
         dest = poi_ids.pop()
@@ -327,7 +356,7 @@ class Neo4jDriver:
     def calculate_shortest_round_tour(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
         cities = self.get_cities_for_poiIds(poi_ids)["cities"]
         weights = self.create_weight_matrix(cities)
-        return self.calculate_tsp(weights, poi_ids)
+        return self.calculate_tsp(weights, cities)
 
     def shortest_path_between_all_nodes_with_fixed_start_and_fixed_end(
         self, poi_ids: list[str], end: str
