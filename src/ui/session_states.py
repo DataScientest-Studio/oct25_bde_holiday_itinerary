@@ -27,6 +27,7 @@ STATES: list[StateSpec] = [
     StateSpec("ordered_route", init_empty_df()),
     StateSpec("distance", 0.0),
     StateSpec("radius", 0),
+    StateSpec("st.session_state.route_cords", []),
 ]
 
 
