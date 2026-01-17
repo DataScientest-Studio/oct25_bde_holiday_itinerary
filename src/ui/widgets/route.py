@@ -26,6 +26,11 @@ class Route:
                         width=100,
                         help="The label of the POI.",
                     ),
+                    "types": st.column_config.TextColumn(
+                        "POI Type(s)",
+                        width=170,
+                        help="Type(s) of the POI.",
+                    ),
                     "city": st.column_config.TextColumn(
                         "Location",
                         help="Location of the POI.",
