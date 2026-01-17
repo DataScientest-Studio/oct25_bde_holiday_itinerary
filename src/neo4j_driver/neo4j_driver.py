@@ -17,6 +17,7 @@ class Neo4jDriver:
 
         signal(SIGINT, self.handle_exit_signal)
         signal(SIGTERM, self.handle_exit_signal)
+        self.create_roads()
 
     def execute_query(self, query: str, **kwargs: Any) -> list[dict[Any, Any]] | None:
         with self.driver.session() as session:
@@ -290,6 +291,16 @@ class Neo4jDriver:
                 weights[i][j] = self.get_distance_between_cities(start=start, dest=dest)
                 weights[j][i] = weights[i][j]
         return weights
+
+    def get_cities_for_poiIds(self, poi_ids: list[str]) -> dict[str, list]:
+        query = """
+            UNWIND $poiIds AS poiId
+            MATCH (p:POI {poiId: poiId})
+            WITH DISTINCT p.city AS city
+            RETURN collect(city) AS cities
+        """
+        result = self.execute_query(query, poiIds=poi_ids)
+        return {"cities": [city for city in result[0]] if result else []}
 
     def calculate_tsp(self, weights: np.ndarray[Any, Any], poi_ids: list[str]) -> dict[str, list[str] | float]:
         permutation, distance = solve_tsp_dynamic_programming(weights)
