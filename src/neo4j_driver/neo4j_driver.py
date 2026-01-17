@@ -329,7 +329,7 @@ class Neo4jDriver:
     def calculate_tsp(self, weights: np.ndarray[Any, Any], cities: list[str]) -> dict[str, list[str] | float]:
         permutation, distance = solve_tsp_dynamic_programming(weights)
         return {
-            "poi_order": [cities[i] for i in permutation],
+            "city_order": [cities[i] for i in permutation],
             "total_distance": distance,
             "route": self.get_city_route(cities),
         }
