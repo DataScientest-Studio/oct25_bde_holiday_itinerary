@@ -227,6 +227,28 @@ class Neo4jDriver:
         records = self.execute_query(query, poi_id=poi_id, radius=radius)
         return {"nearby": records if records else []}
 
+    def get_distance_between_cities(self, start: str, dest: str) -> float:
+        query = """
+            MATCH (s:City {cityId: $start_city})
+            MATCH (t:City {cityId: $end_city})
+
+            CALL gds.shortestPath.dijkstra.stream(
+                'city-road-graph',
+                {
+                    sourceNode: id(s),
+                    targetNode: id(t),
+                    relationshipWeightProperty: 'km'
+                }
+            )
+            YIELD totalCost
+            RETURN totalCost AS distance;
+        """
+
+        if result := self.execute_query(query, start=start, dest=dest):
+            return result[0]["distance"]  # type: ignore[no-any-return]
+        # TODO: handle not existing node
+        return np.inf  # type: ignore[no-any-return]
+
     def calculate_distance_between_two_nodes(self, poi1_id: str, poi2_id: str) -> float:
         query = """
             MATCH (p1:POI {poiId: $poi1_id})
@@ -238,17 +260,17 @@ class Neo4jDriver:
         """
         if result := self.execute_query(query, poi1_id=poi1_id, poi2_id=poi2_id):
             return result[0]["distance"]  # type: ignore[no-any-return]
-        # TODO: handle not existing node
         return np.inf  # type: ignore[no-any-return]
 
     def create_weight_matrix(self, poi_ids: list[str]) -> np.ndarray[Any, Any]:
         n = len(poi_ids)
         weights: list[list[float]] = np.full((n, n), np.inf)
         for i in range(0, n):
-            for j in range(0, n):
+            for j in range(i + 1, n):
                 if i == j:
                     continue
                 weights[i][j] = self.calculate_distance_between_two_nodes(poi1_id=poi_ids[i], poi2_id=poi_ids[j])
+                weights[j][i] = weights[i][j]
         return weights
 
     def calculate_tsp(self, weights: np.ndarray[Any, Any], poi_ids: list[str]) -> dict[str, list[str] | float]:
