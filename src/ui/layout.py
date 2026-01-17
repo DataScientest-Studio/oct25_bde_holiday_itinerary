@@ -20,7 +20,7 @@ class Layout:
             PoiOverview(handler)
         logger.info("Initialized overview sections.")
 
-        map_grid, route = st.columns([6, 2], border=True)
+        map_grid, route = st.columns([4, 2], border=True)
         with map_grid:
             Map()
         with route:
