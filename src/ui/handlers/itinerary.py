@@ -9,13 +9,22 @@ from .get_request import get_request
 
 class Itinerary:
     def calculate_itinerary(self):
-        st.session_state.ordered_route, st.session_state.distance = self.request_itinerary_type(
-            st.session_state.itinerary_type,
-            st.session_state.route,
-            st.session_state.start_poi,
-            st.session_state.end_poi,
+        st.session_state.ordered_route, st.session_state.distance, st.session_state.route_cords = (
+            self.request_itinerary_type(
+                st.session_state.itinerary_type,
+                st.session_state.route,
+                st.session_state.start_poi,
+                st.session_state.end_poi,
+            )
         )
-        st.session_state.route = st.session_state.ordered_route
+        order_index = {city: i for i, city in enumerate(st.session_state.ordered_route)}
+
+        st.session_state.route = (
+            st.session_state.route.assign(_order=st.session_state.route["city"].map(order_index))
+            .sort_values("_order")
+            .drop(columns="_order")
+            .reset_index(drop=True)
+        )
 
     def request_itinerary_type(
         self, itinerary_type: str, pois: pd.DataFrame, start: str | None = None, end: str | None = None
