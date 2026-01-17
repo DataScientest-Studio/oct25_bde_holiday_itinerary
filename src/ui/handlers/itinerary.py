@@ -9,7 +9,7 @@ from .get_request import get_request
 
 class Itinerary:
     def calculate_itinerary(self):
-        st.session_state.ordered_route, st.session_state.distance, st.session_state.route_cords = (
+        st.session_state.ordered_route, st.session_state.distance, st.session_state.route_coords = (
             self.request_itinerary_type(
                 st.session_state.itinerary_type,
                 st.session_state.route,
