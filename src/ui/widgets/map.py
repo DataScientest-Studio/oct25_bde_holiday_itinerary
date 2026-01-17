@@ -18,7 +18,7 @@ class Map:
         else:
             layers = [self.create_selected_poi(), self.create_route_points()]
 
-        if not st.session_state.ordered_route.empty:
+        if st.session_state.route_cords:
             layers.extend(self.create_route_edges())
 
         r = pdk.Deck(
@@ -69,12 +69,10 @@ class Map:
         )
 
     def create_route_edges(self) -> pdk.Layer:
-        path_coords = st.session_state.ordered_route[["longitude", "latitude"]].values.tolist()
-        logger.warning(path_coords)
         route = pdk.Layer(
             "PathLayer",
             id="route-edges",
-            data=pd.DataFrame({"path": [path_coords]}),
+            data=pd.DataFrame({"path": st.session_state.route_cords}),
             get_path="path",
             get_color=[0, 0, 0],
             width_min_pixels=1,
