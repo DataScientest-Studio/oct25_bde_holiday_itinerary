@@ -316,10 +316,11 @@ class Neo4jDriver:
             )
             YIELD nodeIds
 
-            RETURN [nodeId IN nodeIds | {
-                latitude:  gds.util.asNode(nodeId).latitude,
-                longitude:  gds.util.asNode(nodeId).longitude
-            }
+            RETURN [nodeId IN nodeIds |
+                [
+                    gds.util.asNode(nodeId).longitude,
+                    gds.util.asNode(nodeId).latitude
+                ]
             ] AS coords
         """
         result = self.execute_query(query, start=start, dest=dest)
@@ -327,12 +328,19 @@ class Neo4jDriver:
 
     def calculate_tsp(self, weights: np.ndarray[Any, Any], cities: list[str]) -> dict[str, list[str] | float]:
         permutation, distance = solve_tsp_dynamic_programming(weights)
-        return {"poi_order": [cities[i] for i in permutation], "total_distance": distance}
+        return {
+            "poi_order": [cities[i] for i in permutation],
+            "total_distance": distance,
+            "route": self.get_city_route(cities),
+        }
 
-    def get_city_pathes(self, cities: list[str]) -> list[tuple[float, float]]:
-        route: list[tuple[float, float]] = []
-        for i in range(0, len(cities) - 1):
-            pass
+    def get_city_route(self, cities: list[str]) -> list[list[float]]:
+        route: list[list[float]] = []
+        for i in range(len(cities) - 1):
+            part = self.get_route(cities[i], cities[i + 1])
+            if route and part:
+                part = part[1:]
+            route.extend([item for item in part])
         return route
 
     def calculate_shortest_path_no_return(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
