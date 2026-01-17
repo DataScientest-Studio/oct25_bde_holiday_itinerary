@@ -10,4 +10,5 @@ POI_COLUMNS: list[str] = [
     "latitude",
     "longitude",
     "poiId",
+    "types",
 ]
