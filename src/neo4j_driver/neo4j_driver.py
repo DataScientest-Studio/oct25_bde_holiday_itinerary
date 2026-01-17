@@ -4,6 +4,7 @@ from sys import exit
 from typing import Any, Dict, List, Literal
 
 import numpy as np
+from loguru import logger
 from neo4j import GraphDatabase
 from python_tsp.exact import solve_tsp_dynamic_programming
 
@@ -17,7 +18,6 @@ class Neo4jDriver:
 
         signal(SIGINT, self.handle_exit_signal)
         signal(SIGTERM, self.handle_exit_signal)
-        self.create_roads()
 
     def execute_query(self, query: str, **kwargs: Any) -> list[dict[Any, Any]] | None:
         with self.driver.session() as session:
@@ -280,6 +280,7 @@ class Neo4jDriver:
         return np.inf  # type: ignore[no-any-return]
 
     def create_weight_matrix(self, cities: list[str]) -> np.ndarray[Any, Any]:
+        logger.info("Creating weight matrix...")
         n = len(cities)
         weights: list[list[float]] = np.full((n, n), np.inf)
         for i in range(0, n):
@@ -290,9 +291,12 @@ class Neo4jDriver:
                     continue
                 weights[i][j] = self.get_total_distance_between_cities(start=start, dest=dest)
                 weights[j][i] = weights[i][j]
+        logger.info("Created weight matrix.")
+        logger.debug(f"Matrix: {weights}.")
         return weights
 
     def get_cities_for_poiIds(self, poi_ids: list[str]) -> dict[str, list[str]]:
+        logger.info(f"Getting cities for poiIds {poi_ids}")
         query = """
             UNWIND $poiIds AS poiId
             MATCH (p:POI {poiId: poiId})
@@ -300,6 +304,7 @@ class Neo4jDriver:
             RETURN collect(city) AS cities
         """
         result = self.execute_query(query, poiIds=poi_ids)
+        logger.debug(f"Result: {result}")
         return {"cities": [city for city in result[0]] if result else []}
 
     def get_route(self, start: str, dest: str) -> list[dict[str, float]]:
@@ -324,10 +329,13 @@ class Neo4jDriver:
             ] AS coords
         """
         result = self.execute_query(query, start=start, dest=dest)
+        logger.debug(f"(Start/Dest) = Result: ({start}/{dest}) = {result}")
         return result[0]["coords"] if result else [{}]
 
     def calculate_tsp(self, weights: np.ndarray[Any, Any], cities: list[str]) -> dict[str, list[str] | float]:
+        logger.info("Calculated tsp...")
         permutation, distance = solve_tsp_dynamic_programming(weights)
+        logger.debug(f"Permuation: {permutation}, distance: {distance}")
         return {
             "city_order": [cities[i] for i in permutation],
             "total_distance": distance,
@@ -335,12 +343,15 @@ class Neo4jDriver:
         }
 
     def get_city_route(self, cities: list[str]) -> list[list[float]]:
+        logger.info("Creating route from city to city...")
         route: list[list[float]] = []
         for i in range(len(cities) - 1):
             part = self.get_route(cities[i], cities[i + 1])
             if route and part:
                 part = part[1:]
             route.extend([item for item in part])
+        logger.debug(f"Route: {route}")
+        logger.info("Created route.")
         return route
 
     def calculate_shortest_path_no_return(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
@@ -362,6 +373,7 @@ class Neo4jDriver:
         return tsp_result
 
     def calculate_shortest_round_tour(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
+        logger.info("Calculating round tour...")
         cities = self.get_cities_for_poiIds(poi_ids)["cities"]
         weights = self.create_weight_matrix(cities)
         return self.calculate_tsp(weights, cities)
