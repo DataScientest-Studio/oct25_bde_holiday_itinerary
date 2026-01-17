@@ -19,6 +19,7 @@ class PoisOverview:
             if params != st.session_state.old_params:
                 try:
                     pois = get_request("/poi/filter", params).get("pois", {})
+                    logger.warning(pois)
                     st.session_state.overview = pd.DataFrame(pois, columns=POI_COLUMNS) if pois else init_empty_df()
                     st.session_state.overview.fillna("", inplace=True)
                     st.session_state.old_params = params
@@ -32,17 +33,22 @@ class PoisOverview:
             key=key,
             height=500,
             hide_index=True,
-            column_order=["label", "city", "description"],
+            column_order=["label", "city", "types", "description"],
             column_config={
                 "label": st.column_config.TextColumn(
                     "POI",
-                    width=100,
+                    width=120,
                     help="The label of the POI.",
                 ),
                 "city": st.column_config.TextColumn(
                     "Location",
-                    width=100,
+                    width=80,
                     help="Location of the POI.",
+                ),
+                "types": st.column_config.TextColumn(
+                    "POI Type(s)",
+                    width=170,
+                    help="Type(s) of the POI.",
                 ),
                 "description": st.column_config.TextColumn(
                     "Description",
