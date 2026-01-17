@@ -19,7 +19,7 @@ class Route:
                 key=key,
                 height=500,
                 hide_index=True,
-                column_order=["label", "city"],
+                column_order=["label", "types", "city"],
                 column_config={
                     "label": st.column_config.TextColumn(
                         "POI",
