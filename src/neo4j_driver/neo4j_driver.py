@@ -68,7 +68,7 @@ class Neo4jDriver:
                 ORDER BY n.city, n.label
                 MATCH (n)-[:IS_A]->(tAll:POIType)
                 WITH n, collect(DISTINCT tAll.typeId) AS poiTypes
-                RETURN collect(n { .*, types: poiTypes }) AS pois
+                RETURN collect(n { .*, types: apoc.text.join(poiTypes, ", ") }) AS pois
             """
         else:
             query = """
@@ -77,7 +77,7 @@ class Neo4jDriver:
                     AND ($types IS NULL OR tFilter.typeId IN $types)
                 MATCH (n)-[:IS_A]->(tAll:POIType)
                 WITH n, collect(DISTINCT tAll.typeId) AS poiTypes
-                RETURN collect(n { .*, types: poiTypes }) AS pois
+                RETURN collect(n { .*, types: apoc.text.join(poiTypes, ", ") }) AS pois
             """
 
         result = self.execute_query(query, **kwargs)
