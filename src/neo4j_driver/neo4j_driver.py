@@ -227,6 +227,22 @@ class Neo4jDriver:
         records = self.execute_query(query, poi_id=poi_id, radius=radius)
         return {"nearby": records if records else []}
 
+    def create_roads(self) -> None:
+        query = """
+            CALL gds.graph.project(
+                'city-road-graph',
+                'City',
+                {
+                    ROAD_TO: {
+                        type: 'ROAD_TO',
+                        orientation: 'UNDIRECTED',
+                        properties: ['km']
+                    }
+                }
+            )
+        """
+        self.execute_query(query)
+
     def get_distance_between_cities(self, start: str, dest: str) -> float:
         query = """
             MATCH (s:City {cityId: $start_city})
@@ -262,14 +278,16 @@ class Neo4jDriver:
             return result[0]["distance"]  # type: ignore[no-any-return]
         return np.inf  # type: ignore[no-any-return]
 
-    def create_weight_matrix(self, poi_ids: list[str]) -> np.ndarray[Any, Any]:
-        n = len(poi_ids)
+    def create_weight_matrix(self, cities: list[str]) -> np.ndarray[Any, Any]:
+        n = len(cities)
         weights: list[list[float]] = np.full((n, n), np.inf)
         for i in range(0, n):
+            start = cities[i]
             for j in range(i + 1, n):
-                if i == j:
+                dest = cities[j]
+                if start == dest:
                     continue
-                weights[i][j] = self.calculate_distance_between_two_nodes(poi1_id=poi_ids[i], poi2_id=poi_ids[j])
+                weights[i][j] = self.get_distance_between_cities(start=start, dest=dest)
                 weights[j][i] = weights[i][j]
         return weights
 
