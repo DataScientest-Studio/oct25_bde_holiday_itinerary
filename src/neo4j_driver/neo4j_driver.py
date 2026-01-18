@@ -363,13 +363,11 @@ class Neo4jDriver:
         logger.info("Calculated tsp...")
         permutation, distance = solve_tsp_dynamic_programming(weights)
         logger.debug(f"Permuation: {permutation}, distance: {distance}")
-        ret = {
+        return {
             "city_order": [cities[i] for i in permutation],
             "total_distance": distance,
             "route": self.get_city_route(cities),
         }
-        logger.info(ret)
-        return ret
 
     def get_city_route(self, cities: list[str]) -> list[list[float]]:
         logger.info("Creating route from city to city...")
@@ -384,27 +382,25 @@ class Neo4jDriver:
         return route
 
     def calculate_shortest_path_no_return(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
+        logger.info("Calculating round tour with no return and fixed start...")
         cities = self.get_cities_for_poiIds(poi_ids)["cities"]
         weights = self.create_weight_matrix(cities)
         weights[:, 0] = 0
         return self.calculate_tsp(weights, cities)
 
     def calculate_shortest_path_fixed_dest(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
+        logger.info("Calculating round tour with no return and fixed destination...")
         dest = poi_ids.pop()
-        start = poi_ids.pop(0)
+        logger.debug(f"dest: {dest}")
         poi_ids.insert(0, dest)
         tsp_result = self.calculate_shortest_path_no_return(poi_ids)
-        tsp_result["poi_order"] = list(reversed(tsp_result["poi_order"]))  # type: ignore[arg-type]
-        tsp_result["distance"] = self.calculate_distance_between_two_nodes(
-            start, tsp_result["poi_order"][0]
-        )  # type: ignore
-        tsp_result["poi_order"].insert(0, start)  # type: ignore
+        tsp_result["city_order"] = list(reversed(tsp_result["city_order"]))  # type: ignore[arg-type]
+        tsp_result["route"] = list(reversed(tsp_result["route"]))  # type: ignore[arg-type]
         return tsp_result
 
     def calculate_shortest_round_tour(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
         logger.info("Calculating round tour...")
         cities = self.get_cities_for_poiIds(poi_ids)["cities"]
-        logger.debug(cities)
         weights = self.create_weight_matrix(cities)
         return self.calculate_tsp(weights, cities)
 
