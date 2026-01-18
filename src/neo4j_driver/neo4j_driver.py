@@ -261,10 +261,9 @@ class Neo4jDriver:
             RETURN totalCost AS distance;
         """
 
-        if result := self.execute_query(query, start=start, dest=dest):
-            return result[0]["distance"]  # type: ignore[no-any-return]
-        # TODO: handle not existing node
-        return np.inf  # type: ignore[no-any-return]
+        result = self.execute_query(query, start=start, dest=dest)
+        logger.debug(f"Result: {result}")
+        return result[0]["distance"] if result else np.inf
 
     def calculate_distance_between_two_nodes(self, poi1_id: str, poi2_id: str) -> float:
         query = """
@@ -281,6 +280,7 @@ class Neo4jDriver:
 
     def create_weight_matrix(self, cities: list[str]) -> np.ndarray[Any, Any]:
         logger.info("Creating weight matrix...")
+        logger.debug(f"Cities: {cities}")
         n = len(cities)
         weights: list[list[float]] = np.full((n, n), np.inf)
         for i in range(0, n):
@@ -305,7 +305,7 @@ class Neo4jDriver:
         """
         result = self.execute_query(query, poiIds=poi_ids)
         logger.debug(f"Result: {result}")
-        return {"cities": [city for city in result[0]] if result else []}
+        return result[0] if result else {"cities": []}
 
     def get_route(self, start: str, dest: str) -> list[dict[str, float]]:
         query = """
@@ -375,6 +375,7 @@ class Neo4jDriver:
     def calculate_shortest_round_tour(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
         logger.info("Calculating round tour...")
         cities = self.get_cities_for_poiIds(poi_ids)["cities"]
+        logger.debug(cities)
         weights = self.create_weight_matrix(cities)
         return self.calculate_tsp(weights, cities)
 
