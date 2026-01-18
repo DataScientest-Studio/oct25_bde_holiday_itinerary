@@ -357,15 +357,19 @@ class Neo4jDriver:
         logger.debug(f"(Start/Dest) = Result: ({start}/{dest}) = {result}")
         return result[0]["coords"] if result else [{}]
 
-    def calculate_tsp(self, weights: np.ndarray[Any, Any], cities: list[str]) -> dict[str, list[str] | float]:
+    def calculate_tsp(
+        self, weights: np.ndarray[Any, Any], cities: list[str]
+    ) -> dict[str, list[str] | float | list[list[float]]]:
         logger.info("Calculated tsp...")
         permutation, distance = solve_tsp_dynamic_programming(weights)
         logger.debug(f"Permuation: {permutation}, distance: {distance}")
-        return {
+        ret = {
             "city_order": [cities[i] for i in permutation],
             "total_distance": distance,
             "route": self.get_city_route(cities),
         }
+        logger.info(ret)
+        return ret
 
     def get_city_route(self, cities: list[str]) -> list[list[float]]:
         logger.info("Creating route from city to city...")
