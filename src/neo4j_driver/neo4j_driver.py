@@ -1,7 +1,5 @@
 from typing import Any, Dict, List, Literal
 
-import numpy as np
-
 from .base import Base
 from .city import City
 from .tsp import TSP
@@ -214,16 +212,3 @@ class Neo4jDriver(Base, City, TSP):
         """
         records = self.execute_query(query, poi_id=poi_id, radius=radius)
         return {"nearby": records if records else []}
-
-    def calculate_distance_between_two_nodes(self, poi1_id: str, poi2_id: str) -> float:
-        query = """
-            MATCH (p1:POI {poiId: $poi1_id})
-            MATCH (p2:POI {poiId: $poi2_id})
-            RETURN point.distance(
-                point({latitude: p2.latitude, longitude: p2.longitude}),
-                point({latitude: p1.latitude, longitude: p1.longitude})
-            ) AS distance
-        """
-        if result := self.execute_query(query, poi1_id=poi1_id, poi2_id=poi2_id):
-            return result[0]["distance"]  # type: ignore[no-any-return]
-        return np.inf  # type: ignore[no-any-return]
