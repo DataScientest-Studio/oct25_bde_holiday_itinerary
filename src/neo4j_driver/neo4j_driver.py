@@ -1,7 +1,6 @@
 from typing import Any, Dict, List, Literal
 
 import numpy as np
-from python_tsp.exact import solve_tsp_dynamic_programming
 
 from .base import Base
 from .city import City
@@ -228,61 +227,3 @@ class Neo4jDriver(Base, City, TSP):
         if result := self.execute_query(query, poi1_id=poi1_id, poi2_id=poi2_id):
             return result[0]["distance"]  # type: ignore[no-any-return]
         return np.inf  # type: ignore[no-any-return]
-
-    def shortest_path_between_all_nodes_with_fixed_start_and_fixed_end(
-        self, poi_ids: list[str], end: str
-    ) -> dict[str, list[str] | float]:
-        # Does not work. Never will.
-        poi_ids.remove(end)
-        weights_to_end = [self.calculate_distance_between_two_nodes(poi1_id=end, poi2_id=node) for node in poi_ids]
-        total_distance = np.inf
-        for _ in poi_ids:
-            cities = self.get_cities_for_poiIds(poi_ids)["cities"]
-            weights = self.create_weight_matrix(cities)
-            permutation, distance = solve_tsp_dynamic_programming(weights)
-            if distance + weights_to_end[permutation[-1]] < total_distance:
-                total_distance = distance + weights_to_end
-                # Need to modify value of weight smart. But how. Probably own algorithm.
-
-        return self.calculate_tsp(weights, poi_ids)
-
-    def create_edges(self, poi_ids: list[str]) -> None:
-        query = """
-            MATCH (p1:POI), (p2:POI)
-            WHERE p1.poiId <> p2.poiId
-                AND p1.poiId IN $poi_ids
-                AND p2.poiId IN $poi_ids
-            MERGE (p1)-[edge:CONNECTED]->(p2)
-            SET edge.distance = point.distance(p1.location, p2.location)
-        """
-        self.execute_query(query, poi_ids=poi_ids)
-
-    def delete_edges(self, poi_ids: list[str]) -> None:
-        query = """
-            MATCH (p1:POI)-[edge:CONNECTED]->(p2:POI)
-            WHERE p1.poiId IN $poi_ids AND p2.poiId IN $poi_ids
-            DELETE edge
-        """
-        self.execute_query(query, poi_ids=poi_ids)
-
-    def calculate_shortest_path_from_start_to_dest(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
-        try:
-            start = poi_ids[0]
-            end = poi_ids[-1]
-            self.create_edges(poi_ids)
-            query = """
-                MATCH (start:POI {poiId: $start})
-                MATCH (end:POI {poiId: $end})
-                CALL apoc.algo.dijkstra(start, end, 'CONNECTED>', 'distance') YIELD path, weight
-                RETURN path, weight
-            """
-            if result := self.execute_query(query, start=start, end=end):
-                poi_order = []
-                for node in result[0]["path"]:
-                    if isinstance(node, dict):
-                        poi_order.append(node["poiId"])
-                return {"poi_order": poi_order, "total_distance": result[0]["weight"]}
-            return {"poi_order": [], "total_distance": 0.0}
-
-        finally:
-            self.delete_edges(poi_ids)
