@@ -246,8 +246,8 @@ class Neo4jDriver:
 
     def get_total_distance_between_cities(self, start: str, dest: str) -> float:
         query = """
-            MATCH (s:City {cityId: $start_city})
-            MATCH (t:City {cityId: $end_city})
+            MATCH (s:City {cityId: $start})
+            MATCH (t:City {cityId: $dest})
 
             CALL gds.shortestPath.dijkstra.stream(
                 'city-road-graph',
