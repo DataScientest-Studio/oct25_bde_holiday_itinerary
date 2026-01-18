@@ -1,7 +1,6 @@
 from typing import Any, Dict, List, Literal
 
 import numpy as np
-from loguru import logger
 from python_tsp.exact import solve_tsp_dynamic_programming
 
 from .base import Base
@@ -229,23 +228,6 @@ class Neo4jDriver(Base, City, TSP):
         if result := self.execute_query(query, poi1_id=poi1_id, poi2_id=poi2_id):
             return result[0]["distance"]  # type: ignore[no-any-return]
         return np.inf  # type: ignore[no-any-return]
-
-    def calculate_shortest_path_no_return(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
-        logger.info("Calculating round tour with no return and fixed start...")
-        cities = self.get_cities_for_poiIds(poi_ids)["cities"]
-        weights = self.create_weight_matrix(cities)
-        weights[:, 0] = 0
-        return self.calculate_tsp(weights, cities)
-
-    def calculate_shortest_path_fixed_dest(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
-        logger.info("Calculating round tour with no return and fixed destination...")
-        dest = poi_ids.pop()
-        logger.debug(f"dest: {dest}")
-        poi_ids.insert(0, dest)
-        tsp_result = self.calculate_shortest_path_no_return(poi_ids)
-        tsp_result["city_order"] = list(reversed(tsp_result["city_order"]))  # type: ignore[arg-type]
-        tsp_result["route"] = list(reversed(tsp_result["route"]))  # type: ignore[arg-type]
-        return tsp_result
 
     def shortest_path_between_all_nodes_with_fixed_start_and_fixed_end(
         self, poi_ids: list[str], end: str
