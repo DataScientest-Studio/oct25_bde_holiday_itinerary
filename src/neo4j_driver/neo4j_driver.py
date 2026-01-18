@@ -5,9 +5,11 @@ from loguru import logger
 from python_tsp.exact import solve_tsp_dynamic_programming
 
 from .base import Base
+from .city import City
+from .tsp import TSP
 
 
-class Neo4jDriver(Base):
+class Neo4jDriver(Base, City, TSP):
     def __init__(self) -> None:
         self.init_driver()
 
@@ -215,27 +217,6 @@ class Neo4jDriver(Base):
         records = self.execute_query(query, poi_id=poi_id, radius=radius)
         return {"nearby": records if records else []}
 
-    def get_total_distance_between_cities(self, start: str, dest: str) -> float:
-        query = """
-            MATCH (s:City {cityId: $start})
-            MATCH (t:City {cityId: $dest})
-
-            CALL gds.shortestPath.dijkstra.stream(
-                'city-road-graph',
-                {
-                    sourceNode: id(s),
-                    targetNode: id(t),
-                    relationshipWeightProperty: 'km'
-                }
-            )
-            YIELD totalCost
-            RETURN totalCost AS distance;
-        """
-
-        result = self.execute_query(query, start=start, dest=dest)
-        logger.debug(f"Result: {result}")
-        return result[0]["distance"] if result else np.inf
-
     def calculate_distance_between_two_nodes(self, poi1_id: str, poi2_id: str) -> float:
         query = """
             MATCH (p1:POI {poiId: $poi1_id})
@@ -248,23 +229,6 @@ class Neo4jDriver(Base):
         if result := self.execute_query(query, poi1_id=poi1_id, poi2_id=poi2_id):
             return result[0]["distance"]  # type: ignore[no-any-return]
         return np.inf  # type: ignore[no-any-return]
-
-    def create_weight_matrix(self, cities: list[str]) -> np.ndarray[Any, Any]:
-        logger.info("Creating weight matrix...")
-        logger.debug(f"Cities: {cities}")
-        n = len(cities)
-        weights: list[list[float]] = np.full((n, n), np.inf)
-        for i in range(0, n):
-            start = cities[i]
-            for j in range(i + 1, n):
-                dest = cities[j]
-                if start == dest:
-                    continue
-                weights[i][j] = self.get_total_distance_between_cities(start=start, dest=dest)
-                weights[j][i] = weights[i][j]
-        logger.info("Created weight matrix.")
-        logger.debug(f"Matrix: {weights}.")
-        return weights
 
     def get_cities_for_poiIds(self, poi_ids: list[str]) -> dict[str, list[str]]:
         logger.info(f"Getting cities for poiIds {poi_ids}")
