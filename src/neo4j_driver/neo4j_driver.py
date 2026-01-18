@@ -2,21 +2,13 @@ from typing import Any, Dict, List, Literal
 
 from .base import Base
 from .city import City
+from .poi import POI
 from .tsp import TSP
 
 
-class Neo4jDriver(Base, City, TSP):
+class Neo4jDriver(Base, City, POI, TSP):
     def __init__(self) -> None:
         self.init_driver()
-
-    def get_poi(self, poi_id: str) -> dict[Any, Any]:
-        query = """
-            MATCH (p:POI {poiId: $poi_id})
-            RETURN p
-            LIMIT 1
-        """
-        poi = self.execute_query(query, poi_id=poi_id)
-        return poi[0]["p"] if poi else {}
 
     def get_filtered_pois(self, locations: list[str] | None, types: list[str] | None, radius: int) -> dict[str, Any]:
 
