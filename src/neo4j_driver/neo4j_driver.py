@@ -1,3 +1,4 @@
+import time
 from os import environ
 from signal import SIGINT, SIGTERM, signal
 from sys import exit
@@ -6,6 +7,7 @@ from typing import Any, Dict, List, Literal
 import numpy as np
 from loguru import logger
 from neo4j import GraphDatabase
+from neo4j.exceptions import AuthError, ServiceUnavailable
 from python_tsp.exact import solve_tsp_dynamic_programming
 
 
@@ -18,6 +20,29 @@ class Neo4jDriver:
 
         signal(SIGINT, self.handle_exit_signal)
         signal(SIGTERM, self.handle_exit_signal)
+
+        try:
+            self.wait_for_neo4j()
+            self.create_roads()
+            logger.success("Intitalized Neo4jDriver.")
+        except RuntimeError as err:
+            logger.error(err)
+            logger.info("Could not initialize Neo4jDriver")
+
+    def wait_for_neo4j(self, timeout=600):
+        start = time.time()
+
+        while True:
+            try:
+                with self.driver.session() as session:
+                    session.run("RETURN 1").consume()
+                logger.info("Neo4j is ready")
+                return
+            except (ServiceUnavailable, AuthError) as e:
+                if time.time() - start > timeout:
+                    raise RuntimeError("Neo4j did not start in time") from e
+                logger.info("Waiting for Neo4j...")
+                time.sleep(10)
 
     def execute_query(self, query: str, **kwargs: Any) -> list[dict[Any, Any]] | None:
         with self.driver.session() as session:
