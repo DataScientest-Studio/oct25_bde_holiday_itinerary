@@ -32,9 +32,9 @@ class Itinerary:
         match itinerary_type:
             case "Round trip":
                 return self.roundtrip(pois, start)
-            case "One-way trip (flexible end)":
+            case "One-way trip (fixed start)":
                 return self.one_way_trip_flex_end(pois, start)  # type: ignore[arg-type]
-            case "One-way trip (fixed destination)":
+            case "One-way trip (fixed end)":
                 return self.one_way_trip_flex_fixed_end(pois, start, end)  # type: ignore[arg-type]
             case _:
                 raise ValueError(f"'{itinerary_type}' is not a valid itinerary_type.")

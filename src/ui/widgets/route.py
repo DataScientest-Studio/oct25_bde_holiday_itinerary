@@ -99,8 +99,8 @@ class Route:
                     "Select itinerary type",
                     options=[
                         "Round trip",
-                        "One-way trip (flexible end)",
-                        "One-way trip (fixed destination)",
+                        "One-way trip (fixed start)",
+                        "One-way trip (fixed end)",
                     ],
                     key="itinerary_type",
                 )
