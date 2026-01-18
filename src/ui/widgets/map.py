@@ -51,11 +51,11 @@ class Map:
 
     def create_route_points(self) -> tuple[pdk.Layer, ...]:
         pois = st.session_state.route
-        if not st.session_state.ordered_route.empty:
-            start_poi = st.session_state.ordered_route.iloc[0]["poiId"]
-            pois = st.session_state.route[st.session_state.route["poiId"] != start_poi].reset_index(drop=True)
-            end_poi = st.session_state.ordered_route.iloc[0]["poiId"]
-            pois = pois[pois["poiId"] != end_poi].reset_index(drop=True)
+        # if st.session_state.ordered_route:
+        #     start_city = st.session_state.ordered_route.iloc[0]["poiId"]
+        #     pois = st.session_state.route[st.session_state.route["poiId"] != start_city].reset_index(drop=True)
+        #     end_poi = st.session_state.ordered_route.iloc[0]["poiId"]
+        #     pois = pois[pois["poiId"] != end_poi].reset_index(drop=True)
         return pdk.Layer(
             "ScatterplotLayer",
             id="route",
@@ -69,10 +69,11 @@ class Map:
         )
 
     def create_route_edges(self) -> pdk.Layer:
+        logger.warning(st.session_state.route_coords)
         route = pdk.Layer(
             "PathLayer",
             id="route-edges",
-            data=pd.DataFrame({"path": st.session_state.route_coords}),
+            data=[{"path": st.session_state.route_coords}],
             get_path="path",
             get_color=[0, 0, 0],
             width_min_pixels=1,
@@ -80,7 +81,12 @@ class Map:
         start = pdk.Layer(
             "ScatterplotLayer",
             id="start-node",
-            data=st.session_state.ordered_route.iloc[:1],
+            data=[
+                {
+                    "longitude": st.session_state.ordered_route[0][0],
+                    "latitude": st.session_state.ordered_route[0][1],
+                }
+            ],
             get_position=["longitude", "latitude"],
             radius_units="pixels",
             radius_min_pixels=3,
@@ -91,7 +97,12 @@ class Map:
         end = pdk.Layer(
             "ScatterplotLayer",
             id="end-node",
-            data=st.session_state.ordered_route.iloc[-1:],
+            data=[
+                {
+                    "longitude": st.session_state.ordered_route[-1][0],
+                    "latitude": st.session_state.ordered_route[-1][1],
+                }
+            ],
             get_position=["longitude", "latitude"],
             radius_units="pixels",
             radius_min_pixels=3,

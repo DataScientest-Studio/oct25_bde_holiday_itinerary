@@ -24,7 +24,7 @@ STATES: list[StateSpec] = [
     StateSpec("itinerary_type", ""),
     StateSpec("start_poi", ""),
     StateSpec("end_poi", ""),
-    StateSpec("ordered_route", init_empty_df()),
+    StateSpec("ordered_route", []),
     StateSpec("distance", 0.0),
     StateSpec("radius", 0),
     StateSpec("route_coords", []),
