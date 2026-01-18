@@ -108,26 +108,3 @@ class Neo4jDriver(Base, City, POI, TSP):
             max_distance=distance + distance_tol,
         )
         return result[0]
-
-    def get_nearby_points(self, poi_id: str, radius: float) -> dict[str, list[dict[Any, Any]]]:
-        query = """
-            MATCH (p1:POI {poiId: $poi_id})
-            MATCH (p2:POI)
-            WHERE p1 <> p2
-                AND point.distance(p1.location, p2.location) <= $radius
-            RETURN
-                p2.poiId AS poiId,
-                p2.label AS label,
-                p2.comment AS comment,
-                p2.description AS description,
-                p2.types AS types,
-                p2.homepage AS homepage,
-                p2.city AS city,
-                p2.postal_code AS postal_code,
-                p2.street AS street,
-                p2.location.latitude AS lat,
-                p2.location.longitude AS lon,
-                p2.additional_information AS additional_information
-        """
-        records = self.execute_query(query, poi_id=poi_id, radius=radius)
-        return {"nearby": records if records else []}
