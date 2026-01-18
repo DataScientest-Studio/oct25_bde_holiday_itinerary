@@ -87,8 +87,9 @@ class Route:
 
     def generate_nodes(self, key_to_exclude) -> list[str]:
         options = st.session_state.route["city"]
-        filtered = options[options != st.session_state[key_to_exclude]].unique().tolist()
-        return filtered
+        # filtered = options[options != st.session_state[key_to_exclude]].unique().tolist()
+        return options
+        # return filtered
 
     def create_submit_button(self) -> None:
         with st.container():
