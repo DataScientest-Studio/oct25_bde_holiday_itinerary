@@ -2,6 +2,7 @@ from typing import Any
 
 import numpy as np
 from loguru import logger
+from python_tsp.exact import solve_tsp_dynamic_programming
 
 
 class TSP:
@@ -23,3 +24,21 @@ class TSP:
         logger.info("Created weight matrix.")
         logger.debug(f"Matrix: {weights}.")
         return weights
+
+    def calculate_shortest_round_tour(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
+        logger.info("Calculating round tour...")
+        cities = self.get_cities_for_poiIds(poi_ids)["cities"]  # type: ignore[attr-defined]
+        weights = self.create_weight_matrix(cities)
+        return self.calculate_tsp(weights, cities)
+
+    def calculate_tsp(
+        self, weights: np.ndarray[Any, Any], cities: list[str]
+    ) -> dict[str, list[str] | float | list[list[float]]]:
+        logger.info("Calculated tsp...")
+        permutation, distance = solve_tsp_dynamic_programming(weights)
+        logger.debug(f"Permuation: {permutation}, distance: {distance}")
+        return {
+            "city_order": [cities[i] for i in permutation],
+            "total_distance": distance,
+            "route": self.get_city_route(cities),  # type: ignore[attr-defined]
+        }
