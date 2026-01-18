@@ -1,53 +1,15 @@
-import time
-from os import environ
-from signal import SIGINT, SIGTERM, signal
-from sys import exit
 from typing import Any, Dict, List, Literal
 
 import numpy as np
 from loguru import logger
-from neo4j import GraphDatabase
-from neo4j.exceptions import AuthError, ServiceUnavailable
 from python_tsp.exact import solve_tsp_dynamic_programming
 
+from .base import Base
 
-class Neo4jDriver:
+
+class Neo4jDriver(Base):
     def __init__(self) -> None:
-        uri = environ.get("NEO4J_URI", "bolt://neo4j:7687")
-        username = environ.get("NEO4J_USER", "neo4j")
-        passphrase = environ.get("NEO4J_PASSPHRASE", "")
-        self.driver = GraphDatabase.driver(uri, auth=(username, passphrase))
-
-        signal(SIGINT, self.handle_exit_signal)
-        signal(SIGTERM, self.handle_exit_signal)
-
-        try:
-            self.wait_for_neo4j()
-            self.create_roads()
-            logger.success("Intitalized Neo4jDriver.")
-        except RuntimeError as err:
-            logger.error(err)
-            logger.info("Could not initialize Neo4jDriver")
-
-    def wait_for_neo4j(self, timeout=600):
-        start = time.time()
-
-        while True:
-            try:
-                with self.driver.session() as session:
-                    session.run("RETURN 1").consume()
-                logger.info("Neo4j is ready")
-                return
-            except (ServiceUnavailable, AuthError) as e:
-                if time.time() - start > timeout:
-                    raise RuntimeError("Neo4j did not start in time") from e
-                logger.info("Waiting for Neo4j...")
-                time.sleep(10)
-
-    def execute_query(self, query: str, **kwargs: Any) -> list[dict[Any, Any]] | None:
-        with self.driver.session() as session:
-            records = session.run(query, **kwargs)
-            return [record.data() for record in records]
+        self.init_driver()
 
     def get_poi(self, poi_id: str) -> dict[Any, Any]:
         query = """
@@ -253,22 +215,6 @@ class Neo4jDriver:
         records = self.execute_query(query, poi_id=poi_id, radius=radius)
         return {"nearby": records if records else []}
 
-    def create_roads(self) -> None:
-        query = """
-            CALL gds.graph.project(
-                'city-road-graph',
-                'City',
-                {
-                    ROAD_TO: {
-                        type: 'ROAD_TO',
-                        orientation: 'UNDIRECTED',
-                        properties: ['km']
-                    }
-                }
-            )
-        """
-        self.execute_query(query)
-
     def get_total_distance_between_cities(self, start: str, dest: str) -> float:
         query = """
             MATCH (s:City {cityId: $start})
@@ -461,12 +407,3 @@ class Neo4jDriver:
 
         finally:
             self.delete_edges(poi_ids)
-
-    def close(self) -> None:
-        if self.driver:
-            self.driver.close()
-
-    def handle_exit_signal(self, signal_received: int, frame: Any) -> None:
-        print(f"\nSignal {signal_received} received. Closing Neo4j driver...")
-        self.close()
-        exit(signal_received)
