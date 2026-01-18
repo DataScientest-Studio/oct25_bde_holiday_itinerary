@@ -78,40 +78,42 @@ class Map:
             get_color=[0, 0, 0],
             width_min_pixels=1,
         )
+        start_lon, start_lat = st.session_state.route_coords[0]
         start = pdk.Layer(
             "ScatterplotLayer",
             id="start-node",
             data=[
                 {
-                    "longitude": st.session_state.ordered_route[0][0],
-                    "latitude": st.session_state.ordered_route[0][1],
+                    "longitude": start_lon,
+                    "latitude": start_lat,
                 }
             ],
             get_position=["longitude", "latitude"],
             radius_units="pixels",
-            radius_min_pixels=3,
-            radius_max_pixels=3,
+            radius_min_pixels=4,
             get_color=[0, 255, 0],
             pickable=True,
         )
-        end = pdk.Layer(
-            "ScatterplotLayer",
-            id="end-node",
-            data=[
-                {
-                    "longitude": st.session_state.ordered_route[-1][0],
-                    "latitude": st.session_state.ordered_route[-1][1],
-                }
-            ],
-            get_position=["longitude", "latitude"],
-            radius_units="pixels",
-            radius_min_pixels=3,
-            radius_max_pixels=3,
-            get_color=[255, 0, 255],
-            pickable=True,
-        )
 
-        return route, start, end
+        end_lon, end_lat = st.session_state.route_coords[-1]
+        if start_lon != end_lon and start_lat != end_lat:
+            end = pdk.Layer(
+                "ScatterplotLayer",
+                id="end-node",
+                data=[
+                    {
+                        "longitude": end_lon,
+                        "latitude": end_lat,
+                    }
+                ],
+                get_position=["longitude", "latitude"],
+                radius_units="pixels",
+                radius_min_pixels=4,
+                get_color=[255, 0, 255],
+                pickable=True,
+            )
+            return route, start, end
+        return route, start
 
     def center_map(self, data_pois: pd.DataFrame) -> tuple[float, float, int]:
         dfs = []
