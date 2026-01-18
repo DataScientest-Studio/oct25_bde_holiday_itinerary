@@ -1,10 +1,21 @@
+from typing import List
+
 from fastapi import APIRouter, Query, Request
+from pydantic import BaseModel
 
 router = APIRouter()
 
 
-@router.get("/shortest-round-tour")  # type: ignore[misc]
-def shortest_round_tour(request: Request, poi_ids: list[str] = Query(...)) -> dict[str, list[str] | float]:
+class TSPResponse(BaseModel):
+    city_order: List[str]
+    total_distance: float
+    route: List[List[float]]
+
+
+@router.get("/shortest-round-tour", response_model=TSPResponse)  # type: ignore[misc]
+def shortest_round_tour(
+    request: Request, poi_ids: list[str] = Query(...)
+) -> dict[str, list[str] | float | list[list[float]]]:
     driver = request.app.state.driver
     return driver.calculate_shortest_round_tour(poi_ids)  # type: ignore[no-any-return]
 
