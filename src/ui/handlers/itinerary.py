@@ -13,8 +13,8 @@ class Itinerary:
             self.request_itinerary_type(
                 st.session_state.itinerary_type,
                 st.session_state.route,
-                st.session_state.start_poi,
-                st.session_state.end_poi,
+                st.session_state.start_city,
+                st.session_state.dest_city,
             )
         )
         st.session_state.route["city"] = pd.Categorical(
@@ -61,21 +61,21 @@ class Itinerary:
         return itinerary["city_order"], itinerary["total_distance"], itinerary["route"]
 
     def prepare_params(
-        self, pois: pd.DataFrame, poi_start: str | None = None, poi_end: str | None = None
+        self, pois: pd.DataFrame, start_city: str | None = None, dest_city: str | None = None
     ) -> dict[str, Any]:
-        if poi_start:
-            poi_start = pois.loc[pois["label"] == poi_start, "poiId"].iloc[0]
-        if poi_end:
-            poi_end = pois.loc[pois["label"] == poi_end, "poiId"].iloc[0]
+        if start_city:
+            start_city = pois.loc[pois["city"] == start_city, "poiId"].iloc[0]
+        if dest_city:
+            dest_city = pois.loc[pois["city"] == dest_city, "poiId"].iloc[0]
         poi_ids = pois["poiId"].tolist()
-        if poi_start:
-            logger.debug(f"Start POI {poi_start} is set. Removing it from existing list.")
-            poi_ids.remove(poi_start)
-            poi_ids = [poi_start] + poi_ids
-        if poi_end:
-            logger.debug(f"End POI {poi_end} is set. Removing it from existing list.")
-            poi_ids.remove(poi_end)
-            poi_ids += [poi_end]
+        if start_city:
+            logger.debug(f"Start POI {start_city} is set. Removing it from existing list.")
+            poi_ids.remove(start_city)
+            poi_ids = [start_city] + poi_ids
+        if dest_city:
+            logger.debug(f"End POI {dest_city} is set. Removing it from existing list.")
+            poi_ids.remove(dest_city)
+            poi_ids += [dest_city]
 
         logger.info("Created parameter for trip tour.")
         return {"poi_ids": poi_ids}

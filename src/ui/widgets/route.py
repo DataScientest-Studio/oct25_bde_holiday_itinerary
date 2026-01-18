@@ -56,17 +56,17 @@ class Route:
         with st.container():
             start, end = st.columns([1, 1], vertical_alignment="bottom")
 
-            start_options = self.generate_nodes("end_poi")
-            end_options = self.generate_nodes("start_poi")
+            start_options = self.generate_nodes("dest_city")
+            end_options = self.generate_nodes("start_city")
 
             with start:
                 st.selectbox(
-                    "Start POI",
+                    "Start City",
                     options=start_options,
-                    key="start_poi",
+                    key="start_city",
                     index=(
-                        start_options.index(st.session_state.start_poi)
-                        if st.session_state.get("start_poi") in start_options
+                        start_options.index(st.session_state.start_city)
+                        if st.session_state.get("start_city") in start_options
                         else None
                     ),
                     placeholder="Select start POI",
@@ -74,20 +74,20 @@ class Route:
 
             with end:
                 st.selectbox(
-                    "End POI",
+                    "Destination City",
                     options=end_options,
-                    key="end_poi",
+                    key="end_city",
                     index=(
-                        end_options.index(st.session_state.end_poi)
-                        if st.session_state.get("end_poi") in end_options
+                        end_options.index(st.session_state.dest_city)
+                        if st.session_state.get("dest_city") in end_options
                         else None
                     ),
                     placeholder="Select end POI",
                 )
 
     def generate_nodes(self, key_to_exclude) -> list[str]:
-        options = st.session_state.route["label"]
-        filtered = options[options != st.session_state[key_to_exclude]].tolist()
+        options = st.session_state.route["city"]
+        filtered = options[options != st.session_state[key_to_exclude]].unique().tolist()
         return filtered
 
     def create_submit_button(self) -> None:
