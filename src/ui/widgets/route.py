@@ -48,8 +48,7 @@ class Route:
         logger.debug("Initializing route controller...")
         self.create_controllers()
         self.create_submit_button()
-        with st.container(horizontal_alignment="right", vertical_alignment="bottom"):
-            st.button("Delete POI", on_click=self.handler.delete_poi)
+        self.create_lowest_area()
         logger.info("Initialized route controller...")
 
     def create_controllers(self) -> None:
@@ -107,3 +106,13 @@ class Route:
             with button:
                 with st.container(horizontal_alignment="right", vertical_alignment="bottom"):
                     st.button("Calculate route", on_click=self.handler.calculate_itinerary)
+
+    def create_lowest_area(self) -> None:
+        with st.container():
+            distance, delete = st.columns([1, 1], vertical_alignment="bottom")
+            with distance:
+                if st.session_state.distance > 0.0:
+                    st.markdown(f"🛣️ Itinerary Distance **{st.session_state.distance:.2f} km**")
+            with delete:
+                with st.container(horizontal_alignment="right", vertical_alignment="bottom"):
+                    st.button("Delete POI", on_click=self.handler.delete_poi)
