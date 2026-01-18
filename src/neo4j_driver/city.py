@@ -1,3 +1,5 @@
+from typing import Any
+
 import numpy as np
 from loguru import logger
 
@@ -74,3 +76,23 @@ class City:
         result = self.execute_query(query, start=start, dest=dest)  # type: ignore[attr-defined]
         logger.debug(f"(Start/Dest) = Result: ({start}/{dest}) = {result}")
         return result[0]["coords"] if result else [{}]
+
+    def get_city(self, city_id: str) -> dict[str, Any]:
+        logger.info(f"Get city {city_id} from database.")
+        query = """
+        MATCH (c:City {cityId: $city_id})
+        RETURN c
+        LIMIT 1
+        """
+        city = self.execute_query(query, city_id=city_id)  # type: ignore[attr-defined]
+
+        return city[0]["c"] if city else {}
+
+    def get_cities(self) -> dict[str, Any]:
+        logger.info("Get all cities from database.")
+        query = """
+        MATCH (n:City)
+        RETURN n.name as name, n.population as population, n.latitude as latitude, n.longitude as longitude"""
+        cities = self.execute_query(query)  # type: ignore[attr-defined]
+
+        return {"cities": [c for c in cities] if cities else []}

@@ -80,22 +80,6 @@ class Neo4jDriver(Base, City, TSP):
         types = self.execute_query(query)
         return {"types": [t["typeId"] for t in types] if types else []}
 
-    def get_city(self, city_id: str) -> dict[str, Any]:
-        query = """
-        MATCH (c:City {cityId: $city_id})
-        RETURN c
-        LIMIT 1
-        """
-        city = self.execute_query(query, city_id=city_id)
-        return city[0]["c"] if city else {}
-
-    def get_cities(self) -> dict[str, Any]:
-        query = """
-        MATCH (n:City)
-        RETURN n.name as name, n.population as population, n.latitude as latitude, n.longitude as longitude"""
-        cities = self.execute_query(query)
-        return {"cities": [c for c in cities] if cities else []}
-
     def get_poi_for_city(self, city_id: str, categories: List | None = None) -> List[dict[str, Any]]:
         query = """
         MATCH (c:City {cityId: $city_id}) <- [r:IS_IN] - (p:POI) - [is_a:IS_A] -> (t:POIType)
