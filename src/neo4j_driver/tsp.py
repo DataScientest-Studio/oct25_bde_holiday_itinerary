@@ -25,12 +25,6 @@ class TSP:
         logger.debug(f"Matrix: {weights}.")
         return weights
 
-    def calculate_shortest_round_tour(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
-        logger.info("Calculating round tour...")
-        cities = self.get_cities_for_poiIds(poi_ids)["cities"]  # type: ignore[attr-defined]
-        weights = self.create_weight_matrix(cities)
-        return self.calculate_tsp(weights, cities)
-
     def calculate_tsp(
         self, weights: np.ndarray[Any, Any], cities: list[str]
     ) -> dict[str, list[str] | float | list[list[float]]]:
@@ -42,6 +36,12 @@ class TSP:
             "total_distance": distance,
             "route": self.get_city_route(cities),  # type: ignore[attr-defined]
         }
+
+    def calculate_shortest_round_tour(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
+        logger.info("Calculating round tour...")
+        cities = self.get_cities_for_poiIds(poi_ids)["cities"]  # type: ignore[attr-defined]
+        weights = self.create_weight_matrix(cities)
+        return self.calculate_tsp(weights, cities)
 
     def calculate_shortest_path_no_return(self, poi_ids: list[str]) -> dict[str, list[str] | float]:
         logger.info("Calculating round tour with no return and fixed start...")
