@@ -28,8 +28,19 @@ class City:
         logger.info("Calculated distance.")
         return result[0]["distance"] if result else np.inf
 
-    def get_cities_for_poiIds(self, poi_ids: list[str]) -> dict[str, list[str]]:
+    def get_cities_for_poiIds(self, poi_ids: list[str]) -> list[dict[str, Any]]:
         logger.info(f"Getting cities for poiIds {poi_ids}")
+        cities = []
+        for poi_id in poi_ids:
+            poi = self.get_poi(poi_id)  # type: ignore[attr-defined]
+            if not (city := self.get_city(poi["city"])):
+                city = self.get_nearest_city_by_coordinates(poi["latitude"], poi["longitude"])
+            if city in cities:
+                continue
+            cities.append(city)
+        logger.debug(f"Cities: {cities}")
+        return cities
+
         query = """
             UNWIND $poiIds AS poiId
             MATCH (p:POI {poiId: poiId})
