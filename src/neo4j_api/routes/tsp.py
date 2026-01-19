@@ -7,7 +7,7 @@ router = APIRouter()
 
 
 class TSPResponse(BaseModel):
-    city_order: List[str]
+    poi_order: List[str]
     total_distance: float
     route: List[List[float]]
 

@@ -3,6 +3,8 @@ from typing import Any, Dict, List, Literal
 import numpy as np
 from loguru import logger
 
+from .city_poi import CityPois
+
 
 class City:
     def get_total_distance_between_cities(self, start: str, dest: str) -> float:
@@ -28,41 +30,28 @@ class City:
         logger.info("Calculated distance.")
         return result[0]["distance"] if result else np.inf
 
-    def get_cities_for_poiIds(self, poi_ids: list[str]) -> list[dict[str, Any]]:
+    def get_city_pois(self, poi_ids: list[str]) -> list[CityPois]:
         logger.info(f"Getting cities for poiIds {poi_ids}")
-        cities = []
+        city_pois: list[CityPois] = []
         for poi_id in poi_ids:
+            appended = False
             poi = self.get_poi(poi_id)  # type: ignore[attr-defined]
             if not (city := self.get_city(poi["city"])):
-                city = self.get_nearest_city_by_coordinates(poi["latitude"], poi["longitude"])
-            if city in cities:
-                continue
-            cities.append(city)
-        logger.debug(f"Cities: {cities}")
-        return cities
+                city = self.get_nearest_city_by_coordinates(poi["latitude"], poi["longitude"])["city"]
+            for city_poi in city_pois:
+                if city_poi.append(city, poi):
+                    appended = True
+                    break
+            if not appended:
+                city_pois.append(CityPois(city, poi))
+        logger.debug(f"Cities: {city_pois}")
+        return city_pois
 
-        query = """
-            UNWIND $poiIds AS poiId
-            MATCH (p:POI {poiId: poiId})
-            WITH DISTINCT p.city AS city
-            RETURN collect(city) AS cities
-        """
-        result = self.execute_query(query, poiIds=poi_ids)  # type: ignore[attr-defined]
-        logger.debug(f"Result: {result}")
-        return result[0] if result else {"cities": []}
-
-    def get_city_route(self, cities: list[str]) -> list[list[float]]:
+    def get_city_route(self, cities: list[CityPois]) -> list[list[float]]:
         logger.info("Creating route from city to city...")
         route: list[list[float]] = []
-        for i in range(len(cities)):
-            # for i in range(len(cities) - 1):
-            city = self.get_city(cities[i])
-            logger.warning(city)
-            route.append([city["longitude"], city["latitude"]])
-            # part = self.get_route(cities[i], cities[i + 1])
-            # if route and part:
-            #     part = part[1:]
-            # route.extend([item for item in part])
+        for city in cities:
+            route.append([city.city["longitude"], city.city["latitude"]])
         logger.debug(f"Route: {route}")
         logger.info("Created route.")
         return route

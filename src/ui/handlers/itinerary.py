@@ -17,11 +17,9 @@ class Itinerary:
                 st.session_state.dest_city,
             )
         )
-        st.session_state.route["city"] = pd.Categorical(
-            st.session_state.route["city"], categories=st.session_state.ordered_route, ordered=True
-        )
-
-        st.session_state.route = st.session_state.route.sort_values("city").reset_index(drop=True)
+        st.session_state.route = st.session_state.route.sort_values(
+            "poiId", key=lambda col: pd.Categorical(col, categories=st.session_state.ordered_route, ordered=True)
+        ).reset_index(drop=True)
 
     def request_itinerary_type(
         self, itinerary_type: str, pois: pd.DataFrame, start: str | None = None, end: str | None = None
@@ -43,13 +41,13 @@ class Itinerary:
         params = self.prepare_params(pois, start)
         itinerary = get_request("/tsp/shortest-round-tour", params)
         itinerary["route"].append(itinerary["route"][0])
-        return itinerary["city_order"], itinerary["total_distance"], itinerary["route"]
+        return itinerary["poi_order"], itinerary["total_distance"], itinerary["route"]
 
     def one_way_trip_flex_end(self, pois: pd.DataFrame, start: str) -> tuple[pd.DataFrame, float, list[list[float]]]:
         pois = pois.drop_duplicates(subset=["poiId", "label"], keep="first")
         params = self.prepare_params(pois, start)
         itinerary = get_request("/tsp/shortest-path-no-return", params)
-        return itinerary["city_order"], itinerary["total_distance"], itinerary["route"]
+        return itinerary["poi_order"], itinerary["total_distance"], itinerary["route"]
 
     def one_way_trip_flex_fixed_end(
         self, pois: pd.DataFrame, start: str, end: str
@@ -58,24 +56,22 @@ class Itinerary:
         params = self.prepare_params(pois, start, end)
         logger.warning(params)
         itinerary = get_request("/tsp/shortest-path-fixed-dest", params)
-        return itinerary["city_order"], itinerary["total_distance"], itinerary["route"]
+        return itinerary["poi_order"], itinerary["total_distance"], itinerary["route"]
 
-    def prepare_params(
-        self, pois: pd.DataFrame, start_city: str | None = None, dest_city: str | None = None
-    ) -> dict[str, Any]:
-        if start_city:
-            start_city = pois.loc[pois["city"] == start_city, "poiId"].iloc[0]
-        if dest_city:
-            dest_city = pois.loc[pois["city"] == dest_city, "poiId"].iloc[0]
+    def prepare_params(self, pois: pd.DataFrame, start: str | None = None, dest: str | None = None) -> dict[str, Any]:
+        if start:
+            start = pois.loc[pois["city"] == start, "poiId"].iloc[0]
+        if dest:
+            dest = pois.loc[pois["city"] == dest, "poiId"].iloc[0]
         poi_ids = pois["poiId"].tolist()
-        if start_city:
-            logger.debug(f"Start POI {start_city} is set. Removing it from existing list.")
-            poi_ids.remove(start_city)
-            poi_ids = [start_city] + poi_ids
-        if dest_city:
-            logger.debug(f"End POI {dest_city} is set. Removing it from existing list.")
-            poi_ids.remove(dest_city)
-            poi_ids += [dest_city]
+        if start:
+            logger.debug(f"Start POI {start} is set. Removing it from existing list.")
+            poi_ids.remove(start)
+            poi_ids = [start] + poi_ids
+        if dest:
+            logger.debug(f"End POI {dest} is set. Removing it from existing list.")
+            poi_ids.remove(dest)
+            poi_ids += [dest]
 
         logger.info("Created parameter for trip tour.")
         return {"poi_ids": poi_ids}
