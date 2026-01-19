@@ -43,11 +43,15 @@ class City:
     def get_city_route(self, cities: list[str]) -> list[list[float]]:
         logger.info("Creating route from city to city...")
         route: list[list[float]] = []
-        for i in range(len(cities) - 1):
-            part = self.get_route(cities[i], cities[i + 1])
-            if route and part:
-                part = part[1:]
-            route.extend([item for item in part])
+        for i in range(len(cities)):
+            # for i in range(len(cities) - 1):
+            city = self.get_city(cities[i])
+            logger.warning(city)
+            route.append([city["longitude"], city["latitude"]])
+            # part = self.get_route(cities[i], cities[i + 1])
+            # if route and part:
+            #     part = part[1:]
+            # route.extend([item for item in part])
         logger.debug(f"Route: {route}")
         logger.info("Created route.")
         return route
@@ -96,3 +100,18 @@ class City:
         cities = self.execute_query(query)  # type: ignore[attr-defined]
 
         return {"cities": [c for c in cities] if cities else []}
+
+    def get_nearest_city_by_coordinates(self, lat: float, lon: float) -> dict[str, Any]:
+        logger.info(f"Get nearest city by coordinates (lat/lon):({lat}/{lon}).")
+        query = """
+        MATCH (c:City)
+        WITH
+            c,
+            point({latitude: $latitude, longitude: $longitude}) as p,
+            point({latitude: c.latitude, longitude: c.longitude}) as cp
+        RETURN c as city, round(point.distance(p, cp)/1000, 2) as distance_km
+        ORDER BY distance_km ASC
+        LIMIT 1
+        """
+        result = self.execute_query(query, latitude=lat, longitude=lon)  # type: ignore[attr-defined]
+        return result[0]
