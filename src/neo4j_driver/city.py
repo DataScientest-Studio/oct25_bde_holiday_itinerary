@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Dict, List, Literal
 
 import numpy as np
 from loguru import logger
@@ -114,4 +114,58 @@ class City:
         LIMIT 1
         """
         result = self.execute_query(query, latitude=lat, longitude=lon)  # type: ignore[attr-defined]
+        return result[0]
+
+    def get_route_between_cities(self, start_city: str, end_city: str) -> List[Dict[str, Any]]:
+        logger.info(f"Get route between cities {start_city} and {end_city}.")
+        query = """
+        MATCH (s:City {cityId: $start_city})
+        MATCH (t:City {cityId: $end_city})
+
+        CALL gds.shortestPath.dijkstra.stream('city-road-graph', {
+            sourceNode: s,
+            targetNode: t,
+            relationshipWeightProperty: 'km'
+        })
+        YIELD totalCost, path
+        WITH
+            totalCost,
+            relationships(path) AS roads
+        UNWIND range(0, size(roads) - 1) AS i
+        WITH
+            totalCost,
+            startNode(roads[i]).name AS From_City,
+            endNode(roads[i]).name AS To_City,
+            round(roads[i].cost, 2) AS Distance_km
+        RETURN
+            From_City,
+            To_City,
+            Distance_km
+        """
+        result = self.execute_query(query, start_city=start_city, end_city=end_city)  # type: ignore[attr-defined]
+        return result
+
+    def get_roundtrip(
+        self, city_id: str, distance: float, distance_tol: float, max_hops: int, sort_distance: Literal["ASC", "DESC"]
+    ) -> Dict[str, Any]:
+        """quite limited round trip search"""
+        query = f"""
+        MATCH path = (start:City {{cityId: $city_id}}) - [:ROAD_TO*3..{max_hops}]-> (start)
+        WHERE all(n IN nodes(path)[1..-1] WHERE single(m IN nodes(path) WHERE m = n))
+        WITH path,
+             reduce(total = 0, r IN relationships(path) | total + r.km) AS totalDistance
+        WHERE $min_distance <= totalDistance <= $max_distance
+        RETURN
+            [node IN nodes(path) | node.cityId] AS cities_in_order,
+            totalDistance,
+            length(path) AS number_of_hops
+        ORDER BY totalDistance {sort_distance}
+        LIMIT 1;
+        """
+        result = self.execute_query(  # type: ignore[attr-defined]
+            query,
+            city_id=city_id,
+            min_distance=distance - distance_tol,
+            max_distance=distance + distance_tol,
+        )
         return result[0]
