@@ -38,7 +38,7 @@ python-tsp = "0.5.0"
 
 [tool.poetry.group.neo4j_api.dependencies]
 uvicorn = "0.38.0"
-fastapi = {version = "^0.122.0", extras = ["standard"]}
+fastapi = {version = "0.122.0", extras = ["standard"]}
 pandas = "^2.3.3"
 tqdm = "^4.67.1"
 
