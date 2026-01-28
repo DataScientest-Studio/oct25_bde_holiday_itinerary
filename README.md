@@ -108,7 +108,7 @@ File `type_nodes.csv` and `poi_is_a_type_rels.csv` contain that information.
 
 | row_name               | description                         | example                                |
 | ---------------------- | ----------------------------------- | -------------------------------------- |
-| id                     | integer - UUID from datatourisme.fr | 6-ffcd03f5-35d6-305d-95c7-e867e1453e98 |
+| poiId                  | integer - UUID from datatourisme.fr | 6-ffcd03f5-35d6-305d-95c7-e867e1453e98 |
 | label                  | name of the POI                     |                                        |
 | comment                | short description                   |                                        |
 | description            | long description                    |                                        |

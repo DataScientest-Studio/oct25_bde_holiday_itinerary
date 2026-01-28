@@ -4,6 +4,7 @@ FROM python:3.13-slim-trixie AS builder
 ENV PIP_DISABLE_PIP_VERSION_CHECK 1
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+ENV LOG_HI True
 
 ENV DISPLAY=:99
 
@@ -16,10 +17,10 @@ RUN python -m pip install --no-cache-dir poetry==2.2.1 && poetry config virtuale
 COPY ./pyproject.toml ./poetry.lock ./README.md ./
 
 
-# Build image for Neo4j_api target
+# Final image for Neo4j_api target
 FROM builder AS api-builder
 
-RUN poetry install --no-interaction --no-ansi --no-root --without dev,make_dataset
+RUN poetry install --no-interaction --no-ansi --no-root --without dev,make_dataset,ui
 RUN eval $(poetry env activate) && pip freeze > requirements.txt
 
 # API image
@@ -33,13 +34,36 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY ./src/neo4j_api /app/src/neo4j_api
 COPY ./src/neo4j_driver /app/src/neo4j_driver
 COPY ./src/data/make_dataset.py /app/src/data/make_dataset.py
+COPY ./src/logger/ ./logger
 
 ENV PYTHONPATH=/app
 
 WORKDIR /
 
-ENTRYPOINT ["uvicorn", "src.neo4j_api:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
+ENTRYPOINT ["uvicorn", "src.neo4j_api:app", "--host", "0.0.0.0", "--port", "8080"]
 
+
+# Build image for the streamlit-ui
+FROM builder AS ui-builder
+
+RUN poetry install --no-interaction --no-ansi --no-root --without dev,make_dataset,neo4j_api
+RUN eval $(poetry env activate) && pip freeze > requirements.txt
+
+# Final image for the streamlit-ui
+FROM python:3.13-slim-trixie AS ui
+
+ENV PYTHONPATH=/app
+
+WORKDIR /app
+
+COPY --from=ui-builder /builder/requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY ./src/streamlit_app.py ./app.py
+COPY ./src/ui/ ./ui
+COPY ./src/logger/ ./logger
+
+ENTRYPOINT [ "streamlit", "run", "app.py" ]
 
 # development image
 FROM python:3.13-slim-trixie AS development

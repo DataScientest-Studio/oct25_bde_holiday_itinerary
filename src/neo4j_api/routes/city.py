@@ -5,6 +5,13 @@ from fastapi import APIRouter, Query, Request
 router = APIRouter()
 
 
+@router.get("/all")  # type: ignore[misc]
+def get_cities(request: Request) -> dict[str, Any]:
+    driver = request.app.state.driver
+    cities = driver.get_cities()  # type: ignore
+    return cities
+
+
 @router.get("/{city_id}")  # type: ignore[misc]
 def get_city(request: Request, city_id: str) -> dict[str, Any]:
     driver = request.app.state.driver
