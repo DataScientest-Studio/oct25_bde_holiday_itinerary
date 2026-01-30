@@ -6,6 +6,12 @@ This dataset is intended for demonstration and experimentation with graph algori
 (e.g. routing, clustering, centrality) rather than real-world road accuracy.
 Roads are synthetically generated based on geographic proximity.
 
+## Prerequisites
+
+- Neo4j 5.x
+- Graph Data Science library 2.x
+- APOC Core enabled
+
 ## Original dataset
 
 Original dataset can be found [here](https://simplemaps.com/data/fr-cities)
