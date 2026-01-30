@@ -1,5 +1,11 @@
 # Process of creating cities-roads dataset
 
+## Purpose
+
+This dataset is intended for demonstration and experimentation with graph algorithms
+(e.g. routing, clustering, centrality) rather than real-world road accuracy.
+Roads are synthetically generated based on geographic proximity.
+
 ## Original dataset
 
 Original dataset can be found [here](https://simplemaps.com/data/fr-cities)
