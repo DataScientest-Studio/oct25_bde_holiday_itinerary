@@ -109,20 +109,21 @@ that means most of the cities are interconnected, but we have still 7 separated
 clusters. We need to connect the clusters as well. Since this is not much manual
 work, we will do the iterations manually. Repeat steps until only one cluster exists
 
-### Iterate
+## Iterate
 
 1. Project graph
 
 ```cypher
 call gds.graph.drop("cities", false);
 CALL gds.graph.project(
-  'cities',          // graph name
-  'City',               // node label
-  {ROAD_TO: {orientation: "UNDIRECTED"}}
+    'cities',          // graph name
+    'City',               // node label
+    {ROAD_TO: {orientation: "UNDIRECTED"}}
 );
-CALL gds.wcc.write('cities',{
-  writeProperty: 'wccId'
-});
+CALL gds.wcc.write(
+    'cities',
+    {writeProperty: 'wccId'}
+);
 ```
 
 2. verify clustering
@@ -158,7 +159,7 @@ ON CREATE SET
     r2.wcc_connect = true
 ```
 
-# Export dataset
+## Export dataset
 
 export `cities_nodes.csv`
 
