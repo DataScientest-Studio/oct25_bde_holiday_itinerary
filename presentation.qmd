@@ -8,6 +8,11 @@ format:
     slide-number: true
     header: "Holiday Itinerary Project"
     footer: "Data Architecture & Import"
+    mermaid:
+        theme: default
+  pdf:
+    classoption: [landscape]
+    pdf-max-pages-per-slide: 1
 ---
 
 ## 1. What the Project Solves
@@ -21,7 +26,53 @@ format:
 
 ---
 
-## 2. Data Organization
+## 2. Project Architecture
+```{mermaid}
+%%| fig-align: center
+graph LR
+    subgraph " "
+        direction TB
+
+        subgraph Client Layer
+            UI[Streamlit UI]
+        end
+
+        subgraph API Layer
+            Backend[FastAPI Backend]
+        end
+
+        subgraph Database Layer
+            Neo4j[(Neo4j Database)]
+        end
+
+        subgraph Orchestration Layer
+            Airflow[Apache Airflow]
+        end
+    end
+
+    subgraph External
+        DataTourisme[DataTourisme API/Feed]
+    end
+
+    UI -->|REST API| Backend
+    Backend -->|Bolt Protocol| Neo4j
+    Airflow -->|Trigger ETL via REST| Backend
+    Backend -->|Download/Extract| DataTourisme
+    Backend -->|Import Data| Neo4j
+    
+    %% Storage
+    subgraph Storage
+        Files[(Local Files / Volumes)]
+    end
+    
+    Backend -.-> Files
+    Neo4j -.-> Files
+    Airflow -.-> Files
+```
+
+---
+
+## 3. Data Organization
 
 ### Cities & Roads
 
@@ -110,11 +161,24 @@ format:
 
 ## 6. Data Import Pipeline
 
+:::: {.columns .v-center}
+::: {.column width="20%"}
+```{mermaid}
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'themeVariables': { 'primaryColor': '#e3f2fd', 'primaryTextColor': '#1565c0', 'primaryBorderColor': '#90caf9', 'lineColor': '#b0bec5', 'secondaryColor': '#fff9c4', 'tertiaryColor': '#f1f8e9', 'mainBkg': '#fafafa', 'nodeBorder': '#90caf9', 'clusterBkg': '#ffffff', 'clusterBorder': '#cfd8dc', 'edgeColor': '#90a4ae'}}}%%
+graph TB
+    Start([Start DAG]) --> Download[Download Data]
+    Download --> Unzip[Unzip Archive]
+    Unzip --> Extract[Extract & Process]
+    Extract --> Import[Import to Neo4j]
+    Import --> Cleanup[Cleanup Temp Files]
+    Cleanup --> End([End DAG])
+```
+:::
+
+::: {.column width="53%"}
 Orchestrated by **Apache Airflow** via **FastAPI** endpoints:
 
-:::: {.columns .v-center}
-
-::: {.column width="63%"}
 1. **Trigger Download:** Fetches ZIP from DATAtourisme.
 2. **Trigger Unzip:** Extracts data.
 3. **Trigger Extract:** Processes JSON and generates Neo4j-compatible CSVs.
@@ -124,10 +188,26 @@ Orchestrated by **Apache Airflow** via **FastAPI** endpoints:
 Whole pipeline takes around 10 min to complete
 :::
 
-::: {.column width="37%"}
-![](img/airflow_runs_detail.png){width=90% fig-align="right"}
+::: {.column width="20%"}
+
+```{mermaid}
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'themeVariables': { 'primaryColor': '#e3f2fd', 'primaryTextColor': '#1565c0', 'primaryBorderColor': '#90caf9', 'lineColor': '#b0bec5', 'secondaryColor': '#fff9c4', 'tertiaryColor': '#f1f8e9', 'mainBkg': '#fafafa', 'nodeBorder': '#90caf9', 'clusterBkg': '#ffffff', 'clusterBorder': '#cfd8dc', 'edgeColor': '#90a4ae'}}}%%
+graph TB
+    Trigger[Trigger Backend Task] --> Wait{Wait / Poll}
+    Wait --> Check{Task done?}
+    Check -->|Yes| Next[Next Step]
+    Check -->|No| Wait
+```
+
 :::
 ::::
+
+---
+
+## 6. Data Import Pipeline
+
+![](img/airflow_runs_detail.png){width=40% fig-align="right"}
 
 ---
 
