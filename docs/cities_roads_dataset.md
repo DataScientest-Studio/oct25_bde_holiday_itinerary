@@ -47,12 +47,12 @@ There we can use _lat_ and _lng_ for our coordinates. This gives us only the cit
 without any roads between them. I didn't find any suitable road dataset therefore
 I decided to simulate one in a naive way:
 
-Use KNN algorithm to find K-nearest neighbors of a city __A__ and connect it with
-it's K nearest cities.
+Use **K-Nearest-Neighbor (KNN)** algorithm to find K-nearest neighbors of a city
+__A__ and connect it with it's K nearest cities.
 
-## Create roads: KNN
+## Create roads: K-Nearest-Neighbor
 
-Used KNN with `K = 5` which I found reasonable.
+Used KNN with `K = 5` as a compromise between connectivity and sparsity.
 
 ```cypher
 match (c1:City)
@@ -71,7 +71,10 @@ merge (c2) - [r2:ROAD_TO] -> (c1)
 on create set r2.km = round(distance/1000, 2);
 ```
 
-We can verify the cities are interconnected using WCC algorithm.
+## Connectivity verification
+
+After creating roads, we verify graph connectivity using the **Weakly Connected
+Components (WCC)** algorithm.
 
 First create a graph projection
 
@@ -83,7 +86,7 @@ CALL gds.graph.project(
 );
 ```
 
-and call WCC:
+Then run WCC:
 
 ```cypher
 CALL gds.wcc.stream('cities')
@@ -93,7 +96,7 @@ RETURN componentId AS component, size
 ORDER BY size ASC
 ```
 
-returns
+This yields the following component sizes:
 
 | component | size |
 | --------- | ---- |
@@ -105,92 +108,92 @@ returns
 | 39        | 10   |
 | 8         | 8    |
 
-that means most of the cities are interconnected, but we have still 7 separated
-clusters. We need to connect the clusters as well. Since this is not much manual
-work, we will do the iterations manually. Repeat steps until only one cluster exists
+Most cities belong to a single large component, but 7 smaller disconnected
+clusters remain. These clusters are connected in an additional iterative
+step, repeated until the graph consists of a single component.
 
 ## Iterate
 
 1. Project graph
 
-```cypher
-call gds.graph.drop("cities", false);
-CALL gds.graph.project(
-    'cities',          // graph name
-    'City',               // node label
-    {ROAD_TO: {orientation: "UNDIRECTED"}}
-);
-CALL gds.wcc.write(
-    'cities',
-    {writeProperty: 'wccId'}
-);
-```
+   ```cypher
+   call gds.graph.drop("cities", false);
+   CALL gds.graph.project(
+       'cities',          // graph name
+       'City',               // node label
+       {ROAD_TO: {orientation: "UNDIRECTED"}}
+   );
+   CALL gds.wcc.write(
+       'cities',
+       {writeProperty: 'wccId'}
+   );
+   ```
 
-2. verify clustering
+2. Verify clustering
 
-```cypher
-CALL gds.wcc.stream('cities')
-YIELD nodeId, componentId
-WITH componentId, count(*) AS size
-RETURN componentId AS component, size
-ORDER BY size ASC
-```
+   ```cypher
+   CALL gds.wcc.stream('cities')
+   YIELD nodeId, componentId
+   WITH componentId, count(*) AS size
+   RETURN componentId AS component, size
+   ORDER BY size ASC
+   ```
 
 3. Create connection between two nearest clusters
 
-```cypher
-MATCH (c1:City), (c2:City)
-WHERE c1.wccId <> c2.wccId
-WITH
-    c1,
-    c2,
-    point.distance(c1.location, c2.location) AS distance
-ORDER BY distance ASC
-LIMIT 1
+   ```cypher
+   MATCH (c1:City), (c2:City)
+   WHERE c1.wccId <> c2.wccId
+   WITH
+       c1,
+       c2,
+       point.distance(c1.location, c2.location) AS distance
+   ORDER BY distance ASC
+   LIMIT 1
 
-MERGE (c1)-[r1:ROAD_TO]->(c2)
-ON CREATE SET
-    r1.km = round(distance / 1000, 2),
-    r1.wcc_connect = true
+   MERGE (c1)-[r1:ROAD_TO]->(c2)
+   ON CREATE SET
+       r1.km = round(distance / 1000, 2),
+       r1.wcc_connect = true
 
-MERGE (c2)-[r2:ROAD_TO]->(c1)
-ON CREATE SET
-    r2.km = round(distance / 1000, 2),
-    r2.wcc_connect = true
-```
+   MERGE (c2)-[r2:ROAD_TO]->(c1)
+   ON CREATE SET
+       r2.km = round(distance / 1000, 2),
+       r2.wcc_connect = true
+   ```
 
-## Export dataset
+## Commands to export datasets
 
-export `cities_nodes.csv`
+- Exports City nodes to `cities_nodes.csv`:
 
-```cypher
-CALL apoc.export.csv.query(
-    'MATCH (c:City)
-    RETURN
-        c.id as `cityId:ID(City)`,
-        c.name as name,
-        c.administration as administration,
-        c.population as `population:DOUBLE`,
-        c.population_proper as `population_proper:DOUBLE`,
-        c.location.latitude as `latitude:DOUBLE`,
-        c.location.longitude as `longitude:DOUBLE`,
-        \'City\' as `:LABEL`',
-    'cities_nodes.csv',
-    {}
-)
-```
+  ```cypher
+  CALL apoc.export.csv.query(
+      'MATCH (c:City)
+      RETURN
+          c.id as `cityId:ID(City)`,
+          c.name as name,
+          c.administration as administration,
+          c.population as `population:DOUBLE`,
+          c.population_proper as `population_proper:DOUBLE`,
+          c.location.latitude as `latitude:DOUBLE`,
+          c.location.longitude as `longitude:DOUBLE`,
+          \'City\' as `:LABEL`',
+      'cities_nodes.csv',
+      {}
+  )
+  ```
 
-export `roads_rels.csv`
+- Exports Road relations to `roads_rels.csv`:
 
-```cypher
-CALL apoc.export.csv.query(
-    'MATCH (from:City)-[r:ROAD_TO]->(to:City)
-    RETURN
-        from.id AS `:START_ID(City)`,
-        to.id as `:END_ID(City)`,
-        r.km AS `km:DOUBLE`,
-        r.wcc_connect as `wcc_connect:BOOLEAN`',
-    'roads_rels.csv',
-    {}
-)
-```
+  ```cypher
+  CALL apoc.export.csv.query(
+      'MATCH (from:City)-[r:ROAD_TO]->(to:City)
+      RETURN
+          from.id AS `:START_ID(City)`,
+          to.id as `:END_ID(City)`,
+          r.km AS `km:DOUBLE`,
+          r.wcc_connect as `wcc_connect:BOOLEAN`',
+      'roads_rels.csv',
+      {}
+  )
+  ```
