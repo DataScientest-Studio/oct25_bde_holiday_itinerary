@@ -14,9 +14,9 @@ Roads are synthetically generated based on geographic proximity.
 
 ## Original dataset
 
-Original dataset can be found [here](https://simplemaps.com/data/fr-cities)
-It consists of 627 French cities which is enough for the demonstration purposes.
-The CSV file looks like so:
+Original dataset can be found [SimpleMaps - French Cities](https://simplemaps.com/data/fr-cities)
+It contains 627 French cities, which is enough for demonstration purposes.
+The CSV file has the following structure:
 
 | city        | lat     | lng     | country | iso2 | admin_name                 | capital | population | population_proper |
 | ----------- | ------- | ------- | ------- | ---- | -------------------------- | ------- | ---------- | ----------------- |
