@@ -54,6 +54,7 @@ graph LR
 - **Neo4j Database**: Stores the graph data, including Points of Interest (POIs), Cities, and their relationships (IS_IN, ROAD_TO, etc.).
 - **Apache Airflow**: Orchestrates the data ingestion and processing pipeline. It periodically triggers the Backend to download and import new data from DataTourisme.
 - **DataTourisme**: The external data source providing tourism-related information.
+
 ### Data Upload Process
 
 The following flow chart describes the orchestrated data upload process managed by Airflow.
@@ -69,7 +70,7 @@ graph LR
         Extract --> Import[Import to Neo4j]
         Import --> Cleanup[Cleanup Temp Files]
         Cleanup --> End([End DAG])
-    end    
+    end
 
     subgraph "Each Step Includes"
         Trigger[Trigger Backend Task] --> Poll{Wait for Completion}

@@ -67,12 +67,12 @@ graph LR
     Airflow -->|Trigger ETL via REST| Backend
     Backend -->|Download/Extract| DataTourisme
     Backend -->|Import Data| Neo4j
-    
+
     %% Storage
     subgraph Storage
         Files[(Local Files / Volumes)]
     end
-    
+
     Backend -.-> Files
     Neo4j -.-> Files
     Airflow -.-> Files
