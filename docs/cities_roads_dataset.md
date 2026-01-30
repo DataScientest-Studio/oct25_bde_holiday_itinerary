@@ -43,10 +43,12 @@ on create set
     city.location = point({latitude: toFloat(row.lat), longitude: toFloat(row.lng)})
 ```
 
-There we can use _lat_ and _lng_ for our coordinates. This gives us only the cities without any roads between them.
-I didn't find any suitable road dataset therefore I decided to simulate one in a naive way:
+There we can use _lat_ and _lng_ for our coordinates. This gives us only the cities
+without any roads between them. I didn't find any suitable road dataset therefore
+I decided to simulate one in a naive way:
 
-Use KNN algorithm to find K-nearest neighbors of a city __A__ and connect it with it's K nearest cities.
+Use KNN algorithm to find K-nearest neighbors of a city __A__ and connect it with
+it's K nearest cities.
 
 ## Create roads: KNN
 
@@ -103,9 +105,9 @@ returns
 | 39        | 10   |
 | 8         | 8    |
 
-that means most of the cities are interconnected, but we have still 7 separated clusters.
-We need to connect the clusters as well. Since this is not much manual work, we will do the iterations manually.
-Repeat steps until only one cluster exists
+that means most of the cities are interconnected, but we have still 7 separated
+clusters. We need to connect the clusters as well. Since this is not much manual
+work, we will do the iterations manually. Repeat steps until only one cluster exists
 
 ### Iterate
 
@@ -177,7 +179,11 @@ export `roads_rels.csv`
 ```cypher
  CALL apoc.export.csv.query(
             'MATCH (from:City)-[r:ROAD_TO]->(to:City)
-             RETURN from.id AS `:START_ID(City)`, to.id as `:END_ID(City)`, r.km AS `km:DOUBLE`, r.wcc_connect as `wcc_connect:BOOLEAN`',
+             RETURN
+                from.id AS `:START_ID(City)`,
+                to.id as `:END_ID(City)`,
+                r.km AS `km:DOUBLE`,
+                r.wcc_connect as `wcc_connect:BOOLEAN`',
             'roads_rels.csv',
             {}
         )
