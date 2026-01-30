@@ -139,18 +139,23 @@ ORDER BY size ASC
 
 ```cypher
 MATCH (c1:City), (c2:City)
-  WHERE c1.wccId <> c2.wccId
-  WITH c1, c2, point.distance(c1.location, c2.location) AS distance
-  ORDER BY distance ASC
-  LIMIT 1
-merge (c1) - [r1:ROAD_TO] -> (c2)
-on create set
-  r1.km = round(distance/1000, 2),
-  r1.wcc_connect = true
-merge (c2) - [r2:ROAD_TO] -> (c1)
-on create set
-  r2.km = round(distance/1000, 2),
-  r2.wcc_connect = true
+WHERE c1.wccId <> c2.wccId
+WITH
+    c1,
+    c2,
+    point.distance(c1.location, c2.location) AS distance
+ORDER BY distance ASC
+LIMIT 1
+
+MERGE (c1)-[r1:ROAD_TO]->(c2)
+ON CREATE SET
+    r1.km = round(distance / 1000, 2),
+    r1.wcc_connect = true
+
+MERGE (c2)-[r2:ROAD_TO]->(c1)
+ON CREATE SET
+    r2.km = round(distance / 1000, 2),
+    r2.wcc_connect = true
 ```
 
 # Export dataset
@@ -158,7 +163,7 @@ on create set
 export `cities_nodes.csv`
 
 ```cypher
- CALL apoc.export.csv.query(
+CALL apoc.export.csv.query(
     'MATCH (c:City)
     RETURN
         c.id as `cityId:ID(City)`,
@@ -177,14 +182,14 @@ export `cities_nodes.csv`
 export `roads_rels.csv`
 
 ```cypher
- CALL apoc.export.csv.query(
-            'MATCH (from:City)-[r:ROAD_TO]->(to:City)
-             RETURN
-                from.id AS `:START_ID(City)`,
-                to.id as `:END_ID(City)`,
-                r.km AS `km:DOUBLE`,
-                r.wcc_connect as `wcc_connect:BOOLEAN`',
-            'roads_rels.csv',
-            {}
-        )
+CALL apoc.export.csv.query(
+    'MATCH (from:City)-[r:ROAD_TO]->(to:City)
+    RETURN
+        from.id AS `:START_ID(City)`,
+        to.id as `:END_ID(City)`,
+        r.km AS `km:DOUBLE`,
+        r.wcc_connect as `wcc_connect:BOOLEAN`',
+    'roads_rels.csv',
+    {}
+)
 ```
