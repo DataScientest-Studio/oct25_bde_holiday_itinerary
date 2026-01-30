@@ -89,3 +89,5 @@ target/
 .mypy_cache/
 
 france_poi.csv
+
+.pytest_cache
