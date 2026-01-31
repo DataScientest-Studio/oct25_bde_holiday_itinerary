@@ -27,9 +27,9 @@ isort = "7.0.0"
 flake8 = "7.3.0"
 mypy = "1.18.2"
 pytest = "9.0.1"
-requests = "^2.32.5"
-matplotlib = "^3.10.8"
-basemap = "^2.0.0"
+requests = "2.32.5"
+matplotlib = "3.10.8"
+basemap = "2.0.0"
 
 [tool.poetry.group.neo4j_driver.dependencies]
 neo4j = "6.0.3"
@@ -39,17 +39,17 @@ python-tsp = "0.5.0"
 [tool.poetry.group.neo4j_api.dependencies]
 uvicorn = "0.38.0"
 fastapi = {version = "0.122.0", extras = ["standard"]}
-pandas = "^2.3.3"
-tqdm = "^4.67.1"
+pandas = "2.3.3"
+tqdm = "4.67.1"
 
 [tool.poetry.group.make_dataset.dependencies]
 pandas = "2.3.3"
 
 [tool.poetry.group.ui.dependencies]
 streamlit = "1.52.2"
-requests = "^2.32.5"
-pandas = "^2.3.3"
-pydeck = "^0.9.1"
+requests = "2.32.5"
+pandas = "2.3.3"
+pydeck = "0.9.1"
 
 [tool.isort]
 profile = "black"
