@@ -4,6 +4,24 @@ This document describes the automated pipeline used to import tourism data
 from [DATAtourisme.fr](https://www.datatourisme.fr/) into a [Neo4j](https://neo4j.com/)
 database, including orchestration, processing, and cleanup steps.
 
+## Table of contents
+
+- [Architecture Overview](#architecture-overview)
+- [Workflow Steps](#workflow-steps)
+  - [1. Trigger Download](#1-trigger-download)
+  - [2. Wait for Download Completion](#2-wait-for-download-completion)
+  - [3. Trigger Unzip](#3-trigger-unzip)
+  - [4. Wait for Unzip](#4-wait-for-unzip)
+  - [5. Trigger Extract Data](#5-trigger-extract-data)
+  - [6. Wait for Extract](#6-wait-for-extract)
+  - [7. Trigger Import Data](#7-trigger-import-data)
+  - [8. Wait for Import](#8-wait-for-import)
+  - [9. Trigger Cleanup](#9-trigger-cleanup)
+  - [10. Wait for Cleanup](#10-wait-for-cleanup)
+- [Configuration & Environment Variables](#configuration--environment-variables)
+- [Status and Locks](#status-and-locks)
+- [Spatial Indices and Relationships](#spatial-indices-and-relationships)
+
 ## Architecture Overview
 
 The data import is orchestrated by **Apache Airflow**, which triggers various stages
