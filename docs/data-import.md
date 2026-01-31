@@ -28,14 +28,14 @@ The data import is orchestrated by **Apache Airflow**, which triggers various st
 of the ETL process exposed through a **FastAPI** application (`neo4j_api`). The
 data is processed and finally imported into **Neo4j**.
 
-- **Airflow DAG**: `download-trigger`\
-  Orchestrates the data download and processing pipeline\
-  Defined in [`airflow/dags/data_download_trigger.py`](../airflow/dags/data_download_trigger.py)
-- **FastAPI Endpoints**:
-  Status and trigger endpoints for the data pipeline\
-  Defined in [`src/neo4j_api/routes/data_update.py`](../src/neo4j_api/routes/data_update.py)
-- **Database**: Neo4j
-  Stores the imported and processed data
+- **[Apache Airflow](https://airflow.apache.org/)**\
+  Orchestrates the data download and processing pipeline via scheduled DAGs
+  (defined in `airflow/dags/data_download_trigger.py`).
+- **[FastAPI](https://fastapi.tiangolo.com/)**\
+  Exposes trigger and status endpoints used by Airflow to control the data pipeline
+  (implemented in `src/neo4j_api/routes/data_update.py`).
+- **[Neo4j](https://neo4j.com/)**\
+  Graph database used to store the imported and processed tourism data.
 
 ## Workflow Steps
 
