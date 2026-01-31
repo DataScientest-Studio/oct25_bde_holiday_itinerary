@@ -23,7 +23,7 @@ efficient way.
 
 ## Directory Structure
 
-The frontend code is located in the [./src/](./src) directory alongside the backend
+The frontend code is located in the [*src/*](./src) directory alongside the backend
 services.
 
 ```text
