@@ -18,25 +18,32 @@ logic, data processing, and database interactions clearly isolated.
 
 ## Dependencies
 
-### Neo4j API
+1. **Neo4j API**
+   - **[FastAPI](https://fastapi.tiangolo.com/)** (`0.122.0`)\
+     Web framework used to expose REST endpoints and orchestrate backend services.
+   - **[Uvicorn](https://www.uvicorn.org/)** (`0.38.0`)\
+     ASGI server used to run the FastAPI application.
+   - **[Pandas](https://pandas.pydata.org/)** (`2.3.3`)\
+     Data processing and transformation library used during import and ETL steps.
+   - **[tqdm](https://tqdm.github.io/)** (`4.67.1`)\
+     Progress bar utility used to track long-running data import operations.
+2. **Neo4j Driver**
+   - **[Neo4j Python Driver](https://neo4j.com/docs/api/python-driver/current/)** (`6.0.3`)\
+     Official Neo4j driver used for database connectivity and query execution.
+   - **[NumPy](https://numpy.org/)** (`2.3.5`)\
+     Numerical computing library used for distance calculations and graph algorithms.
+   - **[python-tsp](https://github.com/fillipe-gsm/python-tsp)** (`0.5.0`)\
+     Traveling Salesman Problem solver used for itinerary optimization.
 
-- **[FastAPI](https://fastapi.tiangolo.com/)** (`0.122.0`)\
-  Web framework used to expose REST endpoints and orchestrate backend services.
-- **[Uvicorn](https://www.uvicorn.org/)** (`0.38.0`)\
-  ASGI server used to run the FastAPI application.
-- **[Pandas](https://pandas.pydata.org/)** (`2.3.3`)\
-  Data processing and transformation library used during import and ETL steps.
-- **[tqdm](https://tqdm.github.io/)** (`4.67.1`)\
-  Progress bar utility used to track long-running data import operations.
+## Configuration & Environment Variables
 
-### Neo4j Driver
-
-- **[Neo4j Python Driver](https://neo4j.com/docs/api/python-driver/current/)** (`6.0.3`)\
-  Official Neo4j driver used for database connectivity and query execution.
-- **[NumPy](https://numpy.org/)** (`2.3.5`)\
-  Numerical computing library used for distance calculations and graph algorithms.
-- **[python-tsp](https://github.com/fillipe-gsm/python-tsp)** (`0.5.0`)\
-  Traveling Salesman Problem solver used for itinerary optimization.
+1. **Neo4j Driver**
+   | Variable           | Description                                                                                              |
+   | ------------------ | -------------------------------------------------------------------------------------------------------- |
+   | `LOG_LEVEL`        | Log level for the application (e.g. `DEBUG`, `INFO`, `WARNING`, `ERROR`). Defaults to `INFO` if not set. |
+   | `NEO4J_URI`        | URI for the Neo4j database.                                                                              |
+   | `NEO4J_USER`       | Username for Neo4j.                                                                                      |
+   | `NEO4J_PASSPHRASE` | Password for Neo4j.                                                                                      |
 
 ## Backend Directory Structure
 
