@@ -1,5 +1,16 @@
 # Process of creating cities-roads dataset
 
+## Table of contents
+
+- [Purpose](#purpose)
+- [Prerequisites](#prerequisites)
+- [Original dataset](#original-dataset)
+- [Import dataset](#import-dataset)
+- [Create roads: K-Nearest-Neighbor](#create-roads-k-nearest-neighbor)
+- [Connectivity verification](#connectivity-verification)
+- [Iterate](#iterate)
+- [Commands to export datasets](#commands-to-export-datasets)
+
 ## Purpose
 
 This dataset is intended for demonstration and experimentation with graph algorithms
