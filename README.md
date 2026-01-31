@@ -1,132 +1,118 @@
 # Holiday Itinerary
 
+This repository contains a full-stack holiday itinerary planning application
+with a clear separation between frontend and backend responsibilities.
+
+## Frontend
+
+The frontend is implemented using **Streamlit** and provides a user interface
+for planning holiday trips. Users can select destinations, explore nearby
+points of interest (POIs), and navigate routes derived from the underlying
+data model.
+
+The frontend communicates exclusively with the backend API and does not
+access the database directly.
+
+Detailed information about the architecture can be found in
+[docs/frontend-architecture.md](docs/frontend-architecture.md).
+
+## Backend
+
+The backend is responsible for all data access, processing and orchestration
+and consists of the following components:
+
+- **API Layer**\
+  A Python-based API that exposes read-only endpoints for querying itinerary,
+  routing and POI data.
+- **Driver Layer**\
+  A dedicated Neo4j driver module that encapsulates all database access and
+  Cypher queries, isolating graph-specific logic from the API layer.
+- **Data Layer**\
+  A Neo4j graph database modeling cities, roads and points of interest to enable
+  relationship-heavy queries and routing use cases.
+- **Data Synchronization**\
+  Apache Airflow is used to periodically synchronize and reconcile external
+  tourism datasets with the Neo4j graph, ensuring data consistency over time.
+
+The entire system is containerized using Docker and Docker Compose to provide
+a reproducible and environment-independent setup.
+
+Detailed information about the architecture can be found in docs/backend-architecture.md.
+
 ## Dependencies
 
-- **[Python](https://www.python.org/)** (`>=3.13.0,<3.14`)
+- **[Python](https://www.python.org/)** (`>=3.13.0,<3.14`)\
   Core runtime used across the project.
-- **[Loguru](https://loguru.readthedocs.io/)** (`0.7.3`)
+- **[Loguru](https://loguru.readthedocs.io/)** (`0.7.3`)\
   Shared logging framework used by both frontend and backend.
-- **[Neo4j](https://neo4j.com/)** (`5.x`)
+- **[Neo4j](https://neo4j.com/)** (`5.x`)\
   Graph database used for storing cities, POIs, and routing data.
-- **[Docker](https://www.docker.com/)**
+- **[Docker](https://www.docker.com/)**\
   Container runtime used to run services consistently across environments.
-- **[Docker Compose](https://docs.docker.com/compose/)**
+- **[Docker Compose](https://docs.docker.com/compose/)**\
   Tooling to orchestrate multi-service setups such as Neo4j and backend APIs.
-- **[Make](https://www.gnu.org/software/make/)**
+- **[Make](https://www.gnu.org/software/make/)**\
   Task runner used to standardize common development and test commands.
 
-## Run instructions
+## Build & Execution Process
 
-This will be filled out.
+The project is fully containerized and designed to be executed consistently across
+development and production-like environments.
 
-______________________________________________________________________
+- Docker images define all runtime dependencies
+- Docker Compose orchestrates Neo4j, backend services, and orchestration components
+- Make targets provide a simplified interface for common build and run tasks
+
+Detailed run instructions will be added once the setup is finalized.
+
+## Underlying Data Structure
+
+The system uses a Neo4j graph database to model cities, roads and points of interest
+for itinerary planning and routing.
+
+### Core Entities
+
+- **City**\
+  Represents French cities with population and geographic coordinates.
+- **Roads (`ROAD_TO`)**\
+  A synthetic road network connecting cities based on geographic proximity,
+  ensuring full graph connectivity for routing algorithms.
+- **Point of Interest (POI)**\
+  Tourist attractions, restaurants and rooms imported from DATAtourisme.fr.
+- **Type**\
+  POI categories modeled as nodes (Super-Node Pattern) to support multiple and
+  overlapping classifications.
+
+### Spatial Relationships
+
+- **IS_IN** — Links POIs located inside a city
+- **IS_NEARBY** — Links POIs outside city limits to the nearest city
+
+A detailed explanation of dataset creation, graph algorithms, and import steps
+is available in\
+**[`docs/cities-roads-dataset.md`](docs/cities-roads-dataset.md)** and\
+**[`docs/data-structure.md`](docs/data-structure.md)**.
 
 ## Data Import Pipeline
 
-The project supports both automated and manual data ingestion.
+The project supports both automated and manual ingestion of tourism data
+into Neo4j.
 
-### Automated ETL (Airflow & FastAPI)
+### Overview
 
-detailed description in [data_import.md](data_import.md)
-An Apache Airflow DAG (`download-trigger`) orchestrates the ETL process via FastAPI endpoints:
+- **Automated ETL**\
+  An Apache Airflow DAG triggers a FastAPI-based pipeline to download,
+  process, and import the latest DATAtourisme dataset into Neo4j.
+- **Manual Import**\
+  For local development or recovery scenarios, datasets can be processed
+  manually and imported using `neo4j-admin`.
 
-1. **Download:** Fetches the latest ZIP archive from DATAtourisme.fr.
-2. **Unzip:** Extracts the raw JSON data.
-3. **Extract:** Processes JSON files and generates Neo4j-compatible CSVs (`poi_nodes.csv`, `type_nodes.csv`, etc.).
-4. **Import:** Loads CSVs into Neo4j using `LOAD CSV` and establishes spatial relationships.
-5. **Cleanup:** Removes temporary files and old data versions.
+All steps include data extraction, transformation into Neo4j-compatible CSVs,
+and creation of spatial relationships between POIs and cities.
 
-### Manual Data Import
-
-dataset from datatourisme.fr can be downloaded here: [dataset](https://diffuseur.datatourisme.fr/webservice/b2ea75c3cd910637ff11634adec636ef/2644ca0a-e70f-44d5-90a5-3785f610c4b5)
-Latest dataset download here: [latest dataset](https://diffuseur.datatourisme.fr/flux/24943/download/complete)
-
-The .zip archive is around 1 GB large and unzipped around 8 GB
-
-__make_dataset.py__ script takes the directory and converts it to three CSV files that can be directly imported by neo4j.
-File `poi_nodes.csv` contains information about the POI except for the types field. Types is a list of roughly 350 unique type descriptions.
-Therefore the types are mapped via so called __Super-Node Pattern__ where for every type a node is created and every POI node gets a relationship to it.
-File `type_nodes.csv` and `poi_is_a_type_rels.csv` contain that information.
-
-| row_name               | description                         | example                                |
-| ---------------------- | ----------------------------------- | -------------------------------------- |
-| poiId                  | integer - UUID from datatourisme.fr | 6-ffcd03f5-35d6-305d-95c7-e867e1453e98 |
-| label                  | name of the POI                     |                                        |
-| comment                | short description                   |                                        |
-| description            | long description                    |                                        |
-| types                  | list of POI types                   | Restaurant, BarOrPub                   |
-| homepage               | homepage                            |                                        |
-| city                   | address part                        |                                        |
-| postal_code            | address part                        |                                        |
-| street                 | address part                        |                                        |
-| lat                    | latitude                            |                                        |
-| long                   | longitude                           |                                        |
-| additional_information | some additional info                |                                        |
-
-If you need to import data manually using `neo4j-admin`:
-
-1. download and extract new feed data into __example_data__ create dataset with `make_dataset.py`
-2. **Stop Neo4j:** `docker compose down`
-3. If the `docker compose up` command wasn't yet executed and thus no volume has been created, we have to create it:
-
-```shell
-docker volume create neo4j_data
-```
-
-3. **Import Command:** from the root directory
-   ```bash
-   docker run --rm \
-       --volume=$PWD/example_data:/import \
-       --volume=$(docker volume inspect -f '{{.Mountpoint}}' neo4j_data):/data \
-       neo4j:2025.10.1 \
-       neo4j-admin database import full --overwrite-destination \
-           --multiline-fields=true \
-           --nodes="POI=/import/poi_nodes.zip" \
-           --nodes="Type=/import/type_nodes.zip" \
-           --relationships="IS_A=/import/poi_is_a_type_rels.zip"\
-           --nodes="City=/import/cities_nodes.zip" \
-           --relationships="ROAD_TO=/import/roads_rels.zip"
-   ```
-4. Create `IS_IN` relationships
-   ```
-   CALL apoc.periodic.iterate(
-      "MATCH (p:POI {importVersion: $import_version}) WHERE p.city IS NOT NULL RETURN p",
-      "MATCH (c:City {name: p.city})
-       MERGE (p)-[r:IS_IN]->(c)
-       SET r.importVersion = $import_version",
-      {
-        batchSize: 2000,
-        parallel: true,
-        params: { import_version: $import_version }
-      }
-    )
-    YIELD batches, total, errorMessages, committedOperations
-    RETURN batches, total, errorMessages, committedOperations;
-   ```
-5. create `IS_NEARBY` relationships
-   ```
-   CALL apoc.periodic.iterate(
-          "MATCH (p:POI {importVersion: $import_version})
-           WHERE NOT (p)-[:IS_IN]->(:City) AND p.location IS NOT NULL
-           RETURN p",
-          "MATCH (c:City)
-           WHERE point.distance(p.location, c.location) < 100000
-           WITH p, c, point.distance(p.location, c.location) AS dist
-           ORDER BY dist ASC
-           WITH p, collect(c)[0] AS nearestCity, collect(dist)[0] AS shortestDist
-           WHERE nearestCity IS NOT NULL
-           MERGE (p)-[r:IS_NEARBY]->(nearestCity)
-           SET r.import_version = $import_version,
-               r.distance_km = round(shortestDist/1000.0, 2)",
-          {
-            batchSize: 1000,
-            parallel: false,
-            params: { import_version: $import_version }
-          }
-        )
-        YIELD batches, total, errorMessages, committedOperations
-        RETURN batches, total, errorMessages, committedOperations;
-   ```
+A full, step-by-step description of the ETL process, dataset formats,
+and manual import commands is available in\
+**[`docs/data-import.md`](docs/data-import.md)**.
 
 ______________________________________________________________________
 
