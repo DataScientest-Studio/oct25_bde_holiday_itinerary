@@ -8,9 +8,11 @@ itinerary project.
 - [Cities and Roads](#cities-and-roads)
   - [City Nodes](#city-nodes)
   - [ROAD_TO Relationships](#road_to-relationships)
+  - [Visual Representation](#visual-representation)
 - [Points of Interest (POI) and Types](#points-of-interest-poi-and-types)
   - [POI Nodes](#poi-nodes)
   - [Type Nodes and IS_A Relationship](#type-nodes-and-is_a-relationship)
+  - [CSV Schema](#csv-schema)
 - [Spatial Relationships](#spatial-relationships)
   - [IS_IN](#is_in)
   - [IS_NEARBY](#is_nearby)
@@ -94,6 +96,25 @@ MATCH (p)-[:IS_A]->(t1:Type)
 MATCH (q)-[:IS_A]->(t2:Type)
 RETURN c, p, q, t1, t2
 ```
+
+### CSV Schema
+
+**CSV Schema of a POI is defined like this:**
+
+| row_name               | description                         | example                                |
+| ---------------------- | ----------------------------------- | -------------------------------------- |
+| poiId                  | integer - UUID from datatourisme.fr | 6-ffcd03f5-35d6-305d-95c7-e867e1453e98 |
+| label                  | name of the POI                     |                                        |
+| comment                | short description                   |                                        |
+| description            | long description                    |                                        |
+| types                  | list of POI types                   | Restaurant, BarOrPub                   |
+| homepage               | homepage                            |                                        |
+| city                   | address part                        |                                        |
+| postal_code            | address part                        |                                        |
+| street                 | address part                        |                                        |
+| lat                    | latitude                            |                                        |
+| long                   | longitude                           |                                        |
+| additional_information | some additional info                |                                        |
 
 ## Spatial Relationships
 
