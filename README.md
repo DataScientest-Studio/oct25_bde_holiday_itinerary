@@ -37,7 +37,8 @@ and consists of the following components:
 The entire system is containerized using Docker and Docker Compose to provide
 a reproducible and environment-independent setup.
 
-Detailed information about the architecture can be found in docs/backend-architecture.md.
+Detailed information about the architecture can be found in
+[docs/backend-architecture.md](docs/backend-architecture.md).
 
 ## Dependencies
 
@@ -54,21 +55,25 @@ Detailed information about the architecture can be found in docs/backend-archite
 - **[Make](https://www.gnu.org/software/make/)**\
   Task runner used to standardize common development and test commands.
 
-## Build & Execution Process
+## Build & Run
 
-The project is fully containerized and designed to be executed consistently across
-development and production-like environments.
+1. Clone the repository
+2. Copy `.env.example` to `.env` and adjust values if needed
+3. Start the application using Docker Compose:
 
-- Docker images define all runtime dependencies
-- Docker Compose orchestrates Neo4j, backend services, and orchestration components
-- Make targets provide a simplified interface for common build and run tasks
-
-Detailed run instructions will be added once the setup is finalized.
+```shell
+docker-compose up --build
+```
 
 ## Underlying Data Structure
 
-The system uses a Neo4j graph database to model cities, roads and points of interest
+The system uses a Neo4j graph database to model cities, roads, and points of interest
 for itinerary planning and routing.
+
+Detailed documentation is available in:
+
+- [docs/data-structure.md](docs/data-structure.md) — detailed graph schema and relationships
+- [docs/cities-roads-dataset.md](docs/cities-roads-dataset.md) — dataset creation and routing graph generation
 
 ### Core Entities
 
@@ -78,7 +83,7 @@ for itinerary planning and routing.
   A synthetic road network connecting cities based on geographic proximity,
   ensuring full graph connectivity for routing algorithms.
 - **Point of Interest (POI)**\
-  Tourist attractions, restaurants and rooms imported from DATAtourisme.fr.
+  Tourist attractions, restaurants, and rooms imported from DATAtourisme.fr.
 - **Type**\
   POI categories modeled as nodes (Super-Node Pattern) to support multiple and
   overlapping classifications.
@@ -87,11 +92,6 @@ for itinerary planning and routing.
 
 - **IS_IN** — Links POIs located inside a city
 - **IS_NEARBY** — Links POIs outside city limits to the nearest city
-
-A detailed explanation of dataset creation, graph algorithms, and import steps
-is available in\
-**[`docs/cities-roads-dataset.md`](docs/cities-roads-dataset.md)** and\
-**[`docs/data-structure.md`](docs/data-structure.md)**.
 
 ## Data Import Pipeline
 
@@ -110,9 +110,8 @@ into Neo4j.
 All steps include data extraction, transformation into Neo4j-compatible CSVs,
 and creation of spatial relationships between POIs and cities.
 
-A full, step-by-step description of the ETL process, dataset formats,
-and manual import commands is available in\
-**[`docs/data-import.md`](docs/data-import.md)**.
+Detailed information about the architecture can be found in
+[docs/data-import.md](docs/data-import.md).
 
 ______________________________________________________________________
 
