@@ -2,80 +2,22 @@
 
 ## Dependencies
 
-1. [Make](https://www.gnu.org/software/make/)
-2. [Poetry (version 2.2.1) ()](https://python-poetry.org/) -- python -m pip
-   install poetry==2.2.1
+- **[Python](https://www.python.org/)** (`>=3.13.0,<3.14`)
+  Core runtime used across the project.
+- **[Loguru](https://loguru.readthedocs.io/)** (`0.7.3`)
+  Shared logging framework used by both frontend and backend.
+- **[Neo4j](https://neo4j.com/)** (`5.x`)
+  Graph database used for storing cities, POIs, and routing data.
+- **[Docker](https://www.docker.com/)**
+  Container runtime used to run services consistently across environments.
+- **[Docker Compose](https://docs.docker.com/compose/)**
+  Tooling to orchestrate multi-service setups such as Neo4j and backend APIs.
+- **[Make](https://www.gnu.org/software/make/)**
+  Task runner used to standardize common development and test commands.
 
-### Poetry
+## Run instructions
 
-Run environment with `eval $(poetry env activate)`
-
-### Development
-
-1. [Pre-commit](https://pre-commit.com/) -- python -m pip install pre-commit==4.2.0
-
-#### Pre-commit
-
-Install the pre-commit with `python -m pip install pre-commit && pre-commit install`.
-
-#### Tests
-
-To run the tests, simply run `make tests` or run the commands, which are
-defined under the `tests` command in the Makefile.
-
-#### Github Actions
-
-There is a GitHub Actions workflow file located at
-`.github/workflows/development.yaml` for the development of the application.
-This workflow runs pre-commit checks and tests whenever code is pushed to
-the `master` branch or when a pull request targeting `master` is opened.
-
-______________________________________________________________________
-
-## Underlying Data Structure
-
-The system uses a graph database to represent cities, roads, and points of interest.
-
-### 1. Cities and Roads
-
-![Cities](img/city_road_to.png)
-*Representation of City nodes and ROAD_TO relationships. Reproduce with:*
-
-```
-match(c1:City {name: "Marseille"})-[r2:ROAD_TO]->(c2:City) limit 5
-return c1, c2
-```
-
-Since no suitable road dataset was readily available, a road network was simulated to enable routing between cities.
-detailed description in [cities_roads_dataset.md](cities_roads_dataset.md)
-
-- **City Nodes:** Represent 627 French cities with properties like name, population, and geographical coordinates (stored as Neo4j `Point`).
-- **ROAD_TO Relationships:** A simulated road network connects cities.
-  - **KNN:** Each city is connected to its 5 nearest neighbors.
-  - **Connectivity:** The graph is ensured to be a single connected component using Weakly Connected Components (WCC) analysis, with manual bridges added where necessary.
-
-### 2. Points of Interest (POI) and Types
-
-![City, Poi and Type](img/city_poi_type.png)
-*Representation of City, Pois and Types with IS_A relationships. Reproduce with:*
-
-```
-match(c:City {name: "Lyon"})
-match(p:POI) - [IS_IN] -(c) limit 5
-match(q:POI) - [IS_NEARBY] -(c) limit 5
-MATCH (p)-[:IS_A]->(t1:Type)
-MATCH (q)-[:IS_A]->(t2:Type)
-return c,p,q,t1,t2
-```
-
-- **POI Nodes:** Tourist attractions, hotels, and restaurants imported from DATAtourisme.fr.
-- **Type Nodes:** Instead of using multiple labels on POI nodes, we use a "Super-Node Pattern."
-- **IS_A Relationship:** Connects a `POI` to one or more `Type` nodes. This approach offers flexibility for overlapping categories and future hierarchical expansions.
-
-### 3. Spatial Relationships
-
-- **IS_IN:** Connects a `POI` directly to a `City` if the location matches exactly.
-- **IS_NEARBY:** For POIs outside city limits, this links the POI to the nearest city within a 100km radius, storing the `distance_km`.
+This will be filled out.
 
 ______________________________________________________________________
 

@@ -79,8 +79,10 @@ we use a separate `Type` node and an `IS_A` relationship.
 - **Query Performance:** It simplifies queries that need to filter POIs by category,
   especially when dealing with many categories or complex overlaps.
 
-![City, POI and Type](img/city_poi_type.png)\
-*Representation of `City`, `POI`, and `Type` nodes with `IS_A` and spatial relationships. Reproduced with:*
+![City, POI and Type](../img/city_poi_type.png)\
+*Representation of `City`, `POI`, and `Type` nodes with `IS_A` and spatial relationships.*
+
+**Reproduce the visualization with:**
 
 ```cypher
 MATCH (c:City {name: "Lyon"})
