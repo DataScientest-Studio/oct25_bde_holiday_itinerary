@@ -7,7 +7,7 @@ database, including orchestration, processing, and cleanup steps.
 ## Table of contents
 
 - [Architecture Overview](#architecture-overview)
-  - [Dependencies](dependencies)
+  - [Dependencies](#dependencies)
 - [Workflow Steps](#workflow-steps)
   - [1. Trigger Download](#1-trigger-download)
   - [2. Wait for Download Completion](#2-wait-for-download-completion)
@@ -22,6 +22,7 @@ database, including orchestration, processing, and cleanup steps.
 - [Configuration & Environment Variables](#configuration--environment-variables)
 - [Status and Locks](#status-and-locks)
 - [Spatial Indices and Relationships](#spatial-indices-and-relationships)
+- [Manual Import (Advanced)](#manual-import-advanced)
 
 ## Architecture Overview
 
@@ -140,3 +141,18 @@ are performed:
 2. **IS_IN Relationship**: Links a POI to a City if the city name matches.
 3. **IS_NEARBY Relationship**: If a POI is not directly in a known City, it is
    linked to the nearest City within 100km, including the calculated distance.
+
+## Manual Import (Advanced)
+
+For development or recovery scenarios, datasets can be imported manually
+using `neo4j-admin`.
+
+This process includes:
+
+- Converting DATAtourisme JSON data into Neo4j-compatible CSV files
+- Importing nodes and relationships offline
+- Creating spatial relationships (`IS_IN`, `IS_NEARBY`)
+
+A complete step-by-step guide, including commands and Cypher scripts, is
+available in\
+**[`docs/development.md`](../docs/development.md)**.
