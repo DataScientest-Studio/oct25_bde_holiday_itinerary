@@ -43,6 +43,19 @@ to enable routing between cities.
    different clusters and connected them with `ROAD_TO` relationships until the
    entire graph became a single connected component.
 
+### Visual Representation
+
+![Cities](../img/city_road_to.png)
+
+*Representation of City nodes and ROAD_TO relationships (example centered on Marseille).*
+
+**Reproduce the visualization with:**
+
+```Neo4j
+match(c1:City {name: "Marseille"})-[r2:ROAD_TO]->(c2:City) limit 5
+return c1, c2
+```
+
 ## Points of Interest (POI) and Types
 
 ### POI Nodes
