@@ -38,6 +38,11 @@ Poetry ensures consistent dependency versions across frontend, backend, and
 development tooling, and is also used by pre-commit hooks to run tools inside
 the correct virtual environment.
 
+## Tests
+
+Tests can be executed using `make tests`, which runs the test commands defined
+in the `tests/` target of the Makefile.
+
 ## GitHub Actions
 
 GitHub Actions are used to automatically validate the project on every push and
