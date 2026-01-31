@@ -19,9 +19,12 @@ Roads are synthetically generated based on geographic proximity.
 
 ## Prerequisites
 
-- Neo4j 5.x
-- Graph Data Science library 2.x
-- APOC Core enabled
+- **[Neo4j](https://neo4j.com/)** (`5.x`)\
+  Graph database used to store and query the city and road network data.
+- **[Graph Data Science](https://neo4j.com/docs/graph-data-science/)** (`2.x`)\
+  Library used to run graph algorithms such as WCC and KNN on the Neo4j graph.
+- **[APOC Core](https://neo4j.com/labs/apoc/)**\
+  Extension providing additional procedures for data import, export, and utilities.
 
 ## Original dataset
 
