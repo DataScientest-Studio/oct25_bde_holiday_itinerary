@@ -84,8 +84,8 @@ The following steps are executed sequentially for each import run.
 
 ## Configuration & Environment Variables
 
-The import process requires the following environment variables (configured in
-`docker-compose.yaml` for the `neo4j_api` service):
+The import process uses the following environment variables, all defined in
+`docker-compose.yaml` for the `neo4j_api` service.
 
 | Variable                  | Description                                                                                                                       |
 | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
@@ -96,6 +96,7 @@ The import process requires the following environment variables (configured in
 | `DATATOURISME_VERIFY_SSL` | (Optional) Whether to verify SSL certificates (default: `true`). Set to `false` if you encounter certificate verification errors. |
 | `DATATOURISME_SAVE_DIR`   | Local directory to store downloaded/unzipped data.                                                                                |
 | `DATATOURISME_IMPORT_DIR` | Directory where CSVs are generated (mounted to Neo4j).                                                                            |
+| `LOG_LEVEL`               | Log level for the application (e.g. `DEBUG`, `INFO`, `WARNING`, `ERROR`). Defaults to `INFO` if not set.                          |
 | `NEO4J_URI`               | URI for the Neo4j database.                                                                                                       |
 | `NEO4J_USER`              | Username for Neo4j.                                                                                                               |
 | `NEO4J_PASSPHRASE`        | Password for Neo4j.                                                                                                               |
