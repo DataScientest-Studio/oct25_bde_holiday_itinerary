@@ -3,6 +3,18 @@
 This document describes the data structure used in the Neo4j database for the holiday
 itinerary project.
 
+## Table of contents
+
+- [Cities and Roads](#cities-and-roads)
+  - [City Nodes](#city-nodes)
+  - [ROAD_TO Relationships](#road_to-relationships)
+- [Points of Interest (POI) and Types](#points-of-interest-poi-and-types)
+  - [POI Nodes](#poi-nodes)
+  - [Type Nodes and IS_A Relationship](#type-nodes-and-is_a-relationship)
+- [Spatial Relationships](#spatial-relationships)
+  - [IS_IN](#is_in)
+  - [IS_NEARBY](#is_nearby)
+
 ## Cities and Roads
 
 ### City Nodes
