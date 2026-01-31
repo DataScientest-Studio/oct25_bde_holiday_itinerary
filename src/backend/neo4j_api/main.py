@@ -1,8 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-
-from src.neo4j_driver.neo4j_driver import Neo4jDriver
+from neo4j_driver.neo4j_driver import Neo4jDriver
 
 from .routes import city, data_update, dijkstra, distance, poi, travel, tsp
 

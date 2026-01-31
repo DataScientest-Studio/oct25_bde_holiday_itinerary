@@ -1,7 +1,6 @@
 import pandas as pd
 import streamlit as st
 from loguru import logger
-
 from ui.config import POI_COLUMNS
 from ui.handlers import get_request
 from ui.utils import init_empty_df, select_overview_df

@@ -4,7 +4,7 @@ import json
 import uuid
 from datetime import UTC, datetime
 
-from src.neo4j_api.status_handler import ProcessLock, get_status_file, get_status_file_content
+from neo4j_api.status_handler import ProcessLock, get_status_file, get_status_file_content
 
 
 def import_types(driver, import_from_dir, import_version) -> dict:

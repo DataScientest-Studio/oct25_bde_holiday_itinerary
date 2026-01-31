@@ -1,7 +1,6 @@
 import pandas as pd
 import streamlit as st
 from loguru import logger
-
 from ui.config import POI_COLUMNS
 
 

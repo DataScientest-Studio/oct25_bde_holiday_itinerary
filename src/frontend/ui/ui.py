@@ -1,9 +1,9 @@
 import streamlit as st
-
-from logger import logger
 from ui.handlers import Handler
 from ui.layout import Layout
 from ui.session_states import init_session_states
+
+from logger import logger
 
 
 class UI:

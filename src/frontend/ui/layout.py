@@ -1,6 +1,5 @@
 import streamlit as st
 from loguru import logger
-
 from ui.handlers import Handler
 from ui.widgets import Controls, Map, PoiOverview, PoisOverview, Route
 

@@ -2,7 +2,6 @@ import ast
 
 import streamlit as st
 from loguru import logger
-
 from ui.handlers import Handler
 
 

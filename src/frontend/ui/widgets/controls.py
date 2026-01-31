@@ -2,7 +2,6 @@ from datetime import date
 
 import streamlit as st
 from loguru import logger
-
 from ui.handlers import get_request
 
 
