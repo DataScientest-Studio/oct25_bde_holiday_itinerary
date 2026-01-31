@@ -51,7 +51,7 @@ to enable routing between cities.
 
 **Reproduce the visualization with:**
 
-```Neo4j
+```cypher
 match(c1:City {name: "Marseille"})-[r2:ROAD_TO]->(c2:City) limit 5
 return c1, c2
 ```
@@ -75,9 +75,23 @@ we use a separate `Type` node and an `IS_A` relationship.
   set of types for each POI. Using nodes for types is more flexible than managing
   a large, dynamic set of labels on individual POI nodes.
 - **Hierarchy Support:** Using nodes allows for future expansion into a hierarchical
-  type system (e.g., a "Bistro" `IS_A` "Restaurant").
+  type system (e.g., a `"Bistro"` `IS_A` `"Restaurant"`).
 - **Query Performance:** It simplifies queries that need to filter POIs by category,
   especially when dealing with many categories or complex overlaps.
+
+![City, POI and Type](img/city_poi_type.png)\
+*Representation of `City`, `POI`, and `Type` nodes with `IS_A` and spatial relationships. Reproduced with:*
+
+```cypher
+MATCH (c:City {name: "Lyon"})
+MATCH (p:POI)-[:IS_IN]-(c)
+LIMIT 5
+MATCH (q:POI)-[:IS_NEARBY]-(c)
+LIMIT 5
+MATCH (p)-[:IS_A]->(t1:Type)
+MATCH (q)-[:IS_A]->(t2:Type)
+RETURN c, p, q, t1, t2
+```
 
 ## Spatial Relationships
 
@@ -100,3 +114,6 @@ link to a city (often POIs located outside city limits).
   closest city. The distance is stored in `distance_km`.
 - **Purpose:** It ensures that every POI is associated with at least one urban
   center, which is crucial for itinerary planning and "nearby" search functionality.
+
+```
+```
