@@ -7,6 +7,7 @@ database, including orchestration, processing, and cleanup steps.
 ## Table of contents
 
 - [Architecture Overview](#architecture-overview)
+  - [Dependencies](dependencies)
 - [Workflow Steps](#workflow-steps)
   - [1. Trigger Download](#1-trigger-download)
   - [2. Wait for Download Completion](#2-wait-for-download-completion)
@@ -27,6 +28,8 @@ database, including orchestration, processing, and cleanup steps.
 The data import is orchestrated by **Apache Airflow**, which triggers various stages
 of the ETL process exposed through a **FastAPI** application (`neo4j_api`). The
 data is processed and finally imported into **Neo4j**.
+
+### Dependencies
 
 - **[Apache Airflow](https://airflow.apache.org/)**\
   Orchestrates the data download and processing pipeline via scheduled DAGs

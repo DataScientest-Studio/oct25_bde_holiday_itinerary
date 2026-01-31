@@ -3,7 +3,7 @@
 ## Table of contents
 
 - [Purpose](#purpose)
-- [Prerequisites](#prerequisites)
+- [Dependencies](#dependencies)
 - [Original dataset](#original-dataset)
 - [Import dataset](#import-dataset)
 - [Create roads: K-Nearest-Neighbor](#create-roads-k-nearest-neighbor)
@@ -17,7 +17,7 @@ This dataset is intended for demonstration and experimentation with graph algori
 (e.g. routing, clustering, centrality) rather than real-world road accuracy.
 Roads are synthetically generated based on geographic proximity.
 
-## Prerequisites
+## Dependencies
 
 - **[Neo4j](https://neo4j.com/)** (`5.x`)\
   Graph database used to store and query the city and road network data.
