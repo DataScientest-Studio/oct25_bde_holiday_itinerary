@@ -95,3 +95,6 @@ france_poi.csv
 config/
 
 datatourisme.zip
+logs/
+feed_data/
+dags
