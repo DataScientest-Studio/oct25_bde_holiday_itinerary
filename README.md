@@ -3,6 +3,13 @@
 This repository contains a full-stack holiday itinerary planning application
 with a clear separation between frontend and backend responsibilities.
 
+## Development & Project Structure
+
+All development workflows, project structure, conventions and environment
+setup are documented in:
+
+- [docs/development.md](docs/development.md)
+
 ## Frontend
 
 The frontend is implemented using **Streamlit** and provides a user interface
@@ -65,6 +72,16 @@ Detailed information about the architecture can be found in
 docker-compose up --build
 ```
 
+## Neo4j Setup
+
+Neo4j is initialized automatically on first startup via Docker Compose.
+
+Some API endpoints require additional Graph Data Science (GDS) projections
+to be created manually after the initial import.
+
+Detailed information about the architecture can be found in
+[docs/backend-architecture.md](docs/backend-architecture.md).
+
 ## Underlying Data Structure
 
 The system uses a Neo4j graph database to model cities, roads, and points of interest
@@ -102,7 +119,7 @@ into Neo4j.
 
 - **Automated ETL**\
   An Apache Airflow DAG triggers a FastAPI-based pipeline to download,
-  process, and import the latest DATAtourisme dataset into Neo4j.
+  process and import the latest DATAtourisme dataset into Neo4j.
 - **Manual Import**\
   For local development or recovery scenarios, datasets can be processed
   manually and imported using `neo4j-admin`.
@@ -112,147 +129,3 @@ and creation of spatial relationships between POIs and cities.
 
 Detailed information about the architecture can be found in
 [docs/data-import.md](docs/data-import.md).
-
-______________________________________________________________________
-
-Starting the DB with docker-compose uses the `EXTENSION_SCRIPT` ENV which runs `import_script.sh` from `init` directory.
-This makes initial data import automatically done once.
-The only manual work needed at this moment is to create `gds` projections needed for some API requests:
-
-```cypher
-CALL gds.graph.exists('city-road-graph') YIELD exists
-WITH exists
-WHERE NOT exists
-
-CALL gds.graph.project(
-  'city-road-graph',
-  'City',
-  {
-    ROAD_TO: {
-      orientation: 'UNDIRECTED',
-      properties: 'km'
-    }
-  }
-)
-YIELD graphName, nodeCount, relationshipCount
-RETURN graphName, nodeCount, relationshipCount;
-```
-
-## Start neo4j
-
-File __docker_compose.yml__ contains everything to start Neo4j locally with
-
-```shell
-docker-compose up -d
-```
-
-Note: in docker-compose the _NEO4J_server_directories_import_ ENV is set to __example_data__ which means only csv files from this directory may be imported to Neo4j.
-
-## Test your neo4j
-
-After executing `docker compose up -d` command go to `localhost:7474` and connect to the database (no auth required).
-Try some of these requests:
-
-get all types:\
-`match(t:Type) return t.typeId as type`
-
-count of POI in Paris:\
-`match (p:POI {city: "Paris"}) return count(p)`
-
-get distribution of POI types in Lyon:
-
-```
- match (p:POI {city: "Lyon"}) - [r:IS_A] -> (t:Type)
- with t, count(*) as cnt
- return t.typeId, cnt order by cnt desc
-```
-
-get restaurants in Avignon:\
-`MATCH (p:POI {city: "Avignon"})-[r:IS_A]->(t:Type {typeId: "Restaurant"}) return p`
-
-______________________________________________________________________
-
-## Neo4j Driver
-
-To access the database with Python code, you need to initialize the
-`Neo4jDriver` class, located in the module `src/neo4j_driver`. You can
-configure the driver using the following environment variables:
-
-- **NEO4J_URI** — Sets the URI of the database. Default: `bolt://neo4j:7687`.
-- **NEO4J_USER** — Sets the username to access the database. Default: `neo4j`.
-- **NEO4J_PASSPHRASE** — Sets the passphrase to access the database. Default:
-  no passphrase.
-
-## Neo4j API
-
-To access the driver via the `Neo4jApi`, the following endpoints are defined:
-
-- **/poi** -- Takes `poi_id: str` as a parameter and returns a JSON dict
-  with all information about the POI, e.g. `{"id":"...", "label":"...", ...}`.
-- **/poi/nearby** -- Takes `poi_id: str` and `radius: int` as parameters
-  and returns a JSON dict with all POIs located within the radius around the
-  given POI, e.g. `{"nearby": [ ... ]}`.
-- **/distance** -- Takes `poi1_id: str` and `poi2_id: str` as parameters
-  and returns a JSON dict with the distance, e.g. `{"distance": 234.12}`.
-- **/tsp/shortest-round-tour** -- Takes a list of `poi_ids: list[str]` as
-  a parameter and returns a JSON dict with the optimized POI order,
-  e.g. `{"poi_order": [ ... ]}`.
-- **/tsp/shortest-path-no-return** -- Takes a list of `poi_ids: list[str]`
-  as a parameter and returns a JSON dict with the optimized POI order,
-  e.g. `{"poi_order": [ ... ]}`.
-- **/tsp/shortest-path-fixed-dest** -- Takes a list of `poi_ids: list[str]`
-  and `dest: str` as parameters and returns a JSON dict with the optimized
-  POI order ending at the fixed destination, e.g. `{"poi_order": [ ... ]}`.
-- **/dijkstra** -- Takes a list of `poi_ids: list[str]` as a parameter
-  and returns a JSON dict with the POI order along the shortest path,
-  e.g. `{"poi_order": [ ... ]}`.
-
-## Project Organization
-
-```
-├── LICENSE
-├── README.md          <- The top-level README for developers using this project.
-├── data
-│   ├── external       <- Data from third party sources.
-│   ├── interim        <- Intermediate data that has been transformed.
-│   ├── processed      <- The final, canonical data sets for modeling.
-│   └── raw            <- The original, immutable data dump.
-│
-├── logs               <- Logs from training and predicting
-│
-├── models             <- Trained and serialized models, model predictions, or model summaries
-│
-├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
-│                         the creator's initials, and a short `-` delimited description, e.g.
-│                         `1.0-jqp-initial-data-exploration`.
-│
-├── references         <- Data dictionaries, manuals, and all other explanatory materials.
-│
-├── reports            <- Generated analysis as HTML, PDF, LaTeX, etc.
-│   └── figures        <- Generated graphics and figures to be used in reporting
-│
-├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
-│                         generated with `pip freeze > requirements.txt`
-│
-├── src                <- Source code for use in this project.
-│   ├── __init__.py    <- Makes src a Python module
-│   │
-│   ├── data           <- Scripts to download or generate data
-│   │   └── make_dataset.py
-│   │
-│   ├── features       <- Scripts to turn raw data into features for modeling
-│   │   └── build_features.py
-│   │
-│   ├── models         <- Scripts to train models and then use trained models to make
-│   │   │                 predictions
-│   │   ├── predict_model.py
-│   │   └── train_model.py
-│   │
-│   ├── visualization  <- Scripts to create exploratory and results oriented visualizations
-│   │   └── visualize.py
-│   └── config         <- Describe the parameters used in train_model.py and predict_model.py
-```
-
-______________________________________________________________________
-
-<p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
