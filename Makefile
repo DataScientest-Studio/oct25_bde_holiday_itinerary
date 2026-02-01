@@ -4,16 +4,14 @@
 
 init: run make-dataset
 
-make-dataset:
-	# docker build --target=make_dataset -t holiday_itineray:latest .
-	# docker run --rm holiday_itineray:latest
-	echo "Just an example"
-
 manual-import:
 	poetry run transform-datatourisme
 
 run:
 	docker compose up -d
+
+start-airflow:
+	docker compose -f docker-compose.airflow.yaml up -d
 
 tests:
 	-docker network create testnet
