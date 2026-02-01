@@ -17,7 +17,7 @@ class ProcessLock:
         self.lock_file = self.save_dir / f"{process}_in_progress.lock"
 
     def __enter__(self) -> "ProcessLock":
-        self._raise_if_running()
+        self.raise_for_in_process()
         self.lock_file.touch()
         return self
 
@@ -25,7 +25,7 @@ class ProcessLock:
         self.lock_file.unlink(missing_ok=True)
         return False  # do not suppress exceptions
 
-    def _raise_if_running(self) -> None:
+    def raise_for_in_process(self) -> None:
         if self.lock_file.exists():
             raise ProcessRunning(self.process, self.lock_file)
 
