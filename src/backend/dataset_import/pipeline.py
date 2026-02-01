@@ -6,7 +6,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from data.make_dataset import create_poi_is_a_type_rels_df, create_poi_nodes_df, create_type_nodes_df, process_data
-from neo4j_api.status_handler import ProcessLock, get_status_file
+
+from .status_handler import ProcessLock, get_status_file
 
 
 def unzip_data(file_path, save_dir, extract_to):

@@ -10,8 +10,9 @@ from typing import Any, Dict
 import aiohttp
 from bs4 import BeautifulSoup
 from fastapi import HTTPException
-from neo4j_api.status_handler import ProcessLock, get_status_file
 from tqdm import tqdm
+
+from .status_handler import ProcessLock, get_status_file
 
 # Set up logging
 logger = logging.getLogger(__name__)

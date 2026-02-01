@@ -1,10 +1,8 @@
-"""module for importing data into Neo4j"""
-
 import json
 import uuid
 from datetime import UTC, datetime
 
-from neo4j_api.status_handler import ProcessLock, get_status_file, get_status_file_content
+from .status_handler import ProcessLock, get_status_file, get_status_file_content
 
 
 def import_types(driver, import_from_dir, import_version) -> dict:
