@@ -9,6 +9,9 @@ make-dataset:
 	# docker run --rm holiday_itineray:latest
 	echo "Just an example"
 
+manual-import:
+	poetry run transform-datatourisme
+
 run:
 	docker compose up -d
 
