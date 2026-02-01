@@ -1,12 +1,5 @@
-"""
-converts a JSON export from datatourisme.fr to usable CSV data to be imported to Neo4j
-whole dataset (> 1 GB) can be downloaded here:
-https://diffuseur.datatourisme.fr/webservice/b2ea75c3cd910637ff11634adec636ef/2644ca0a-e70f-44d5-90a5-3785f610c4b5
-"""
-
 import json
 import re
-import time
 from functools import reduce
 from operator import getitem
 from pathlib import Path
@@ -14,13 +7,13 @@ from typing import Any
 
 import pandas as pd
 
-flux_directory = Path("../../example_data")
-output_directory = Path("../../example_data")
-
-# captures UUID from file name
 filename_pattern = re.compile(
     r"(.*/)*(?P<id>[\d]*-[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}).json"
 )
+
+ROOT = Path(__file__).parent.parent.parent.parent
+OUTPUT_DIRECTORY = ROOT / "import_data"
+print(ROOT)
 
 
 def get_nested(data: dict, path: str, default: Any = None) -> Any:
@@ -100,13 +93,13 @@ def create_poi_is_a_type_rels_df(df):
 def store_nodes_and_edges(df):
     """stores nodes separately from edges for easy neo4j import"""
     poi_nodes_df = create_poi_nodes_df(df)
-    poi_nodes_df.to_csv(output_directory / "poi_nodes.csv", index=False)
+    poi_nodes_df.to_csv(OUTPUT_DIRECTORY / "poi_nodes.csv", index=False)
 
     type_nodes_df = create_type_nodes_df(df)
-    type_nodes_df.to_csv(output_directory / "type_nodes.csv", index=False)
+    type_nodes_df.to_csv(OUTPUT_DIRECTORY / "type_nodes.csv", index=False)
 
     poi_is_a_type_df = create_poi_is_a_type_rels_df(df)
-    poi_is_a_type_df.to_csv(output_directory / "poi_is_a_type_rels.csv", index=False)
+    poi_is_a_type_df.to_csv(OUTPUT_DIRECTORY / "poi_is_a_type_rels.csv", index=False)
 
 
 def process_data(directory):
@@ -129,30 +122,3 @@ def process_data(directory):
     df.insert(0, "label", df["label_en"].combine_first(df["label_fr"]).combine_first(df["label_index"]))
     df.drop(columns=["label_en", "label_fr", "label_index"], inplace=True)
     return df
-
-
-def main():
-    data = []
-    start = time.perf_counter()
-    with open(flux_directory / "index.json") as f:
-        index_data = json.load(f)
-        for item in index_data:
-            with open(flux_directory / "objects" / item["file"]) as poi_file:
-                data.append(get_data_from_poi(get_id_from_filename(item["file"]), item["label"], json.load(poi_file)))
-
-    df = pd.DataFrame.from_records(data)
-    df = df.astype(
-        {
-            "lat": "float",
-            "long": "float",
-        }
-    )
-    df.insert(0, "label", df["label_en"].combine_first(df["label_fr"]).combine_first(df["label_index"]))
-    df.drop(columns=["label_en", "label_fr", "label_index"], inplace=True)
-    store_nodes_and_edges(df)
-    end = time.perf_counter()
-    print(f"Done in {end - start} seconds")
-
-
-if __name__ == "__main__":
-    main()
