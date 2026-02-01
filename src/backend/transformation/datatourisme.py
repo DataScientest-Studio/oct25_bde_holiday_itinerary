@@ -13,7 +13,6 @@ filename_pattern = re.compile(
 
 ROOT = Path(__file__).parent.parent.parent.parent
 OUTPUT_DIRECTORY = ROOT / "import_data"
-print(ROOT)
 
 
 def get_nested(data: dict, path: str, default: Any = None) -> Any:
