@@ -8,6 +8,7 @@ import pandas as pd
 import requests
 
 from backend.transformation import (
+    create_city_nodes,
     get_data_from_poi,
     get_id_from_filename,
     store_nodes_and_edges,
@@ -111,6 +112,7 @@ def main():
     df.drop(columns=["label_en", "label_fr", "label_index"], inplace=True)
 
     store_nodes_and_edges(df)
+    create_city_nodes()
     zip_csv_files()
     cleanup_flux_directory()
 
