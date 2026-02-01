@@ -23,6 +23,8 @@ OUTPUT_DIRECTORY = Path("example_data")
 ZIP_PATH = OUTPUT_DIRECTORY / "datatourisme.zip"
 FLUX_DIRECTORY = OUTPUT_DIRECTORY / "datatourisme"
 
+IMPORT_DIR = Path("import_data")
+
 
 def download_file() -> None:
     OUTPUT_DIRECTORY.mkdir(parents=True, exist_ok=True)
@@ -52,6 +54,18 @@ def unzip_file() -> None:
         zip_ref.extractall(FLUX_DIRECTORY)
 
     print(f"Extracted to {FLUX_DIRECTORY.resolve()}")
+
+
+def zip_csv_files() -> None:
+    for csv_file in IMPORT_DIR.rglob("*.csv"):
+        zip_path = csv_file.with_suffix(".zip")
+        zip_path.unlink(missing_ok=True)
+
+        with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zipf:
+            zipf.write(csv_file, arcname=csv_file.name)
+
+        csv_file.unlink()
+        print(f"Created {zip_path}")
 
 
 def cleanup_flux_directory() -> None:
@@ -97,6 +111,7 @@ def main():
     df.drop(columns=["label_en", "label_fr", "label_index"], inplace=True)
 
     store_nodes_and_edges(df)
+    zip_csv_files()
     cleanup_flux_directory()
 
     elapsed = time.perf_counter() - start
