@@ -71,6 +71,11 @@ services:
       - neo4j_data_dev:/data
       - ./tests/data/bulk:/import
       - ./tests/data/bulk/import-script.sh:/tmp/init/import-script.sh
+    healthcheck:
+      test: [ "CMD", "/var/lib/neo4j/bin/cypher-shell", "-u", "neo4j", "-p", "${NEO4J_PASSWORD}", "RETURN 1" ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
   neo4j-post-init-dev:
     image: neo4j:2025.10.1
     depends_on:
