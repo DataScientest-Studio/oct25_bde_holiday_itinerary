@@ -12,6 +12,9 @@ manual-import:
 up-dev:
 	docker compose -f ${dev-file} up
 
+down-dev:
+	docker compose -f ${dev-file} down
+
 start-airflow:
 	docker compose -f docker-compose.airflow.yaml up -d
 
