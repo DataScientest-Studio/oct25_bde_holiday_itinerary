@@ -21,6 +21,14 @@
 - **[Basemap](https://matplotlib.org/basemap/)** (`2.0.0`)\
   Geospatial plotting toolkit used for map-based visualizations.
 
+## Commands
+
+1. **make run-dev** — Starts the development environment
+2. **down-dev** — Shutdown the development environment and deletes the docker container.
+3. **clean-dev** — Removes all docker container, images and volumes of the development
+   environment.
+4. **tests** — Execute the tests of the project.
+
 ## Pre-commit
 
 The project uses **pre-commit** to automatically enforce code formatting,
