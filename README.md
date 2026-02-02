@@ -147,7 +147,8 @@ into Neo4j.
   process and import the latest DATAtourisme dataset into Neo4j.
 - **Manual Import**\
   For local development or recovery scenarios, datasets can be processed
-  manually and imported using `neo4j-admin`.
+  manually and imported using `neo4j-admin`. The manual import is executed
+  automatically during the initialization of the environments.
 
 All steps include data extraction, transformation into Neo4j-compatible CSVs,
 and creation of spatial relationships between POIs and cities.
