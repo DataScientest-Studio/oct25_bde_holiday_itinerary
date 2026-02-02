@@ -10,6 +10,15 @@ up:
 	poetry run transform-datatourisme
 	docker compose up
 
+down:
+	docker compose down
+
+clean:
+	docker compose down
+	docker image rm holiday-internal-ui:latest neo4j-api:latest
+	docker volume rm neo4j_data
+
+
 ## Development
 manual-import:
 	poetry run transform-datatourisme
