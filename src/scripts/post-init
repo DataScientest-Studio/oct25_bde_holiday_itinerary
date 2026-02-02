@@ -1,0 +1,103 @@
+#!/bin/bash
+
+set -euo pipefail
+
+export $(grep -v '^#' .env | xargs)
+
+NEO4J_USER="neo4j"
+NEO4J_PASS="${NEO4J_PASSWORD}"
+IMPORT_VERSION=$(uuidgen)
+
+echo "Waiting for Neo4j to accept connections..."
+
+until cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASS}" "RETURN 1" >/dev/null 2>&1; do
+    sleep 2
+done
+
+echo "Neo4j is ready."
+
+execute_cypher() {
+    STEP_NAME="$1"
+    CYPHER="$2"
+
+    APPLIED=$(
+        cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASS}" --format plain <<EOF
+MATCH (m:_Migration {name: "${STEP_NAME}"})
+RETURN count(m);
+EOF
+    )
+
+    if [ "${APPLIED}" != "0" ]; then
+        echo "Step '${STEP_NAME}' already applied. Skipping."
+        return
+    fi
+
+    echo "Running step '${STEP_NAME}'..."
+
+    cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASS}" <<EOF
+$CYPHER
+CREATE (:_Migration {
+    name: "${STEP_NAME}",
+    version: "${IMPORT_VERSION}",
+    appliedAt: datetime()
+});
+EOF
+
+    echo "Step '${STEP_NAME}' completed."
+}
+
+# ------------------------------------------------------------
+# 1. ROAD_TO relationships
+# ------------------------------------------------------------
+execute_cypher "roads" "
+MATCH (c1:City)
+CALL {
+    WITH c1
+    MATCH (c2:City)
+    WHERE c1 <> c2
+    WITH c1, c2, point.distance(c1.location, c2.location) AS distance
+    ORDER BY distance ASC
+    LIMIT 5
+    RETURN c2, distance
+}
+MERGE (c1)-[r1:ROAD_TO]->(c2)
+ON CREATE SET r1.km = round(distance / 1000.0, 2)
+MERGE (c2)-[r2:ROAD_TO]->(c1)
+ON CREATE SET r2.km = round(distance / 1000.0, 2);
+"
+
+# ------------------------------------------------------------
+# 2. IS_IN relationships
+# ------------------------------------------------------------
+execute_cypher "is_in" "
+    CALL apoc.periodic.iterate(
+    'MATCH (p:POI {importVersion: \"${IMPORT_VERSION}\"}) WHERE p.city IS NOT NULL RETURN p',
+    'MATCH (c:City {name: p.city})
+    MERGE (p)-[r:IS_IN]->(c)
+    SET r.importVersion = \"${IMPORT_VERSION}\"',
+    { batchSize: 2000, parallel: true }
+);
+"
+
+# ------------------------------------------------------------
+# 3. IS_NEARBY relationships
+# ------------------------------------------------------------
+execute_cypher "is_nearby" "
+CALL apoc.periodic.iterate(
+    'MATCH (p:POI {importVersion: \"${IMPORT_VERSION}\"})
+    WHERE NOT (p)-[:IS_IN]->(:City) AND p.location IS NOT NULL
+    RETURN p',
+    'MATCH (c:City)
+    WHERE point.distance(p.location, c.location) < 100000
+    WITH p, c, point.distance(p.location, c.location) AS dist
+    ORDER BY dist ASC
+    WITH p, collect(c)[0] AS nearestCity, collect(dist)[0] AS shortestDist
+    WHERE nearestCity IS NOT NULL
+    MERGE (p)-[r:IS_NEARBY]->(nearestCity)
+    SET r.importVersion = \"${IMPORT_VERSION}\",
+        r.distance_km = round(shortestDist / 1000.0, 2)',
+    { batchSize: 1000, parallel: false }
+);
+"
+
+echo "All post-import steps complete."
