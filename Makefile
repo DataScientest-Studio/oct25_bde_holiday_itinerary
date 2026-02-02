@@ -6,6 +6,11 @@ dev-file=docker-compose.dev.yaml
 
 init: run make-dataset
 
+up:
+	poetry run transform-datatourisme
+	docker compose up
+
+## Development
 manual-import:
 	poetry run transform-datatourisme
 
