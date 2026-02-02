@@ -6,11 +6,13 @@ export $(grep -v '^#' .env | xargs)
 
 NEO4J_USER="neo4j"
 NEO4J_PASS="${NEO4J_PASSWORD}"
-IMPORT_VERSION=$(uuidgen)
+IMPORT_VERSION="initial"
 
 echo "Waiting for Neo4j to accept connections..."
 
-until cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASS}" "RETURN 1" >/dev/null 2>&1; do
+until cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASS}" -d system \
+    "SHOW DATABASE neo4j YIELD currentStatus WHERE currentStatus = 'online' RETURN 1" \
+    | grep -q 1; do
     sleep 2
 done
 
@@ -22,17 +24,19 @@ execute_cypher() {
 
     APPLIED=$(
         cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASS}" --format plain <<EOF
-MATCH (m:_Migration {name: "${STEP_NAME}"})
-RETURN count(m);
+            MATCH (m:_Migration {name: "${STEP_NAME}"})
+            RETURN count(m);
 EOF
     )
+
+    APPLIED=$(echo "$APPLIED" | tail -n 1 | tr -d '[:space:]')
 
     if [ "${APPLIED}" != "0" ]; then
         echo "Step '${STEP_NAME}' already applied. Skipping."
         return
     fi
 
-    echo "Running step '${STEP_NAME}'..."
+    echo "Creating '${STEP_NAME}'..."
 
     cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASS}" <<EOF
 $CYPHER
@@ -55,7 +59,10 @@ CALL {
     WITH c1
     MATCH (c2:City)
     WHERE c1 <> c2
-    WITH c1, c2, point.distance(c1.location, c2.location) AS distance
+    WITH c1, c2, point.distance(
+         point({ latitude: c1.latitude, longitude: c1.longitude }),
+         point({ latitude: c2.latitude, longitude: c2.longitude })
+    ) AS distance
     ORDER BY distance ASC
     LIMIT 5
     RETURN c2, distance
@@ -70,11 +77,13 @@ ON CREATE SET r2.km = round(distance / 1000.0, 2);
 # 2. IS_IN relationships
 # ------------------------------------------------------------
 execute_cypher "is_in" "
-    CALL apoc.periodic.iterate(
-    'MATCH (p:POI {importVersion: \"${IMPORT_VERSION}\"}) WHERE p.city IS NOT NULL RETURN p',
-    'MATCH (c:City {name: p.city})
-    MERGE (p)-[r:IS_IN]->(c)
-    SET r.importVersion = \"${IMPORT_VERSION}\"',
+CALL apoc.periodic.iterate(
+    'MATCH (p:POI)
+    WHERE p.city IS NOT NULL
+    RETURN p',
+    'MATCH (c:City)
+    WHERE p.city = c.name
+    MERGE (p)-[:IS_IN]->(c)',
     { batchSize: 2000, parallel: true }
 );
 "
@@ -84,19 +93,41 @@ execute_cypher "is_in" "
 # ------------------------------------------------------------
 execute_cypher "is_nearby" "
 CALL apoc.periodic.iterate(
-    'MATCH (p:POI {importVersion: \"${IMPORT_VERSION}\"})
-    WHERE NOT (p)-[:IS_IN]->(:City) AND p.location IS NOT NULL
+    'MATCH (p:POI)
+    WHERE NOT (p)-[:IS_IN]->(:City)
+    AND p.latitude IS NOT NULL
+    AND p.longitude IS NOT NULL
     RETURN p',
     'MATCH (c:City)
-    WHERE point.distance(p.location, c.location) < 100000
-    WITH p, c, point.distance(p.location, c.location) AS dist
+    WHERE c.latitude IS NOT NULL
+    AND c.longitude IS NOT NULL
+    WITH p, c,
+       point.distance(
+         point({ latitude: p.latitude, longitude: p.longitude }),
+         point({ latitude: c.latitude, longitude: c.longitude })
+       ) AS dist
+    WHERE dist < 100000
     ORDER BY dist ASC
-    WITH p, collect(c)[0] AS nearestCity, collect(dist)[0] AS shortestDist
-    WHERE nearestCity IS NOT NULL
+    WITH p,
+       collect(c)[0] AS nearestCity,
+       collect(dist)[0] AS shortestDist
     MERGE (p)-[r:IS_NEARBY]->(nearestCity)
-    SET r.importVersion = \"${IMPORT_VERSION}\",
-        r.distance_km = round(shortestDist / 1000.0, 2)',
+    SET r.distance_km = round(shortestDist / 1000.0, 2)',
     { batchSize: 1000, parallel: false }
+);
+"
+
+execute_cypher "city-road-graph" "
+CALL gds.graph.project(
+    'city-road-graph',
+    'City',
+    {
+        ROAD_TO: {
+            type: 'ROAD_TO',
+            orientation: 'UNDIRECTED',
+            properties: ['km']
+        }
+    }
 );
 "
 
