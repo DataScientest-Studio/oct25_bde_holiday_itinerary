@@ -1,29 +1,8 @@
 import json
 import uuid
 from datetime import UTC, datetime
-from typing import Any
-
-from neo4j import Record, Result
-from neo4j_driver import Neo4jDriver
 
 from .status_handler import ProcessLock, get_status_file, get_status_file_content
-
-
-class Import:
-    import_version = str(uuid.uuid4())
-
-    def __init__(self, driver: Neo4jDriver) -> None:
-        self.driver = driver
-
-    def execute_query(self, query: str, **kwargs: Any) -> Result:
-        with self.driver.driver.session() as session:
-            return session.run(query, import_version=self.import_version, **kwargs)
-
-    def single_query(self, query: str, **kwargs: Any) -> Record:
-        return self.execute_query(query, **kwargs).single()
-
-    def summary_query(self, query: str, **kwargs: Any) -> Record:
-        return self.execute_query(query, **kwargs).sonsume()
 
 
 def import_types(driver, import_from_dir, import_version) -> dict:
