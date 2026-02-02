@@ -1,6 +1,41 @@
 ![Holiday Itinerary](img/HolidayItinerary.png)
-This repository contains a full-stack holiday itinerary planning application
-with a clear separation between frontend and backend responsibilities.
+
+This project provides a web-based system for planning optimized holiday itineraries
+across France. It tackles the challenge of efficiently managing and querying large
+datasets containing cities, road connections, and diverse Points of Interest (POIs)
+such as restaurants, hotels, and tourist attractions.
+
+The backend is powered by a **Neo4j Graph Database**, which models spatial and relational
+travel data. Route optimization is handled using classic algorithms like **Dijkstra**
+and the **Traveling Salesman Problem (TSP)**, exposed through a **FastAPI** service.
+By combining tourism datasets with a simulated road network, the system enables
+intelligent route planning and structured itinerary generation for travelers exploring
+France.
+
+## Dependencies
+
+- **[Python](https://www.python.org/)** (`>=3.13.0,<3.14`)\
+  Core runtime used across the project.
+- **[Loguru](https://loguru.readthedocs.io/)** (`0.7.3`)\
+  Shared logging framework used by both frontend and backend.
+- **[Neo4j](https://neo4j.com/)** (`5.x`)\
+  Graph database used for storing cities, POIs, and routing data.
+- **[Docker](https://www.docker.com/)**\
+  Container runtime used to run services consistently across environments.
+- **[Docker Compose](https://docs.docker.com/compose/)**\
+  Tooling to orchestrate multi-service setups such as Neo4j and backend APIs.
+- **[Make](https://www.gnu.org/software/make/)**\
+  Task runner used to standardize common development and test commands.
+
+## Build & Run
+
+1. Clone the repository
+2. Copy `.env.example` to `.env` and adjust values if needed
+3. Start the application:
+
+```shell
+make run
+```
 
 ## Development & Project Structure
 
@@ -45,31 +80,6 @@ a reproducible and environment-independent setup.
 
 Detailed information about the architecture can be found in
 [docs/backend-architecture.md](docs/backend-architecture.md).
-
-## Dependencies
-
-- **[Python](https://www.python.org/)** (`>=3.13.0,<3.14`)\
-  Core runtime used across the project.
-- **[Loguru](https://loguru.readthedocs.io/)** (`0.7.3`)\
-  Shared logging framework used by both frontend and backend.
-- **[Neo4j](https://neo4j.com/)** (`5.x`)\
-  Graph database used for storing cities, POIs, and routing data.
-- **[Docker](https://www.docker.com/)**\
-  Container runtime used to run services consistently across environments.
-- **[Docker Compose](https://docs.docker.com/compose/)**\
-  Tooling to orchestrate multi-service setups such as Neo4j and backend APIs.
-- **[Make](https://www.gnu.org/software/make/)**\
-  Task runner used to standardize common development and test commands.
-
-## Build & Run
-
-1. Clone the repository
-2. Copy `.env.example` to `.env` and adjust values if needed
-3. Start the application using Docker Compose:
-
-```shell
-docker-compose up --build
-```
 
 ## Neo4j Setup
 
