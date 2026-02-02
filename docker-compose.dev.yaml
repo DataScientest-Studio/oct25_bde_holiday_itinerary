@@ -36,7 +36,7 @@ services:
       - DATATOURISME_EMAIL=${DATATOURISME_EMAIL}
       - DATATOURISME_PASSWORD=${DATATOURISME_PASSWORD}
       - DATATOURISME_SAVE_DIR=./feed_data
-      - DATATOURISME_IMPORT_DIR=./import_data
+      - DATATOURISME_IMPORT_DIR=./import-data
     dns:
       - 8.8.8.8
       - 1.1.1.1
@@ -44,7 +44,7 @@ services:
       - neo4j-dev
     volumes:
       - ./feed_data:/feed_data
-      - ./tests/data/bulk:/import_data
+      - ./tests/data/bulk:/import-data
   neo4j-dev:
     container_name: neo4j-dev
     image: neo4j:2025.10.1

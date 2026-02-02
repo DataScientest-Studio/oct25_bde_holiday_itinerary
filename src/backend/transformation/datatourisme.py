@@ -2,6 +2,7 @@ import json
 import re
 from functools import reduce
 from operator import getitem
+from os import getenv
 from pathlib import Path
 from typing import Any
 
@@ -11,8 +12,7 @@ filename_pattern = re.compile(
     r"(.*/)*(?P<id>[\d]*-[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}).json"
 )
 
-ROOT = Path(__file__).parent.parent.parent.parent
-OUTPUT_DIRECTORY = ROOT / "import_data"
+IMPORT_DATA_DIR = Path(getenv("NEO4J-INIT-DATA-DIR", "import-data"))
 
 
 def get_nested(data: dict, path: str, default: Any = None) -> Any:
@@ -92,13 +92,13 @@ def create_poi_is_a_type_rels_df(df):
 def store_nodes_and_edges(df):
     """stores nodes separately from edges for easy neo4j import"""
     poi_nodes_df = create_poi_nodes_df(df)
-    poi_nodes_df.to_csv(OUTPUT_DIRECTORY / "poi_nodes.csv", index=False)
+    poi_nodes_df.to_csv(IMPORT_DATA_DIR / "poi_nodes.csv", index=False)
 
     type_nodes_df = create_type_nodes_df(df)
-    type_nodes_df.to_csv(OUTPUT_DIRECTORY / "type_nodes.csv", index=False)
+    type_nodes_df.to_csv(IMPORT_DATA_DIR / "type_nodes.csv", index=False)
 
     poi_is_a_type_df = create_poi_is_a_type_rels_df(df)
-    poi_is_a_type_df.to_csv(OUTPUT_DIRECTORY / "poi_is_a_type_rels.csv", index=False)
+    poi_is_a_type_df.to_csv(IMPORT_DATA_DIR / "poi_is_a_type_rels.csv", index=False)
 
 
 def process_data(directory):

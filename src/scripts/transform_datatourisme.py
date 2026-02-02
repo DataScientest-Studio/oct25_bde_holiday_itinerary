@@ -2,6 +2,7 @@ import json
 import shutil
 import time
 import zipfile
+from os import getenv
 from pathlib import Path
 
 import pandas as pd
@@ -24,7 +25,7 @@ OUTPUT_DIRECTORY = Path("example_data")
 ZIP_PATH = OUTPUT_DIRECTORY / "datatourisme.zip"
 FLUX_DIRECTORY = OUTPUT_DIRECTORY / "datatourisme"
 
-IMPORT_DIR = Path("import_data")
+IMPORT_DATA_DIR = Path(getenv("NEO4J-INIT-DATA-DIR", "import-data"))
 
 
 def download_file() -> None:
@@ -58,7 +59,7 @@ def unzip_file() -> None:
 
 
 def zip_csv_files() -> None:
-    for csv_file in IMPORT_DIR.rglob("*.csv"):
+    for csv_file in IMPORT_DATA_DIR.rglob("*.csv"):
         zip_path = csv_file.with_suffix(".zip")
         zip_path.unlink(missing_ok=True)
 
