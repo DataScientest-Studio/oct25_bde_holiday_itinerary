@@ -6,7 +6,6 @@ from typing import Any
 
 from loguru import logger
 from neo4j import GraphDatabase
-from neo4j.exceptions import AuthError, ServiceUnavailable
 
 
 class Base:
@@ -23,7 +22,6 @@ class Base:
 
         try:
             self.wait_for_neo4j()
-            self.init_custom_gds_algorithm()
             logger.success("Intitalized Neo4jDriver.")
         except RuntimeError as err:
             logger.error(err)
@@ -31,39 +29,31 @@ class Base:
             sys.exit(1)
 
     def wait_for_neo4j(self, timeout=600):
-        logger.info("Waiting until neo4j database started.")
+        logger.info("Waiting until neo4j database is ONLINE...")
         start = time.time()
 
         while True:
             try:
-                with self.driver.session() as session:
-                    session.run("RETURN 1").consume()
-                logger.info("Neo4j is ready")
-                return
-            except (ServiceUnavailable, AuthError) as e:
-                if time.time() - start > timeout:
-                    raise RuntimeError("Neo4j did not start in time") from e
-                logger.info("Waiting for Neo4j...")
-                time.sleep(10)
-                logger.debug(f"Time until termination {timeout-(time.time() - start)}s.")
+                with self.driver.session(database="system") as session:
+                    result = session.run(
+                        """
+                        SHOW DATABASE neo4j
+                        YIELD currentStatus
+                        WHERE currentStatus = 'online'
+                        RETURN 1
+                    """
+                    )
+                    if result.single():
+                        logger.success("Neo4j database is ONLINE")
+                        return
+            except Exception:
+                pass
 
-    def init_custom_gds_algorithm(self) -> None:
-        logger.info("Initialize custom algorithms.")
-        query = """
-            CALL gds.graph.project(
-                'city-road-graph',
-                'City',
-                {
-                    ROAD_TO: {
-                        type: 'ROAD_TO',
-                        orientation: 'UNDIRECTED',
-                        properties: ['km']
-                    }
-                }
-            )
-        """
-        self.execute_query(query)
-        logger.success("Initialized algorithms.")
+            if time.time() - start > timeout:
+                raise RuntimeError("Neo4j database did not become online in time")
+
+            logger.debug(f"Time until termination {timeout-(time.time() - start)}s.")
+            time.sleep(10)
 
     def execute_query(self, query: str, **kwargs: Any) -> list[dict[Any, Any]] | None:
         logger.info("Executing query.")
