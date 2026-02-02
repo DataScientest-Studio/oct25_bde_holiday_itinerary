@@ -18,6 +18,10 @@ if [ ! -d "$DB_DIR" ] || [ ! -f "$FLAG" ]; then
         --nodes="POI=/import/poi_nodes.zip" \
         --nodes="POIType=/import/type_nodes.zip" \
         --relationships="IS_A=/import/poi_is_a_type_rels.zip"
+
+    chown -R neo4j:neo4j /data
+    touch "$FLAG"
+
     echo "--- Import complete. Starting Neo4j server... ---"
 else
     echo "--- Database already exists. Starting Neo4j server without import... ---"
