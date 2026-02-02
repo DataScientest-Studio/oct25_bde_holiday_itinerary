@@ -1,5 +1,4 @@
-# Holiday Itinerary
-
+![Holiday Itinerary](img/HolidayItinerary.png)
 This repository contains a full-stack holiday itinerary planning application
 with a clear separation between frontend and backend responsibilities.
 
