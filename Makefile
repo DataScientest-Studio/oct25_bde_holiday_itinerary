@@ -6,7 +6,7 @@ dev-file=docker-compose.dev.yaml
 
 init: run make-dataset
 
-up:
+run:
 	poetry run transform-datatourisme
 	docker compose up
 
@@ -23,7 +23,7 @@ clean:
 manual-import:
 	poetry run transform-datatourisme
 
-up-dev:
+run-dev:
 	docker compose -f ${dev-file} up
 
 down-dev:
