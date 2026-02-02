@@ -2,7 +2,7 @@ services:
   ui:
     container_name: holiday-ui
     pull_policy: never
-    image: holiday_internal_ui
+    image: holiday-internal-ui:latest
     build:
       context: .
       target: ui
@@ -12,13 +12,13 @@ services:
       - STREAMLIT_SERVER_PORT=8501
       - STREAMLIT_SERVER_ADDRESS=0.0.0.0
       - STREAMLIT_HEADLESS=true
-      - API_URL=http://neo4j_api:8080
+      - API_URL=http://neo4j-api:8080
     depends_on:
-      - neo4j_api
-  neo4j_api:
-    container_name: neo4j_api
+      - neo4j-api
+  neo4j-api:
+    container_name: neo4j-api
     pull_policy: never
-    image: neo4j_api:latest
+    image: neo4j-api:latest
     env_file:
       - .env
     build:
@@ -41,7 +41,8 @@ services:
       - 8.8.8.8
       - 1.1.1.1
     depends_on:
-      - neo4j
+      neo4j-post-init:
+        condition: service_completed_successfully
     volumes:
       - ./feed_data:/feed_data
       - ./import-data:/import-data
@@ -70,7 +71,23 @@ services:
       - neo4j_data:/data
       - ./import-data:/import
       - ./src/scripts/init-db.sh:/tmp/init/init-db.sh
-
+    healthcheck:
+      test: [ "CMD", "/var/lib/neo4j/bin/cypher-shell", "-u", "neo4j", "-p", "${NEO4J_PASSWORD}", "RETURN 1" ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  neo4j-post-init:
+    image: neo4j:2025.10.1
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    environment:
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - NEO4J_URI=bolt://neo4j:7687
+    volumes:
+      - ./src/scripts/post-init.sh:/post-init.sh:ro
+    entrypoint: ["/bin/bash", "/post-init.sh"]
+    restart: "no"
 volumes:
   neo4j_data:
     name: neo4j_data
