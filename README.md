@@ -16,8 +16,9 @@ France.
 
 ## Motivation
 
-The idea behind this project originated from the shared interest of **Max Düssler**
-and **Adam Stibal** in combining modern database technologies with practical applications
+The idea behind this project originated from the shared interest of
+**[Max Düssler](https://github.com/mduessler)** and **[Adam Stibal](https://github.com/stibala)**
+in combining modern database technologies with practical applications
 in tourism. The goal was to develop a system that can not only efficiently manage
 large amounts of geographic and tourism-related data, but also use this data intelligently
 to solve real-world travel planning problems.
