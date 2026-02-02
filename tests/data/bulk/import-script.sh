@@ -27,7 +27,6 @@ if [ ! -d "$DB_DIR" ] || [ ! -f "$FLAG" ]; then
     touch "$FLAG"
 
     echo "--- Import complete. Starting Neo4j server... ---"
-
 else
     echo "--- Database already exists. Starting Neo4j server without import... ---"
 fi
