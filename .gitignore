@@ -98,4 +98,4 @@ datatourisme.zip
 logs/
 feed_data/
 dags
-init-data
+import-data/
