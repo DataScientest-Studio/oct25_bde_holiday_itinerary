@@ -9,8 +9,8 @@ init: run make-dataset
 manual-import:
 	poetry run transform-datatourisme
 
-run-dev:
-	docker compose up -f ${dev-file}
+up-dev:
+	docker compose -f ${dev-file} up
 
 start-airflow:
 	docker compose -f docker-compose.airflow.yaml up -d
