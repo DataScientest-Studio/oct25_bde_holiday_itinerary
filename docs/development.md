@@ -1,5 +1,18 @@
 # Development
 
+This documentation describes how to set up and work within the development environment
+for this project. It covers local setup, development workflows, project structure,
+coding conventions, and tools required for contributing or modifying the system.
+
+- [Dependencies](#dependencies)
+- [Commands](#commands)
+- [Pre-commit](#pre-commit)
+- [Poetry](#poetry)
+- [Tests](#tests)
+- [GitHub Actions](#github-actions)
+- [Logging](#logging)
+- [Manual Data Import](#manual-data-import)
+
 ## Dependencies
 
 - **[pre-commit](https://pre-commit.com/)** (`4.2.0`)\
