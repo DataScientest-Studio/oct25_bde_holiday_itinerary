@@ -1,3 +1,5 @@
+dev-file=docker-compose.dev.yaml
+
 .SILENT:
 .ONESHELL:
 .PHONY: tests
@@ -7,8 +9,8 @@ init: run make-dataset
 manual-import:
 	poetry run transform-datatourisme
 
-run:
-	docker compose up -d
+run-dev:
+	docker compose up -f ${dev-file}
 
 start-airflow:
 	docker compose -f docker-compose.airflow.yaml up -d
