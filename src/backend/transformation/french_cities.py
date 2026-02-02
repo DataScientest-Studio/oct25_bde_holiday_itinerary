@@ -25,4 +25,6 @@ def create_city_nodes() -> None:
         }
     )
 
+    city_nodes = city_nodes.drop_duplicates(subset=["cityId:ID(City)"], keep="first")
+
     city_nodes.to_csv(CSV_FILE, index=False, quoting=1)  # csv.QUOTE_ALL
