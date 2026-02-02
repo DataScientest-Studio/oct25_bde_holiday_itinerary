@@ -69,7 +69,7 @@ services:
     volumes:
       - neo4j_data_dev:/data
       - ./tests/data/bulk:/import
-      - ./src/scripts/import-script.sh:/tmp/init/import-script.sh
+      - ./tests/data/bulk/import-script.sh:/tmp/init/import-script.sh
 
 volumes:
   neo4j_data_dev:

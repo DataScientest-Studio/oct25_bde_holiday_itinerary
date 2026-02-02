@@ -15,6 +15,11 @@ up-dev:
 down-dev:
 	docker compose -f ${dev-file} down
 
+clean-dev:
+	docker compose -f ${dev-file} down
+	docker image rm holiday-internal-ui:dev neo4j-api:dev
+	docker volume rm neo4j_data_dev
+
 start-airflow:
 	docker compose -f docker-compose.airflow.yaml up -d
 
