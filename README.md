@@ -1,5 +1,7 @@
 ![Holiday Itinerary](img/HolidayItinerary.png)
 
+______________________________________________________________________
+
 This project provides a web-based system for planning optimized holiday itineraries
 across France. It tackles the challenge of efficiently managing and querying large
 datasets containing cities, road connections, and diverse Points of Interest (POIs)
@@ -11,6 +13,20 @@ and the **Traveling Salesman Problem (TSP)**, exposed through a **FastAPI** serv
 By combining tourism datasets with a simulated road network, the system enables
 intelligent route planning and structured itinerary generation for travelers exploring
 France.
+
+## Motivation
+
+The idea behind this project originated from the shared interest of **Max Düssler**
+and **Adam Stibal** in combining modern database technologies with practical applications
+in tourism. The goal was to develop a system that can not only efficiently manage
+large amounts of geographic and tourism-related data, but also use this data intelligently
+to solve real-world travel planning problems.
+
+By combining graph databases, routing algorithms, and a modern web interface, this
+project demonstrates how complex data structures can be transformed into meaningful
+and useful tools for end users. At the same time, it serves as a practical showcase
+for the use of Neo4j, FastAPI, and algorithmic route optimization in a realistic
+application scenario.
 
 ## Dependencies
 
