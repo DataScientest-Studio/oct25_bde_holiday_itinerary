@@ -15,6 +15,11 @@ coding conventions, and tools required for contributing or modifying the system.
 
 ## Dependencies
 
+All dependencies listed in this document are mandatory for the production environment.
+Furthermore the dependencies listed in [README.md](../README.md) and [production.md](production.md)
+are required. The exact dependency versions are managed via `pyproject.toml`
+and the lock file.
+
 - **[pre-commit](https://pre-commit.com/)** (`4.2.0`)\
   Git hooks framework used to enforce code quality checks before commits.
 - **[Black](https://black.readthedocs.io/)** (`25.11.0`)\
