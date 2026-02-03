@@ -23,35 +23,34 @@ efficient way.
 
 ## Directory Structure
 
-The frontend code is located in the [*src/*](./src) directory alongside the backend
+The frontend code is located in the [\*src/frontend](../src/frontend) directory alongside the backend
 services.
 
 ```text
-src/
+src/frontend
 ├── streamlit_app.py             # Application entry point
-├── ui/
-│   ├── handlers/                # User interaction and backend coordination
-│   │   ├── __init__.py
-│   │   ├── add_poi.py            # Add POIs to the current itinerary
-│   │   ├── delete_poi.py         # Remove POIs from the itinerary
-│   │   ├── get_request.py        # HTTP requests to the backend API
-│   │   ├── itinerary.py          # Request an itinerary
-│   │   ├── utils.py              # Shared helper functions for handlers
-│   │   └── validators.py         # Input validation and consistency checks
-│   │
-│   ├── widgets/                 # UI components
-│   │   ├── __init__.py
-│   │   ├── controls.py           # UI controls/filters to select the pois
-│   │   ├── map.py                # Map to visualize location of pois and route
-│   │   ├── poi_overview.py       # Overview about a selected poi
-│   │   ├── pois_overview.py      # Overview of pois selected with the controls
-│   │   └── route.py              # Pois which are part of the itinerary
-│   │
-│   ├── __init__.py
-│   ├── config.py                 # UI configuration and constants
-│   ├── layout.py                 # Page layout and structure definition
-│   ├── session_states.py         # Streamlit session state initialization
-│   ├── ui.py                     # UI class, which is called in streamlit_app.py
-│   └── utils.py                  # Shared UI helper functions
-└── ...                          # Backend services (not shown)
+└── ui/
+    ├── handlers/                # User interaction and backend coordination
+    │   ├── __init__.py
+    │   ├── add_poi.py            # Add POIs to the current itinerary
+    │   ├── delete_poi.py         # Remove POIs from the itinerary
+    │   ├── get_request.py        # HTTP requests to the backend API
+    │   ├── itinerary.py          # Request an itinerary
+    │   ├── utils.py              # Shared helper functions for handlers
+    │   └── validators.py         # Input validation and consistency checks
+    │
+    ├── widgets/                 # UI components
+    │   ├── __init__.py
+    │   ├── controls.py           # UI controls/filters to select the pois
+    │   ├── map.py                # Map to visualize location of pois and route
+    │   ├── poi_overview.py       # Overview about a selected poi
+    │   ├── pois_overview.py      # Overview of pois selected with the controls
+    │   └── route.py              # Pois which are part of the itinerary
+    │
+    ├── __init__.py
+    ├── config.py                 # UI configuration and constants
+    ├── layout.py                 # Page layout and structure definition
+    ├── session_states.py         # Streamlit session state initialization
+    ├── ui.py                     # UI class, which is called in streamlit_app.py
+    └── utils.py                  # Shared UI helper functions
 ```
