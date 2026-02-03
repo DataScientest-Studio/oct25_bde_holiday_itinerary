@@ -21,7 +21,7 @@ URL = (
     "2644ca0a-e70f-44d5-90a5-3785f610c4b5"
 )
 
-OUTPUT_DIRECTORY = Path("example_data")
+OUTPUT_DIRECTORY = Path("/tmp")
 ZIP_PATH = OUTPUT_DIRECTORY / "datatourisme.zip"
 FLUX_DIRECTORY = OUTPUT_DIRECTORY / "datatourisme"
 
