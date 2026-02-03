@@ -1,4 +1,4 @@
-![Holiday Itinerary](img/HolidayItinerary.png)
+![Holiday Itinerary](images/HolidayItinerary.png)
 
 ______________________________________________________________________
 

@@ -47,7 +47,7 @@ to enable routing between cities.
 
 ### Visual Representation
 
-![Cities](../img/city_road_to.png)
+![Cities](../images/city_road_to.png)
 
 *Representation of City nodes and ROAD_TO relationships (example centered on Marseille).*
 
@@ -81,7 +81,7 @@ we use a separate `Type` node and an `IS_A` relationship.
 - **Query Performance:** It simplifies queries that need to filter POIs by category,
   especially when dealing with many categories or complex overlaps.
 
-![City, POI and Type](../img/city_poi_type.png)\
+![City, POI and Type](../images/city_poi_type.png)\
 *Representation of `City`, `POI`, and `Type` nodes with `IS_A` and spatial relationships.*
 
 **Reproduce the visualization with:**
