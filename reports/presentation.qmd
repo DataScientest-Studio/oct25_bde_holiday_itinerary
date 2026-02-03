@@ -34,7 +34,7 @@ format:
 :::
 
 ::: {.column width="37%"}
-![](img/city_road_to.png){fig-align="center"}
+![](../img/city_road_to.png){fig-align="center"}
 :::
 
 ::::
@@ -58,7 +58,7 @@ format:
 
 ::: {.column width="37%"}
 
-![](img/super_node.png){width=120% fig-align="center"}
+![](../img/super_node.png){width=120% fig-align="center"}
 :::
 
 ::::
@@ -70,12 +70,12 @@ format:
 :::: {.columns .v-center}
 
 ::: {.column width="48%"}
-![](img/city_coverage.png){width=90% fig-align="center"}
+![](../img/city_coverage.png){width=90% fig-align="center"}
 
 :::
 
 ::: {.column width="48%"}
-![](img/poi_coverage.png){width=90% fig-align="center"}
+![](../img/poi_coverage.png){width=90% fig-align="center"}
 
 :::
 ::::
@@ -98,7 +98,7 @@ format:
 :::
 
 ::: {.column width="37%"}
-![](img/cities_and_roads.png){width=90% fig-align="right"}
+![](../img/cities_and_roads.png){width=90% fig-align="right"}
 :::
 ::::
 
@@ -125,7 +125,7 @@ Whole pipeline takes around 10 min to complete
 :::
 
 ::: {.column width="37%"}
-![](img/airflow_runs_detail.png){width=90% fig-align="right"}
+![](../img/airflow_runs_detail.png){width=90% fig-align="right"}
 :::
 ::::
 
