@@ -225,3 +225,41 @@ a neo4j database. A bulk data for testing purposes is located at
    ```
 7. *(Optional)* — Copy the content to [tests/data/bulk](../tests/data/bulk)
    to use it as dataset for the development environment.
+
+## Project structure
+
+```shell
+.
+├── .git/                       # Git version control data
+├── .github/                    # GitHub workflows, templates, and CI configuration
+│
+├── airflow/                    # Airflow DAGs, plugins, and pipeline orchestration configs
+├── docs/                       # Project documentation (architecture, setup guides, ADRs)
+├── images/                     # Images used in docs or reports
+├── notebooks/                  # Jupyter notebooks for exploration and experiments
+├── reports/                    # Generated reports, exports, or analysis outputs
+│
+├── src/                        # Main application source code
+│   ├── backend/                # Implementation of the backend
+│   ├── frontend/               # Implementation of the frontend
+│   ├── logger/                 # Logging configuration and utilities
+│   └── scripts/                # Utility scripts and automation helpers
+│
+├── tests/                      # Unit, integration, and functional tests
+│
+├── .env.example                # Example environment variables template
+├── .gitignore                  # Files ignored by git
+├── .pre-commit-config.yaml     # Pre-commit hooks configuration
+│
+├── docker-compose.airflow.yaml # Docker setup for Airflow services
+├── docker-compose.dev.yaml     # Docker setup for development environment
+├── docker-compose.yaml         # Default Docker Compose configuration
+├── Dockerfile                  # Base container image definition
+│
+├── LICENSE                     # Project license
+├── Makefile                    # Common development commands
+├── poetry.lock                 # Locked dependency versions
+├── pyproject.toml              # Python project configuration (Poetry, tools)
+├── pytest.ini                  # Pytest configuration
+└── README.md                   # Project overview and documentation
+```
