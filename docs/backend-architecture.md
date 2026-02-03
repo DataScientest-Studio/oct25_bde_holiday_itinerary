@@ -47,7 +47,7 @@ logic, data processing, and database interactions clearly isolated.
 
 ## Backend Directory Structure
 
-The backend code is located in the [\*src/backend/](./src/backend) directory alongside
+The backend code is located in the [src/backend/](../src/backend) directory alongside
 the frontend and provides the API and data access layer for the application.
 
 ```text
