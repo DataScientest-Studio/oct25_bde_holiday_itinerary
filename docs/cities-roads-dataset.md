@@ -19,8 +19,11 @@ Roads are synthetically generated based on geographic proximity.
 
 ## Dependencies
 
-- **[Neo4j](https://neo4j.com/)** (`5.x`)\
-  Graph database used to store and query the city and road network data.
+All dependencies listed in this document are mandatory for the production environment.
+Furthermore the dependencies listed in [README.md](../README.md) and [production.md](production.md)
+are required. The exact dependency versions are managed via `pyproject.toml`
+and the lock file.
+
 - **[Graph Data Science](https://neo4j.com/docs/graph-data-science/)** (`2.x`)\
   Library used to run graph algorithms such as WCC and KNN on the Neo4j graph.
 - **[APOC Core](https://neo4j.com/labs/apoc/)**\

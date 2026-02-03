@@ -32,14 +32,14 @@ data is processed and finally imported into **Neo4j**.
 
 ### Dependencies
 
+All dependencies listed in this document are mandatory for the production environment.
+Furthermore the dependencies listed in [README.md](../README.md) and [production.md](production.md)
+are required. The exact dependency versions are managed via `pyproject.toml`
+and the lock file.
+
 - **[Apache Airflow](https://airflow.apache.org/)**\
   Orchestrates the data download and processing pipeline via scheduled DAGs
   (defined in `airflow/dags/data_download_trigger.py`).
-- **[FastAPI](https://fastapi.tiangolo.com/)**\
-  Exposes trigger and status endpoints used by Airflow to control the data pipeline
-  (implemented in `src/neo4j_api/routes/data_update.py`).
-- **[Neo4j](https://neo4j.com/)**\
-  Graph database used to store the imported and processed tourism data.
 
 ## Workflow Steps
 
