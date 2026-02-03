@@ -36,7 +36,10 @@ clean-dev:
 	docker volume rm neo4j_data_dev
 
 airflow:
-	docker compose -f docker-compose.airflow.yaml up -d
+	docker compose -f docker-compose.airflow.yaml up
+
+down-airflow:
+	docker compose -f docker-compose.airflow.yaml down
 
 tests:
 	-docker network create testnet
