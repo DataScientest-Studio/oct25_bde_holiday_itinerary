@@ -54,7 +54,7 @@ application scenario.
 make run
 ```
 
-## Development & Project Structure
+## Development & Application Structure
 
 All development workflows, project structure, conventions and environment
 setup are documented in:
