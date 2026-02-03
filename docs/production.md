@@ -34,3 +34,4 @@ The exact dependency versions are managed via `pyproject.toml` and the lock file
 2. **make down** — Shutdown the development environment and deletes the docker container.
 3. **make clean** — Removes all docker container, images and volumes of the development
    environment.
+4. **make create-dataset** — Create, the dataset on the production manually.
