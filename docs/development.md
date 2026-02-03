@@ -37,10 +37,11 @@ coding conventions, and tools required for contributing or modifying the system.
 ## Commands
 
 1. **make run-dev** — Starts the development environment
-2. **down-dev** — Shutdown the development environment and deletes the docker container.
-3. **clean-dev** — Removes all docker container, images and volumes of the development
+2. **make down-dev** — Shutdown the development environment and deletes the docker container.
+3. **make clean-dev** — Removes all docker container, images and volumes of the development
    environment.
-4. **tests** — Execute the tests of the project.
+4. **make tests** — Execute the tests of the project.
+5. **make manual-data-import** — Create Cities, POIs, POITypes and IS_A relationships.
 
 ## Pre-commit
 
