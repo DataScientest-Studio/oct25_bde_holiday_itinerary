@@ -42,6 +42,10 @@ and the lock file.
 
 ## Commands
 
+Copy `.env.example` to `.env` and adjust values if needed. In any case, you have
+to set the env varible **AIRFLOW_CONN_NEO4J_API_CONN** to *http://neo4j-api-dev:8080*
+in the `.env` file
+
 1. **make run-dev** — Starts the development environment
 2. **make down-dev** — Shutdown the development environment and deletes the
    docker container.

@@ -74,7 +74,7 @@ x-airflow-common:
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
     # The following line can be used to set a custom config file, stored in the local config folder
     AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
-    AIRFLOW_CONN_NEO4J_API_CONN: "http://neo4j-api:8080"
+
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/airflow/dags:/opt/airflow/source-dags:ro
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags

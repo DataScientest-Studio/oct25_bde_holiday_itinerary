@@ -48,7 +48,9 @@ application scenario.
 
 1. Clone the repository
 2. Copy `.env.example` to `.env` and adjust values if needed
-3. Start the application:
+3. Set the correct address of the neo4j-api. In this case set the env variable
+   **AIRFLOW_CONN_NEO4J_API_CONN** to *http://neo4j-api:8080* in the `.env` file.
+4. Start the application:
 
 ```shell
 make run
