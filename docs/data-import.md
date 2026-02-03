@@ -43,7 +43,9 @@ and the lock file.
 
 ## Workflow Steps
 
-The following steps are executed sequentially for each import run.
+The following steps are executed sequentially for each import run. All step to
+import the data are defined in the module
+[src/backend/dataset_import](../src/backend/dataset_import).
 
 ### 1. Trigger Download
 
