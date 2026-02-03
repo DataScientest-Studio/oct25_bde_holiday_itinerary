@@ -51,34 +51,40 @@ The backend code is located in the [*src/*](./src) directory alongside the front
 and provides the API and data access layer for the application.
 
 ```text
-src/
-├── neo4j_api/                    # FastAPI application and ETL logic
-│   ├── routes/                   # API route definitions
-│   │   ├── city.py               # City-related endpoints
-│   │   ├── data_update.py        # Endpoints to trigger and monitor data imports
-│   │   ├── dijkstra.py           # Shortest-path routing endpoints
-│   │   ├── distance.py           # Distance calculation endpoints
-│   │   ├── poi.py                # Points of Interest endpoints
-│   │   ├── travel.py             # Travel and itinerary-related endpoints
-│   │   ├── tsp.py                # Traveling Salesman Problem endpoints
+src/backend/
+├── dataset_import/                 # Dataset ingestion and Neo4j loading pipelines
+│   ├── __init__.py
+│   ├── cleanup.py                  # Cleanup of temporary files, old imports, and staging artifacts
+│   ├── handler.py                  # Main dataset import orchestration entry points
+│   ├── neo4j_load.py               # Neo4j bulk import logic (LOAD CSV, batch inserts, APOC helpers)
+│   ├── pipeline.py                 # End-to-end dataset import pipeline definition and execution flow
+│   └── status_handler.py           # Import status tracking, progress monitoring, and state reporting
+│
+├── neo4j_api/                      # FastAPI application exposing graph, routing, and data endpoints
+│   ├── routes/                     # API route definitions grouped by domain
+│   │   ├── city.py                 # City-related endpoints (search, retrieval, metadata)
+│   │   ├── data_update.py          # Endpoints to trigger dataset imports and monitor import progress
+│   │   ├── dijkstra.py             # Shortest path routing endpoints (Dijkstra-based routing)
+│   │   ├── distance.py             # Distance calculation endpoints between graph entities
+│   │   ├── poi.py                  # Points of Interest endpoints (search, filtering, retrieval)
+│   │   ├── travel.py               # Travel planning and itinerary-related endpoints
+│   │   ├── tsp.py                  # Traveling Salesman Problem solver endpoints
 │   │   └── __init__.py
 │   │
 │   ├── __init__.py
-│   ├── main.py                   # FastAPI application entry point
-│   ├── status_handler.py         # Shared import and process status handling
-│   ├── datatourisme_handler.py   # Download and authentication logic for DATAtourisme
-│   ├── data_upload_etl.py        # Data extraction and CSV generation logic
-│   ├── import_data.py            # Neo4j import logic (LOAD CSV, APOC)
-│   └── cleanup_import.py         # Cleanup of temporary files and old imports
+│   └── main.py                     # FastAPI application entry point (app creation, middleware, router registration)
 │
-├── neo4j_driver/                 # Neo4j database access layer
+├── neo4j_driver/                   # Neo4j database access and query abstraction layer
 │   ├── __init__.py
-│   ├── base.py                   # Base Neo4j connection and session handling
-│   ├── neo4j_driver.py           # Low-level Neo4j driver wrapper
-│   ├── city.py                   # City-related database queries
-│   ├── poi.py                    # POI-related database queries
-│   ├── city_poi.py               # City–POI relationship queries
-│   └── tsp.py                    # TSP-related database queries
+│   ├── base.py                     # Base Neo4j connection handling, sessions, and transaction utilities
+│   ├── city.py                     # City-related graph queries and database operations
+│   ├── city_poi.py                 # City ↔ POI relationship queries and traversal helpers
+│   ├── neo4j_driver.py             # Low-level Neo4j driver wrapper and connection lifecycle management
+│   ├── poi.py                      # POI-related graph queries and retrieval logic
+│   └── tsp.py                      # TSP graph query helpers and optimization query logic
 │
-└── ...                           # Frontend code and other services (not shown)
+└── transformation/                 # Raw dataset transformation and normalization logic
+    ├── __init__.py
+    ├── datatourisme.py             # DATAtourisme dataset transformation, cleaning, and schema mapping
+    └── french_cities.py            # French cities dataset normalization and enrichment logic
 ```
