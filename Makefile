@@ -20,8 +20,9 @@ clean:
 
 
 ## Development
-manual-import:
+create-dataset:
 	poetry run transform-datatourisme
+	docker compose up neo4j neo4j-post-init --abort-on-container-exit
 
 run-dev:
 	docker compose -f ${dev-file} up

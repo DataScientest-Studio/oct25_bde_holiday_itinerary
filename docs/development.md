@@ -12,6 +12,7 @@ coding conventions, and tools required for contributing or modifying the system.
 - [GitHub Actions](#github-actions)
 - [Logging](#logging)
 - [Manual Data Import](#manual-data-import)
+- [Export and import dataset](#export-and-import-dataset)
 
 ## Dependencies
 
@@ -119,70 +120,107 @@ created and every POI node gets a relationship to it.
 Files `type_nodes.csv` and `poi_is_a_type_rels.csv` contain the type nodes and
 their relationships.
 
-If you need to import data manually using `neo4j-admin`:
+## Export and import dataset
 
-1. Download and extract new feed data into `example_data` and create the dataset
-   using `make_dataset.py`
-2. Stop Neo4j:
+The commands describe an option to create, export and import the dataset to
+a neo4j database. A bulk data for testing purposes is located at
+[tests/data/bulk/](../tests/data/bulk/).
+
+1. Download and create nodes **POI**, **POITypes**, and **City** and the relationship
+   **IS_A** with the command
    ```shell
-   docker compose down
+   poetry run transform-datatourisme
    ```
-3. If the `docker compose up` command has not been executed yet and no volume
-   exists, create it:
+2. Next you need to start the database to create the relationships **ROAD_TO**,
+   **IS_IN**, and **IS_NEARBY** and the graph **city-road-graph** with the command
    ```shell
-   docker volume create neo4j_data
+   docker compose up neo4j neo4j-post-init
+   docker compose exec neo4j mkdir -p /tmp/export
    ```
-4. Import the data from the project root directory:
+3. To create the csv of each node and relationship, execute this commands from
+   the neo4j ui
+   ```cypher
+   // --- Export POI Nodes ---
+   CALL apoc.export.csv.query(
+       "MATCH (n:POI) RETURN n",
+       "/tmp/export/poi_nodes.csv",
+       {}
+   );
+
+   // --- Export POIType Nodes ---
+   CALL apoc.export.csv.query(
+       "MATCH (n:POIType) RETURN n",
+       "/tmp/export/type_nodes.csv",
+       {}
+   );
+
+   // --- Export City Nodes ---
+   CALL apoc.export.csv.query(
+       "MATCH (n:City) RETURN n",
+       "/tmp/export/cities_nodes.csv",
+       {}
+   );
+
+   // --- Export IS_A Relationships ---
+   CALL apoc.export.csv.query(
+       "MATCH ()-[r:IS_A]->() RETURN r",
+       "/tmp/export/poi_is_a_type_rels.csv",
+       {}
+   );
+
+   // --- Export ROAD_TO Relationships ---
+   CALL apoc.export.csv.query(
+       "MATCH ()-[r:ROAD_TO]->() RETURN r",
+       "/tmp/export/roads_rels.csv",
+       {}
+   );
+
+   // --- Export IS_IN Relationships ---
+   CALL apoc.export.csv.query(
+       "MATCH ()-[r:IS_IN]->() RETURN r",
+       "/tmp/export/poi_is_in_rels.csv",
+       {}
+   );
+
+   // --- Export IS_NEARBY Relationships ---
+   CALL apoc.export.csv.query(
+        "MATCH ()-[r:IS_NEARBY]->() RETURN r",
+        "/tmp/export/poi_is_nearby_rels.csv",
+        {}
+   )
+   ```
+4. Copy the files from the docker to the host and delete the directory on the
+   container with the command
+   ```shell
+   docker cp $(docker compose ps -q neo4j):/tmp/export ./export-data
+   docker compose exec neo4j rm -rf /tmp/export
+   ```
+5. Zip all csv files and delete them with
+   ```shell
+   for f in ./export-data/*.csv; do
+      zip "./import-data/${f%.csv}.zip" "$f"
+   done
+   rm -rf ./export-data
+   ```
+6. Now u can import the data to a neo4j database with the command. Replace
+   *\<VOLUME>* with the actual volume, and *\<CONTAINER>* with the actual
+   container.
    ```shell
    docker run --rm \
-       --volume=$PWD/example_data:/import \
-       --volume=$(docker volume inspect -f '{{.Mountpoint}}' neo4j_data):/data \
-       neo4j:2025.10.1 \
-       neo4j-admin database import full --overwrite-destination \
-           --multiline-fields=true \
-           --nodes="POI=/import/poi_nodes.zip" \
-           --nodes="Type=/import/type_nodes.zip" \
-           --relationships="IS_A=/import/poi_is_a_type_rels.zip" \
-           --nodes="City=/import/cities_nodes.zip" \
-           --relationships="ROAD_TO=/import/roads_rels.zip"
+       --volume=$PWD/import-data:/import \
+       --volume=$(docker volume inspect -f '{{.Mountpoint}}' <VOLUME>):/data \
+       <CONTAINER> \
+       neo4j-admin database import full neo4j\
+            --overwrite-destination \
+            --verbose \
+            --multiline-fields=true \
+            --nodes="City=/import/cities_nodes.zip" \
+            --nodes="POI=/import/poi_nodes.zip" \
+            --nodes="POIType=/import/type_nodes.zip" \
+            --relationships="ROAD_TO=/import/roads_rels.zip" \
+            --relationships="IS_A=/import/poi_is_a_type_rels.zip"\
+            --relationships="IS_IN=/import/poi_is_in_rels.zip" \
+            --relationships="IS_NEARBY=/import/poi_is_nearby_rels.zip"
    ```
-5. Create `IS_IN` relationships:
-   ```cypher
-   CALL apoc.periodic.iterate(
-     "MATCH (p:POI {importVersion: $import_version}) WHERE p.city IS NOT NULL RETURN p",
-     "MATCH (c:City {name: p.city})
-      MERGE (p)-[r:IS_IN]->(c)
-      SET r.importVersion = $import_version",
-     {
-       batchSize: 2000,
-       parallel: true,
-       params: { import_version: $import_version }
-     }
-   )
-   YIELD batches, total, errorMessages, committedOperations
-   RETURN batches, total, errorMessages, committedOperations;
-   ```
-6. Create `IS_NEARBY` relationships:
-   ```cypher
-   CALL apoc.periodic.iterate(
-     "MATCH (p:POI {importVersion: $import_version})
-      WHERE NOT (p)-[:IS_IN]->(:City) AND p.location IS NOT NULL
-      RETURN p",
-     "MATCH (c:City)
-      WHERE point.distance(p.location, c.location) < 100000
-      WITH p, c, point.distance(p.location, c.location) AS dist
-      ORDER BY dist ASC
-      WITH p, collect(c)[0] AS nearestCity, collect(dist)[0] AS shortestDist
-      WHERE nearestCity IS NOT NULL
-      MERGE (p)-[r:IS_NEARBY]->(nearestCity)
-      SET r.import_version = $import_version,
-          r.distance_km = round(shortestDist / 1000.0, 2)",
-     {
-       batchSize: 1000,
-       parallel: false,
-       params: { import_version: $import_version }
-     }
-   )
-   YIELD batches, total, errorMessages, committedOperations
-   RETURN batches, total, errorMessages, committedOperations;
-   ```
+7. *(Optional)* — Copy the content to [tests/data/bulk](../tests/data/bulk)
+   to use it as dataset for the development environment.
