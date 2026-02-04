@@ -47,64 +47,94 @@ The following steps are executed sequentially for each import run. All step to
 import the data are defined in the module
 [src/backend/dataset_import](../src/backend/dataset_import).
 
-### 1. Trigger Download
+The following flow chart describes the orchestrated data upload process managed
+by Airflow.
 
-- **Endpoint**: `GET /data/trigger-download`
+```mermaid
+%%| fig-align: center
+%%{init: {'theme': 'neutral', 'themeVariables': { 'primaryColor': '#e3f2fd', 'primaryTextColor': '#1565c0', 'primaryBorderColor': '#90caf9', 'lineColor': '#b0bec5', 'secondaryColor': '#fff9c4', 'tertiaryColor': '#f1f8e9', 'mainBkg': '#fafafa', 'nodeBorder': '#90caf9', 'clusterBkg': '#ffffff', 'clusterBorder': '#cfd8dc', 'edgeColor': '#90a4ae'}}}%%
+graph LR
+        Start([Start DAG]) --> Download[Download Data]
+        Download --> Unzip[Unzip Archive]
+        Unzip --> Extract[Extract & Process]
+        Extract --> Import[Import to Neo4j]
+        Import --> Cleanup[Cleanup Temp Files]
+        Cleanup --> End([End DAG])
+```
+
+### 1. Start
+
+Queue and Trigger the DAG **trigger-download**, via the web-UI of airflow, at
+[http://localhost:8085](http://localhost:8085)
+
+### 2. Download
+
+#### Trigger Download
+
+- **Endpoint**: *GET /data/trigger-download*
 - **Description**: Authenticates with DATAtourisme, checks if new data is available
   based on the last generation date, and starts a background task to download the
   ZIP file.
-- **Key File**: `src/neo4j_api/datatourisme_handler.py`
+- **Key File**: **[src/backend/dataset_import/handler.py](../src/backend/dataset_import/handler.py)**
 
-### 2. Wait for Download Completion
+#### Wait for Download Completion
 
-- Airflow polls `GET /data/download/status` until the status is `completed`.
+- Airflow polls *GET /data/download/status* until the status is **completed**.
 
-### 3. Trigger Unzip
+### 3. Unzip
 
-- **Endpoint**: `GET /data/trigger-unzip`
+#### Trigger Unzip
+
+- **Endpoint**: *GET /data/trigger-unzip*
 - **Description**: Unzips the downloaded archive into the designated save directory.
-- **Key File**: `src/neo4j_api/data_upload_etl.py`
+- **Key File**: **[src/backend/dataset_import/pipeline.py](../src/backend/dataset_import/pipeline.py)**
 
-### 4. Wait for Unzip
+#### Wait for Unzip
 
-- Airflow polls `GET /data/unzip/status` until `completed`.
+- Airflow polls *GET /data/unzip/status* until **completed**.
 
-### 5. Trigger Extract Data
+### 4. Extract
 
-- **Endpoint**: `GET /data/trigger-extract-data`
+#### Trigger Extract Data
+
+- **Endpoint**: *GET /data/trigger-extract-data*
 - **Description**: Processes the unzipped JSON files (via `index.json`), extracts
   Points of Interest (POIs) and their types, and generates CSV files formatted for
   Neo4j import.
-- **Key Files**: `src/neo4j_api/data_upload_etl.py`, `src/data/make_dataset.py`
-- **Generated CSVs**: `poi_nodes.csv`, `type_nodes.csv`, `poi_is_a_type_rels.csv`
+- **Key File**: **[src/backend/dataset_import/pipeline.py](../src/backend/dataset_import/pipeline.py)**
+- **Generated CSVs**: *poi_nodes.csv*, *type_nodes.csv*, *poi_is_a_type_rels.csv*
 
-### 6. Wait for Extract
+#### Wait for Extract
 
-- Airflow polls `GET /data/extract/status` until `completed`.
+- Airflow polls *GET /data/extract/status* until **completed**.
 
-### 7. Trigger Import Data
+### 5. Import
 
-- **Endpoint**: `GET /data/trigger-import-data`
+#### Trigger Import Data
+
+- **Endpoint**: *GET /data/trigger-import-data*
 - **Description**: Loads the generated CSVs into Neo4j using `LOAD CSV` and `apoc.periodic.iterate`.
   It also creates spatial indices and establishes relationships between POIs and
   Cities (`IS_IN` or `IS_NEARBY`).
-- **Key File**: `src/neo4j_api/import_data.py`
+- **Key File**: **[src/backend/dataset_import/neo4j_load.py](../src/backend/dataset_import/neo4j_load.py)**
 
-### 8. Wait for Import
+#### Wait for Import
 
-- Airflow polls `GET /data/import/status` until `completed`.
+- Airflow polls *GET /data/import/status* until **completed**.
 
-### 9. Trigger Cleanup
+### 6. Cleanup
 
-- **Endpoint**: `GET /data/trigger-import-cleanup`
+#### Trigger Cleanup
+
+- **Endpoint**: *GET /data/trigger-import-cleanup*
 - **Description**: Removes the temporary ZIP file and extracted folders. In the
   database, it deletes nodes from previous import versions to keep only the latest
   data.
-- **Key File**: `src/neo4j_api/cleanup_import.py`
+- **Key File**: **[src/backend/dataset_import/cleanup.py](../src/backend/dataset_import/cleanup.py)**
 
-### 10. Wait for Cleanup
+### Wait for Cleanup
 
-- Airflow polls `GET /data/cleanup/status` until `completed`.
+- Airflow polls *GET /data/cleanup/status* until **completed**.
 
 ## Configuration & Environment Variables
 
