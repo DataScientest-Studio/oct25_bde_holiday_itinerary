@@ -18,7 +18,7 @@ coding conventions, and tools required for contributing or modifying the system.
 
 All dependencies listed in this document are mandatory for the production environment.
 Furthermore the dependencies listed in [README.md](../README.md) and [production.md](production.md)
-are required. The exact dependency versions are managed via `pyproject.toml`
+are required. The exact dependency versions are managed via [`pyproject.toml`](../pyproject.toml)
 and the lock file.
 
 - **[pre-commit](https://pre-commit.com/)** (`4.2.0`)\

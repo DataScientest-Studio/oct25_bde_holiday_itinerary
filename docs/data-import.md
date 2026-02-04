@@ -38,12 +38,21 @@ data is processed and finally imported into **Neo4j**.
 
 All dependencies listed in this document are mandatory for the production environment.
 Furthermore the dependencies listed in [README.md](../README.md) and [production.md](production.md)
-are required. The exact dependency versions are managed via [pyproject.toml](../pyproject.toml)
+are required. The exact dependency versions are managed via [`pyproject.toml`](../pyproject.toml)
 and the lock file.
 
 - **[Apache Airflow](https://airflow.apache.org/)**\
   Orchestrates the data download and processing pipeline via scheduled DAGs
   (defined in `airflow/dags/data_download_trigger.py`).
+
+## Commands
+
+Copy `.env.example` to `.env` and adjust values if needed. In any case, you have
+to set the env varible **AIRFLOW_CONN_NEO4J_API_CONN** to *http://neo4j-api-dev:8080*
+in the `.env` file
+
+1. **make run-airflow** — Starts the airflow services
+2. **make down-airflow** — Shutdown the airflow services
 
 ## Workflow Steps
 

@@ -9,7 +9,7 @@ reliably in a production setting.
 
 All dependencies listed in this document are mandatory for the production environment.
 Furthermore the dependencies listed in [README.md](../README.md) are required.
-The exact dependency versions are managed via `pyproject.toml` and the lock file.
+The exact dependency versions are managed via [`pyproject.toml`](../pyproject.toml) and the lock file.
 
 - **[Neo4j Python Driver](https://neo4j.com/docs/python-manual/current/)** (`6.0.3`)\
   Official Neo4j driver used for database connectivity and Cypher query execution.
