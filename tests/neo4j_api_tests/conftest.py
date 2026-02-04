@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi.testclient import TestClient
 
-from src.neo4j_api import app
+from src.backend.neo4j_api import app
 
 
 @pytest.fixture
