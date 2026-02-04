@@ -154,52 +154,6 @@ to be created manually after the initial import.
 Detailed information about the architecture can be found in
 [docs/backend-architecture.md](docs/backend-architecture.md).
 
-## Project Architecture
-
-The overall architecture of the system is shown in the following diagram. For more details, see [architecture.md](architecture.md).
-
-```mermaid
-graph LR
-    subgraph " "
-        direction TB
-
-        subgraph Client Layer
-            UI[Streamlit UI]
-        end
-
-        subgraph API Layer
-            Backend[FastAPI Backend]
-        end
-
-        subgraph Database Layer
-            Neo4j[(Neo4j Database)]
-        end
-
-        subgraph Orchestration Layer
-            Airflow[Apache Airflow]
-        end
-    end
-
-    subgraph External
-        DataTourisme[DataTourisme API/Feed]
-    end
-
-    UI -->|REST API| Backend
-    Backend -->|Bolt Protocol| Neo4j
-    Airflow -->|Trigger ETL via REST| Backend
-    Backend -->|Download/Extract| DataTourisme
-    Backend -->|Import Data| Neo4j
-
-    %% Storage
-    subgraph Storage
-        Files[(Local Files / Volumes)]
-    end
-
-    Backend -.-> Files
-    Neo4j -.-> Files
-    Airflow -.-> Files
-```
-
 ## Underlying Data Structure
 
 The system uses a Neo4j graph database to model cities, roads, and points of interest
