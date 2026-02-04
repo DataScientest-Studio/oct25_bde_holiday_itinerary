@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from neo4j import Driver, GraphDatabase
 
-from src.neo4j_driver.neo4j_driver import Neo4jDriver
+from src.backend.neo4j_driver.neo4j_driver import Neo4jDriver
 
 TEST_DATA_DIR = Path("tests/neo4j_driver_tests/data")
 

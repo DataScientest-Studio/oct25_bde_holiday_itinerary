@@ -89,3 +89,13 @@ target/
 .mypy_cache/
 
 france_poi.csv
+
+.pytest_cache
+
+config/
+
+datatourisme.zip
+logs/
+feed_data/
+dags
+import-data/

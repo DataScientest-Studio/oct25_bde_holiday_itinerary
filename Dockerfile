@@ -31,16 +31,17 @@ WORKDIR /app
 COPY --from=api-builder /builder/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY ./src/neo4j_api /app/src/neo4j_api
-COPY ./src/neo4j_driver /app/src/neo4j_driver
-COPY ./src/data/make_dataset.py /app/src/data/make_dataset.py
+COPY ./src/backend/neo4j_api /app/neo4j_api
+COPY ./src/backend/neo4j_driver /app/neo4j_driver
+COPY ./src/backend/transformation /app/transformation
+COPY ./src/backend/dataset_import /app/dataset_import
 COPY ./src/logger/ ./logger
 
 ENV PYTHONPATH=/app
 
 WORKDIR /
 
-ENTRYPOINT ["uvicorn", "src.neo4j_api:app", "--host", "0.0.0.0", "--port", "8080"]
+ENTRYPOINT ["uvicorn", "neo4j_api:app", "--host", "0.0.0.0", "--port", "8080"]
 
 
 # Build image for the streamlit-ui
@@ -59,8 +60,8 @@ WORKDIR /app
 COPY --from=ui-builder /builder/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY ./src/streamlit_app.py ./app.py
-COPY ./src/ui/ ./ui
+COPY ./src/frontend/streamlit_app.py ./app.py
+COPY ./src/frontend/ui/ ./ui
 COPY ./src/logger/ ./logger
 
 ENTRYPOINT [ "streamlit", "run", "app.py" ]

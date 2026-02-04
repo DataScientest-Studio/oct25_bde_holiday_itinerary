@@ -4,14 +4,15 @@ version = "0.1.0"
 description = "Simple tool to plan holiday routes in france."
 requires-python = ">=3.13"
 authors = [
-    {name = "Adam Stibal",email = "adam.stibal@google.com"},
-    {name = "Max Düssler",email = "max.duessler@posteo.net"},
+    { name = "Adam Stibal", email = "adam.stibal@google.com" },
+    { name = "Max Düssler", email = "max.duessler@posteo.net" },
 ]
 readme = "README.md"
 
 [tool.poetry]
 packages = [
-    { include = "src" },
+    { include = "backend", from = "src" },
+    { include = "frontend", from = "src" },
 ]
 
 [tool.poetry.dependencies]
@@ -27,9 +28,9 @@ isort = "7.0.0"
 flake8 = "7.3.0"
 mypy = "1.18.2"
 pytest = "9.0.1"
-requests = "^2.32.5"
-matplotlib = "^3.10.8"
-basemap = "^2.0.0"
+requests = "2.32.5"
+matplotlib = "3.10.8"
+basemap = "2.0.0"
 
 [tool.poetry.group.neo4j_driver.dependencies]
 neo4j = "6.0.3"
@@ -38,18 +39,18 @@ python-tsp = "0.5.0"
 
 [tool.poetry.group.neo4j_api.dependencies]
 uvicorn = "0.38.0"
-fastapi = {version = "0.122.0", extras = ["standard"]}
-pandas = "^2.3.3"
-tqdm = "^4.67.1"
+fastapi = { version = "0.122.0", extras = ["standard"] }
+pandas = "2.3.3"
+tqdm = "4.67.1"
 
 [tool.poetry.group.make_dataset.dependencies]
 pandas = "2.3.3"
 
 [tool.poetry.group.ui.dependencies]
 streamlit = "1.52.2"
-requests = "^2.32.5"
-pandas = "^2.3.3"
-pydeck = "^0.9.1"
+requests = "2.32.5"
+pandas = "2.3.3"
+pydeck = "0.9.1"
 
 [tool.isort]
 profile = "black"
@@ -67,3 +68,6 @@ max-doc-length = 120
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[project.scripts]
+transform-datatourisme = "scripts.transform_datatourisme:main"
