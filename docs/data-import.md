@@ -34,7 +34,7 @@ data is processed and finally imported into **Neo4j**.
 
 All dependencies listed in this document are mandatory for the production environment.
 Furthermore the dependencies listed in [README.md](../README.md) and [production.md](production.md)
-are required. The exact dependency versions are managed via `pyproject.toml`
+are required. The exact dependency versions are managed via [pyproject.toml](../pyproject.toml)
 and the lock file.
 
 - **[Apache Airflow](https://airflow.apache.org/)**\
@@ -138,8 +138,7 @@ Queue and Trigger the DAG **trigger-download**, via the web-UI of airflow, at
 
 ## Configuration & Environment Variables
 
-The import process uses the following environment variables, all defined in
-`docker-compose.yaml` for the `neo4j_api` service.
+The import process uses the following environment variables.
 
 | Variable                  | Description                                                                                                                       |
 | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
